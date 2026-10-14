@@ -13,6 +13,7 @@ Never use Claude Code to make in-product fixes (editing `requests/<iid>/`) durin
 npm --prefix locus ci                              # once: installs ajv + links packages/modeling
 npm run test:locus                                 # Locus tests (node:test)
 npm run locus -- examples/projectile.json          # validate + render to out/projectile (STL, SVG, description, scene)
+npm run locus -- touchcheck examples/projectile.json  # TL-1..TL-5 on out/projectile → report + overlay (exit 1 = failed)
 npm install && npm test && npm run test:tsd        # upstream JSCAD tests (what `upstream-test` runs in CI)
 ```
 

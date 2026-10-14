@@ -95,12 +95,18 @@ Schema [`locus/core/schema/manifest.schema.json`](../locus/core/schema/manifest.
 
 `rules` always lists all five rules (TL-1..TL-5) in order. `passed` is true only if every rule passed.
 
+_Proposed 14 Oct (Ashfaq), additive, needs agreement:_ a rule may carry `note` (plain words on how it was applied, e.g.
+`"not applicable: no labels yet"`), and a violation may carry `subject` (the scene ids involved: line ids, mark ids or
+`"plate"`). `at` is `null` when the problem has no place on the plate (e.g. a missing mark). `measuredMm` and
+`requiredMm` are `null` when nothing is measured. For TL-1, `measuredMm` is the clear gap between raised edges.
+Schema: [`locus/core/schema/touchcheck-report.schema.json`](../locus/core/schema/touchcheck-report.schema.json).
+
 ## 5. Jobs
 
 | Job | Consumes | Produces (artifacts) |
 |---|---|---|
 | `render` | `requests/<iid>/*` | `out/<iid>/graph.stl`, `out/<iid>/graph.svg`, `out/<iid>/description.txt`, `out/<iid>/scene.json` |
-| `touchcheck` | `out/<iid>/scene.json` (+ the other render outputs for the overlay) | `out/<iid>/touchcheck-report.json`, `out/<iid>/overlay.svg` — **kept on failure** (`artifacts:when: always`) |
+| `touchcheck` | `out/<iid>/scene.json`, `out/<iid>/graph.svg` (for the overlay), `requests/<iid>/spec.json` (requested marks for TL-4) | `out/<iid>/touchcheck-report.json`, `out/<iid>/overlay.svg` — **kept on failure** (`artifacts:when: always`) |
 | `bundle` | `out/<iid>/*` | `dist/graph-<iid>-v<n>.zip` + `dist/graph-<iid>-v<n>/` (unzipped) + dotenv `bundle.env` |
 | `publish-package` | `bundle.env`, `dist/` | generic package `graph-<iid>`, version `<n>.0.0`, file `graph-<iid>-v<n>.zip` |
 | `release` | `bundle.env` | GitLab release, tag `graph-<iid>-v<n>`, asset link to the package file |

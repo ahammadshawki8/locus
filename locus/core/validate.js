@@ -12,7 +12,8 @@ const load = (name) => ajv.compile(JSON.parse(fs.readFileSync(path.join(schemaDi
 const validators = {
   spec: load('spec.schema.json'),
   layout: load('layout.schema.json'),
-  manifest: load('manifest.schema.json')
+  manifest: load('manifest.schema.json'),
+  touchcheckReport: load('touchcheck-report.schema.json')
 }
 
 const formatErrors = (errors) => (errors || []).map((e) => `${e.instancePath || '/'} ${e.message}`)
@@ -37,6 +38,15 @@ const validateLayout = (layout) => validators.layout(layout) ? [] : formatErrors
 const validateManifest = (manifest) => validators.manifest(manifest) ? [] : formatErrors(validators.manifest.errors)
 
 /**
+ * Validate a touchcheck report (docs/contracts.md §4), including that `passed` agrees with the rules.
+ * @returns {string[]} errors; empty when valid
+ */
+const validateTouchcheckReport = (report) => {
+  if (!validators.touchcheckReport(report)) return formatErrors(validators.touchcheckReport.errors)
+  return report.passed === report.rules.every((r) => r.passed) ? [] : ['/passed must be true exactly when every rule passed']
+}
+
+/**
  * Check that a spec still matches its request.lock.json (what guard-maths enforces on the spec side).
  * @returns {string[]} errors; empty when the locked fields are identical
  */
@@ -48,4 +58,4 @@ const checkLock = (spec, lock) => {
   return errors
 }
 
-module.exports = { validateSpec, validateLayout, validateManifest, checkLock }
+module.exports = { validateSpec, validateLayout, validateManifest, validateTouchcheckReport, checkLock }

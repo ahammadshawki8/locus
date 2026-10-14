@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://locus.local/schema/touchcheck-report.schema.json",
+  "title": "Locus touchcheck report",
+  "description": "touchcheck-report.json, written by the touchcheck job and shipped in the bundle. See docs/contracts.md §4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "profileId", "passed", "rules"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "fixture": { "description": "true only for test fixtures; absent in a real report.", "type": "boolean" },
+    "profileId": { "type": "string" },
+    "passed": { "description": "true only if every rule passed.", "type": "boolean" },
+    "rules": {
+      "description": "Always all five rules, in order.",
+      "type": "array",
+      "minItems": 5,
+      "prefixItems": [
+        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-1" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-2" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-3" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-4" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-5" } } }] }
+      ],
+      "items": false
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "passed", "violations"],
+      "properties": {
+        "id": { "enum": ["TL-1", "TL-2", "TL-3", "TL-4", "TL-5"] },
+        "passed": { "type": "boolean" },
+        "violations": { "type": "array", "items": { "$ref": "#/$defs/violation" } },
+        "note": { "description": "Plain words on how the rule was applied, e.g. \"not applicable: no labels yet\".", "type": "string" }
+      }
+    },
+    "violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message", "measuredMm", "requiredMm", "at"],
+      "properties": {
+        "message": { "description": "Plain words, shown on the overlay.", "type": "string", "minLength": 1 },
+        "measuredMm": { "description": "null when nothing is measured (e.g. a missing mark).", "anyOf": [{ "type": "number" }, { "type": "null" }] },
+        "requiredMm": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+        "at": {
+          "description": "Where on the plate (scene mm, origin bottom-left, y up); null when the problem has no place on the plate.",
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["xMm", "yMm"],
+              "properties": { "xMm": { "type": "number" }, "yMm": { "type": "number" } }
+            },
+            { "type": "null" }
+          ]
+        },
+        "subject": { "description": "Scene ids involved: line ids, mark ids or \"plate\".", "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

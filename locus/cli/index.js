@@ -1,13 +1,19 @@
 #!/usr/bin/env node
-// Local CLI and the `render` CI job's entry point.
+// Local CLI and the entry point of the `render` and `touchcheck` CI jobs.
 //   locus <requests/<iid> | spec.json> [--out <dir>]
+//     writes graph.stl, graph.svg, description.txt and scene.json (docs/contracts.md §5)
+//   locus touchcheck <requests/<iid> | spec.json> [--out <dir>]
+//     reads scene.json + graph.svg from the render output, writes touchcheck-report.json + overlay.svg;
+//     exits 0 when every rule passed, 1 when a rule failed, 2 when the render output is missing or stale
 // A request folder holds spec.json + layout.json (+ request.lock.json); a spec file `x.json` uses `x.layout.json`.
-// Writes graph.stl, graph.svg, description.txt and scene.json (docs/contracts.md §5).
+// The output folder defaults to out/<folder or spec name>.
 const fs = require('fs')
 const path = require('path')
 
 const { validateSpec, validateLayout, checkLock } = require('../core/validate')
-const { render, writeOutputs } = require('../core/render')
+const { render, writeOutputs, loadProfile } = require('../core/render')
+const { touchcheck } = require('../touchcheck')
+const { toOverlay } = require('../touchcheck/overlay')
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'))
 
@@ -25,17 +31,8 @@ const resolveInputs = (target) => {
   return { name, specFile: target, layoutFile: path.join(path.dirname(target), `${name}.layout.json`), lockFile: null }
 }
 
-const main = (argv) => {
-  const args = argv.slice(2)
-  const outIndex = args.indexOf('--out')
-  const outArg = outIndex >= 0 ? args.splice(outIndex, 2)[1] : null
-  const target = args[0]
-  if (!target) {
-    console.error('usage: locus <requests/<iid> | spec.json> [--out <dir>]')
-    return 64
-  }
-
-  const { name, specFile, layoutFile, lockFile } = resolveInputs(target)
+const runRender = (target, outDir) => {
+  const { specFile, layoutFile, lockFile } = resolveInputs(target)
   const spec = readJson(specFile)
   const layout = readJson(layoutFile)
   const errors = [
@@ -48,14 +45,61 @@ const main = (argv) => {
     return 1
   }
 
-  const outDir = outArg || path.join('out', name)
   const result = render(spec, layout)
   writeOutputs(outDir, result)
   const { widthMm, heightMm } = result.scene.plate
   console.log(`${target}: rendered ${widthMm.toFixed(1)} x ${heightMm.toFixed(1)} mm plate to ${outDir}`)
   for (const m of result.scene.missing) console.log(`  missing: ${m.mark} (${m.reason})`)
-  console.log('  Not touch-checked yet: touchcheck arrives with Gate 7.')
+  console.log(`  Not touch-checked yet: run \`locus touchcheck ${target}\`.`)
   return 0
+}
+
+const runTouchcheck = (target, outDir) => {
+  const sceneFile = path.join(outDir, 'scene.json')
+  const svgFile = path.join(outDir, 'graph.svg')
+  for (const file of [sceneFile, svgFile]) {
+    if (!fs.existsSync(file)) {
+      console.error(`${target}: ${file} not found. Render first: locus ${target} --out ${outDir}`)
+      return 2
+    }
+  }
+
+  const spec = readJson(resolveInputs(target).specFile)
+  const scene = readJson(sceneFile)
+  if (spec.profileId !== scene.profileId) {
+    console.error(`${target}: spec.json asks for profile "${spec.profileId}" but ${sceneFile} was rendered for "${scene.profileId}". Render again.`)
+    return 2
+  }
+  const checked = touchcheck(scene, loadProfile(scene.profileId), { requested: spec.mark })
+  const { report } = checked
+  fs.writeFileSync(path.join(outDir, 'touchcheck-report.json'), JSON.stringify(report, null, 2) + '\n')
+  fs.writeFileSync(path.join(outDir, 'overlay.svg'), toOverlay(fs.readFileSync(svgFile, 'utf8'), scene, checked))
+
+  console.log(`${target}: touchcheck ${report.passed ? 'passed' : 'FAILED'} (${report.profileId}); report and overlay in ${outDir}`)
+  for (const rule of report.rules) {
+    console.log(`  ${rule.id} ${rule.passed ? 'passed' : 'failed'}${rule.note ? `: ${rule.note}` : ''}`)
+    for (const v of rule.violations) {
+      const where = v.at ? ` at (${v.at.xMm}, ${v.at.yMm}) mm` : ''
+      const measured = v.measuredMm == null ? '' : ` [${v.measuredMm} mm, needs ${v.requiredMm} mm]`
+      console.log(`    - ${(v.subject || []).join(' / ')}${where}: ${v.message}${measured}`)
+    }
+  }
+  console.log('  Passing these checks does not mean a reader will understand the graphic by touch.')
+  return report.passed ? 0 : 1
+}
+
+const main = (argv) => {
+  const args = argv.slice(2)
+  const command = args[0] === 'touchcheck' ? args.shift() : 'render'
+  const outIndex = args.indexOf('--out')
+  const outArg = outIndex >= 0 ? args.splice(outIndex, 2)[1] : null
+  const target = args[0]
+  if (!target) {
+    console.error('usage: locus [touchcheck] <requests/<iid> | spec.json> [--out <dir>]')
+    return 64
+  }
+  const outDir = outArg || path.join('out', resolveInputs(target).name)
+  return command === 'touchcheck' ? runTouchcheck(target, outDir) : runRender(target, outDir)
 }
 
 process.exitCode = main(process.argv)

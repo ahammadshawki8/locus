@@ -2,7 +2,7 @@
 #
 # Only jobs that do real work live here (docs/decisions.md, 2026-10-14). Planned jobs (projectLocus.md §13) are added
 # as each one is built:
-#   validate-spec · touchcheck · guard-scope · guard-maths · guard-description · license-check ·
+#   validate-spec · guard-scope · guard-maths · guard-description · license-check ·
 #   notify-agent (fallback) · bundle · publish-package · release · deploy-staging · validate-staging ·
 #   approve-production (supervised only) · promote-production · post-deploy-smoke · reply-teacher ·
 #   library-recheck (scheduled) · bisect-regression · guard-revert · deploy-production-pointer
@@ -54,6 +54,48 @@ render:
     expire_in: 30 days
     paths:
       - out/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
+
+# Touch-check every rendered request (docs/contracts.md §4-5): TL-1..TL-5 on out/<iid>/scene.json, writing
+# touchcheck-report.json + overlay.svg. A failing rule fails the job; the report and overlay are kept either way, so
+# attempt 1 can be read by the fixer agent and printed. The example is checked too but does not gate the pipeline: it is
+# the known TL-1 failure and stays that way on purpose (docs/decisions.md, 2026-10-14). A crash (exit > 1) still fails.
+touchcheck:
+  stage: test
+  image: node:20
+  needs:
+    - job: render
+      artifacts: true
+  cache:
+    key: npm-locus
+    paths:
+      - .npm/
+  script:
+    - npm --prefix locus ci
+    - |
+      code=0
+      node locus/cli/index.js touchcheck examples/projectile.json --out out/example-projectile || code=$?
+      if [ "$code" -gt 1 ]; then exit "$code"; fi
+      if [ "$code" -eq 1 ]; then echo "example-projectile: failed touchcheck as expected; not a gate"; fi
+    - |
+      status=0
+      checked=0
+      for dir in requests/*/; do
+        [ -f "${dir}spec.json" ] || continue
+        checked=$((checked + 1))
+        node locus/cli/index.js touchcheck "$dir" --out "out/$(basename "$dir")" || status=1
+      done
+      echo "touchcheck: ${checked} request(s) checked"
+      exit "$status"
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - out/*/touchcheck-report.json
+      - out/*/overlay.svg
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
