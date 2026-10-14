@@ -1,0 +1,8 @@
+{
+  "fixture": true,
+  "seeded": "TL-3",
+  "fails": [
+    "TL-3"
+  ],
+  "why": "The good layout with the vertex and y-intercept letters both moved into the same empty spot above the y-intercept: the two letters overlap, though each is clear of every line and other mark."
+}

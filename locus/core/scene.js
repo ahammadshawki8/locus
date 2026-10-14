@@ -2,6 +2,7 @@
 // bottom-left corner. STL, SVG and touchcheck all read the same scene, so what is checked is what is printed.
 const { evaluate } = require('./polynomial')
 const { computeMarks } = require('./marks')
+const { buildLabels, keyHeightMm } = require('./labels')
 
 const wholeUnitsIn = (min, max) => {
   const units = []
@@ -29,14 +30,16 @@ const buildScene = (spec, layout, profile) => {
   }
   const range = { xMin: domain.min, xMax: domain.max, yMin, yMax }
 
+  // In key mode the key sits under the plot, so the plot moves up by the key's height.
+  const plotBottomMm = g.marginMm + (layout.labelMode === 'key' ? keyHeightMm(markPoints.length, profile) : 0)
   const toMm = (x, y) => [
     g.marginMm + (x - range.xMin) * layout.xScaleMm,
-    g.marginMm + (y - range.yMin) * layout.yScaleMm
+    plotBottomMm + (y - range.yMin) * layout.yScaleMm
   ]
 
   const plate = {
     widthMm: 2 * g.marginMm + (range.xMax - range.xMin) * layout.xScaleMm,
-    heightMm: 2 * g.marginMm + (range.yMax - range.yMin) * layout.yScaleMm,
+    heightMm: plotBottomMm + g.marginMm + (range.yMax - range.yMin) * layout.yScaleMm,
     thicknessMm: g.baseThicknessMm
   }
 
@@ -64,7 +67,9 @@ const buildScene = (spec, layout, profile) => {
     return { ...p, xMm, yMm, diameterMm: g.mark.diameterMm, heightMm: g.mark.heightMm }
   })
 
-  return { profileId: profile.id, plate, range, lines, marks, missing, labels: [], toMm }
+  const { labels, key } = buildLabels(marks, layout, profile)
+
+  return { profileId: profile.id, plate, range, lines, marks, missing, labelMode: layout.labelMode, labels, key, toMm }
 }
 
 module.exports = { buildScene }

@@ -1,0 +1,8 @@
+{
+  "fixture": true,
+  "seeded": "TL-1",
+  "fails": [
+    "TL-1"
+  ],
+  "why": "The projectile at its starting layout with nothing marked (so no labels): curve ends 1.53 mm clear of the x-axis, grid line along the vertex, axis and grid stubs below the x-axis."
+}

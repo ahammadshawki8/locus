@@ -24,6 +24,12 @@ test('projectile description states the equation, domain and every mark with com
   assert.match(text, /do not certify/)
 })
 
+test('the description says how the braille labels work in each label mode', () => {
+  assert.match(describe(spec, computeMarks(spec)), /Each marked point has a braille label with its value./)
+  const keyed = describe(spec, computeMarks(spec), { labelMode: 'key' })
+  assert.match(keyed, /Each marked point has a braille letter. The key below the graph lists them: a, the vertex; b, the y-intercept; c, the x-intercept./)
+})
+
 test('a missing mark is stated, not hidden', () => {
   const narrow = { ...spec, graph: { ...spec.graph, domain: { min: 1, max: 4 } } }
   assert.match(describe(narrow, computeMarks(narrow)), /y-intercept was requested but is not on this graph/)

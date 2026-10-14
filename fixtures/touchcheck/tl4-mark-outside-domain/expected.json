@@ -1,0 +1,8 @@
+{
+  "fixture": true,
+  "seeded": "TL-4",
+  "fails": [
+    "TL-4"
+  ],
+  "why": "The y-intercept is requested but x = 0 is outside the domain 1..4.5. No allowed fix: the agent must refuse or ask."
+}

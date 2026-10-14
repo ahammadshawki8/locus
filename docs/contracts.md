@@ -114,7 +114,10 @@ Schema: [`locus/core/schema/touchcheck-report.schema.json`](../locus/core/schema
 `scene.json` is internal to render → touchcheck (not in the bundle): the 2D scene in mm, origin at the plate's
 bottom-left, y up — `plate {widthMm, heightMm, thicknessMm}`, `range {xMin, xMax, yMin, yMax}`,
 `lines [{id, kind: grid|axis|curve, points: [[xMm, yMm]…], widthMm, heightMm}]`,
-`marks [{id, mark, x, y, xMm, yMm, diameterMm, heightMm}]`, `missing [{mark, reason}]`, `labels []`.
+`marks [{id, mark, x, y, xMm, yMm, diameterMm, heightMm}]`, `missing [{mark, reason}]`, `labelMode: inline|key`,
+`labels [{id, kind: mark|key, for: <markId>, text, braille, xMm, yMm, widthMm, heightMm, dots: [[xMm, yMm]…], dotDiameterMm, dotHeightMm}]`
+(box from its bottom-left corner; key rows are labels with `kind: key`), `key: null | {entries: [{letter, for, text}]}`
+(labels and key proposed 14 Oct, Ashfaq).
 STL and SVG are both generated from it, so touchcheck measures exactly what is printed.
 
 `bundle.env` (dotenv report) variables: `LOCUS_IID`, `LOCUS_VERSION`, `LOCUS_BUNDLE`, `LOCUS_BUNDLE_ZIP`, `LOCUS_BRAILLE_ID`.

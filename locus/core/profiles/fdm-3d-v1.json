@@ -11,6 +11,14 @@
     "axis": { "widthMm": 1.2, "heightMm": 0.8 },
     "grid": { "widthMm": 1.2, "heightMm": 0.4 },
     "mark": { "diameterMm": 4.0, "heightMm": 1.6 },
+    "braille": {
+      "dotDiameterMm": 1.44,
+      "dotHeightMm": 0.48,
+      "dotSpacingMm": 2.34,
+      "cellSpacingMm": 6.2,
+      "lineSpacingMm": 10.16,
+      "source": "NLS Specification 800 (Library of Congress) cell dimensions, to be confirmed against the published spec and the calibration print (Gate 7b)"
+    },
     "curveSamples": 200
   },
   "rules": {

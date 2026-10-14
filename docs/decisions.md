@@ -80,5 +80,35 @@ print (Gate 7b). Any change is recorded here with its source.
 - **CI**: the `touchcheck` job gates `requests/*`. The example is checked too and its report and overlay are kept, but
   its expected failure (exit 1) does not fail the job; a crash (exit > 1) does. Unit tests assert that the example fails.
 
+## 2026-10-14 — Braille labels, key mode, TL-2 / TL-3 (Ashfaq)
+- **Braille table**: our own minimal Grade 1 (uncontracted) table in `core/braille.js`. It covers letters, capitals
+  (dot 6), digits with a number sign before *each* number, decimal point (256), comma (2), minus (5 + 36) and hyphen (36).
+  Any other character is refused, not guessed. **Not checked by a braille transcriber yet**; ask the practitioner
+  (Gate 4). Known question: whether lone letters (key letters, "x") need the grade 1 indicator.
+- **Cell size** in `fdm-3d-v1.geometry.braille`: NLS Specification 800 values (dot base 1.44 mm, height 0.48 mm, dot
+  spacing 2.34 mm, cell spacing 6.2 mm, line spacing 10.16 mm). These are geometry, not rule values, and are to be
+  confirmed against the published spec and the calibration print (Gate 7b): 0.48 mm dots are low for FDM. Dots are
+  domes (half-ellipsoids), each a separate watertight shell like the other parts.
+- **Label text**: the value a reader needs. For a vertex or turning point it is `x,y`; for the y-intercept, y; for an
+  x-intercept, x. Values are rounded to 2 decimals (the description says "about" when it rounded; a label cannot).
+- **Inline mode**: the label goes up and right of its dot, with the box corner at dot radius + TL-2 gap in both x and y.
+  `labelOffsets[markId]` moves it from there. This is deterministic and deliberately simple: it often fails (e.g. a
+  vertex at the top of the plot has no room above it), and moving it is the fixer's job.
+- **Key mode**: each mark gets a letter (a, b, c… in mark order) next to its dot. A key under the plot lists
+  `letter value`, one braille line per entry, at the left margin. The plot moves up so the key's top row sits the TL-2
+  gap below the lowest raised feature. The plate grows taller, which can now conflict with TL-5 (seeded fixture
+  `tl5-key-too-tall`).
+- **TL-2** is measured from each label's box to raised line edges and to other marks (a label's own mark is not counted).
+  A label that runs off the plate fails TL-2, measured by how far it runs off, because moving the label is the fix.
+  Render does not clip such labels; the STL shows exactly what was checked. **TL-3** fails when label boxes overlap.
+- **Not checked (open):** that a label stays near its own mark. A label 40 mm from its point passes TL-2/TL-3 but is
+  useless. The five rules have no published value for this; ask the practitioner. Until then the overlay and description
+  are the human check.
+- **Not built yet:** axis labels ("x", "y"), tick labels, and the braille ID `L<iid>-<n>` on the plate. The braille ID
+  needs the bundle version `n`, which render does not know yet; it comes with the bundle job.
+- **Seeded fixtures (Gate 7)**: `fixtures/touchcheck/` holds one good request and one seeded to break each rule. A test
+  renders and touch-checks each and requires exactly the expected failing rules. The good one shows that allowed fixes
+  are enough for the projectile: grid hidden, `yScaleMm` 40, key mode, labels moved.
+
 ## Pending
 - Hands-off vs Supervised (Gate 5, 16 Oct).

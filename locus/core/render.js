@@ -20,7 +20,7 @@ const render = (spec, layout, profile = loadProfile(spec.profileId)) => {
     solids,
     stl: toBinaryStl(solids, `Locus request ${spec.requestId} ${profile.id}`),
     svg: toSvg(scene, formatPolynomial(spec.graph.coeffs)),
-    description: describe(spec, { points: scene.marks, missing: scene.missing }),
+    description: describe(spec, { points: scene.marks, missing: scene.missing }, { labelMode: scene.labelMode }),
     bounds: measurements.measureAggregateBoundingBox(solids)
   }
 }

@@ -61,6 +61,52 @@ const nearestOnPolyline = (p, pl) => {
   return best
 }
 
+const nearestOnSegment = (p, a, b) => {
+  const ab = sub(b, a)
+  const len2 = ab[0] * ab[0] + ab[1] * ab[1]
+  const t = len2 < EPS ? 0 : Math.min(1, Math.max(0, ((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1]) / len2))
+  return t === 0 ? a : t === 1 ? b : lerp(a, b, t)
+}
+const clampToRect = ([x0, y0, x1, y1], [x, y]) => [Math.min(Math.max(x, x0), x1), Math.min(Math.max(y, y0), y1)]
+
+/** The part of segment ab inside the rect, by Liang-Barsky clipping; null when the segment misses the rect. */
+const clipToRect = ([x0, y0, x1, y1], a, b) => {
+  const d = sub(b, a)
+  let lo = 0
+  let hi = 1
+  for (const [p, q] of [[-d[0], a[0] - x0], [d[0], x1 - a[0]], [-d[1], a[1] - y0], [d[1], y1 - a[1]]]) {
+    if (Math.abs(p) < EPS) {
+      if (q < 0) return null
+    } else {
+      const t = q / p
+      if (p < 0) lo = Math.max(lo, t)
+      else hi = Math.min(hi, t)
+    }
+  }
+  return lo <= hi ? lerp(a, b, (lo + hi) / 2) : null
+}
+
+/** Closest points between an axis-aligned box [x0, y0, x1, y1] and a polyline; distance 0 when they overlap. */
+const nearestToRect = (rect, pl) => {
+  const [x0, y0, x1, y1] = rect
+  const corners = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]
+  let best = null
+  const consider = (rectPoint, linePoint) => {
+    const distance = dist(rectPoint, linePoint)
+    if (!best || distance < best.distance) best = { distance, rectPoint, linePoint }
+  }
+  for (let i = 1; i < pl.points.length; i++) {
+    const a = pl.points[i - 1]
+    const b = pl.points[i]
+    const inside = clipToRect(rect, a, b)
+    if (inside) return { distance: 0, rectPoint: inside, linePoint: inside }
+    consider(clampToRect(rect, a), a)
+    consider(clampToRect(rect, b), b)
+    for (const c of corners) consider(c, nearestOnSegment(c, a, b))
+  }
+  return best
+}
+
 /** Gap between two bounding boxes (0 when they overlap). */
 const boundsGap = ([ax0, ay0, ax1, ay1], [bx0, by0, bx1, by1]) =>
   Math.hypot(Math.max(0, bx0 - ax1, ax0 - bx1), Math.max(0, by0 - ay1, ay0 - by1))
@@ -100,4 +146,4 @@ const sideOf = (p, origin, dir) => {
   return Math.abs(c) < 1e-9 ? 0 : Math.sign(c)
 }
 
-module.exports = { polyline, nearestOnPolyline, boundsGap, intersections, angleBetweenDeg, sideOf, dist }
+module.exports = { polyline, nearestOnPolyline, nearestToRect, clampToRect, boundsGap, intersections, angleBetweenDeg, sideOf, dist }

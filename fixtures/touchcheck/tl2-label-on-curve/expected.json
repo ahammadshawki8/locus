@@ -1,0 +1,8 @@
+{
+  "fixture": true,
+  "seeded": "TL-2",
+  "fails": [
+    "TL-2"
+  ],
+  "why": "The good layout with the y-intercept letter back at its default place, 2.43 mm from the curve."
+}

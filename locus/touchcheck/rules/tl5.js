@@ -18,14 +18,18 @@ const checkPrintable = (scene, profile) => {
       const [xMm, yMm] = l.points[Math.floor(l.points.length / 2)]
       return { id: l.id, widthMm: l.widthMm, heightMm: l.heightMm, at: { xMm, yMm } }
     }),
-    ...scene.marks.map((m) => ({ id: m.id, widthMm: m.diameterMm, heightMm: m.heightMm, at: { xMm: m.xMm, yMm: m.yMm } }))
+    ...scene.marks.map((m) => ({ id: m.id, widthMm: m.diameterMm, heightMm: m.heightMm, at: { xMm: m.xMm, yMm: m.yMm } })),
+    ...scene.labels.filter((l) => l.dots.length).map((l) => ({
+      id: l.id, what: 'these braille dots', widthMm: l.dotDiameterMm, heightMm: l.dotHeightMm, at: { xMm: l.dots[0][0], yMm: l.dots[0][1] }
+    }))
   ]
   for (const f of features) {
+    const what = f.what || 'this line'
     if (f.widthMm < minLineWidthMm) {
-      violations.push({ message: 'Too thin: this line may not print or be felt', measuredMm: f.widthMm, requiredMm: minLineWidthMm, at: f.at, subject: [f.id] })
+      violations.push({ message: `Too thin: ${what} may not print or be felt`, measuredMm: f.widthMm, requiredMm: minLineWidthMm, at: f.at, subject: [f.id] })
     }
     if (minFeatureHeightMm != null && f.heightMm < minFeatureHeightMm) {
-      violations.push({ message: 'Too low: this line may not be felt', measuredMm: f.heightMm, requiredMm: minFeatureHeightMm, at: f.at, subject: [f.id] })
+      violations.push({ message: `Too low: ${what} may not be felt`, measuredMm: f.heightMm, requiredMm: minFeatureHeightMm, at: f.at, subject: [f.id] })
     }
   }
 

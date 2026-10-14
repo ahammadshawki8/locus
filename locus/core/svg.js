@@ -13,7 +13,13 @@ const toSvg = (scene, title) => {
     ...scene.lines.map((l) =>
       `  <polyline class="${l.kind}" data-id="${l.id}" points="${l.points.map(flip).join(' ')}" fill="none" stroke="${colours[l.kind]}" stroke-width="${l.widthMm}" stroke-linecap="round" stroke-linejoin="round"/>`),
     ...scene.marks.map((m) =>
-      `  <circle class="mark" data-mark="${m.id}" cx="${round(m.xMm)}" cy="${round(h - m.yMm)}" r="${m.diameterMm / 2}" fill="#000000"/>`)
+      `  <circle class="mark" data-mark="${m.id}" cx="${round(m.xMm)}" cy="${round(h - m.yMm)}" r="${m.diameterMm / 2}" fill="#000000"/>`),
+    // Braille labels as true-size dots; the print text is a <title> (shown on hover, never drawn or printed).
+    ...scene.labels.map((l) => [
+      `  <g class="braille" data-label="${l.id}"><title>${escapeXml(l.text)}</title>`,
+      ...l.dots.map(([x, y]) => `    <circle cx="${round(x)}" cy="${round(h - y)}" r="${l.dotDiameterMm / 2}" fill="#1a237e"/>`),
+      '  </g>'
+    ].join('\n'))
   ]
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${h}mm" viewBox="0 0 ${round(w)} ${round(h)}">`,

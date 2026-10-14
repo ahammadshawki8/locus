@@ -14,12 +14,21 @@ const round = (v) => Math.round(v * 100) / 100
 const escapeXml = (text) => String(text).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c])
 const textWidth = (text, size = FONT) => text.length * size * CHAR_W
 
+const offPlate = (v) => v.subject && v.subject[1] === 'plate'
+
 const measureText = (ruleId, v) => {
   if (v.measuredMm == null) return ''
   if (ruleId === 'TL-1') return `${v.measuredMm} mm apart — needs ${v.requiredMm} mm`
+  if (ruleId === 'TL-3' || offPlate(v)) return `by ${v.measuredMm} mm`
+  if (ruleId === 'TL-2') return `${v.measuredMm} mm — needs ${v.requiredMm} mm`
   return `${v.measuredMm} mm — ${v.subject && v.subject[0] === 'plate' ? 'bed is' : 'needs'} ${v.requiredMm} mm`
 }
 const shortText = (ruleId, v) => {
+  if (ruleId === 'TL-2') {
+    if (offPlate(v)) return `Label off the plate by ${v.measuredMm} mm`
+    return `Label ${v.measuredMm} mm from a ${/marked point/.test(v.message) ? 'mark' : 'line'} — needs ${v.requiredMm} mm`
+  }
+  if (ruleId === 'TL-3') return `Labels overlap by ${v.measuredMm} mm`
   const head = ruleId === 'TL-1' ? 'Too close' : ruleId === 'TL-4' ? `Missing: ${(v.subject || []).join(', ')}` : v.message.split(':')[0]
   const measure = measureText(ruleId, v)
   return measure ? `${head}: ${measure}` : head

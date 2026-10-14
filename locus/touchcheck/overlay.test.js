@@ -30,17 +30,25 @@ test('the overlay keeps the SVG preview and adds a red circle with the measured 
   assert.match(overlay, /0 mm apart — needs 3\.2 mm/)
 })
 
+test('label problems are circled in plain words: too close to a line, off the plate, overlapping', () => {
+  const { overlay } = overlayFor(layout)
+  assert.match(overlay, /Label 0 mm from a line — needs 6\.4 mm/)
+  assert.match(overlay, /Label off the plate by 4\.52 mm/)
+  const tl3 = require(path.join(root, 'fixtures', 'touchcheck', 'tl3-labels-overlap', 'layout.json'))
+  assert.match(overlayFor(tl3).overlay, /Labels overlap by 1\.78 mm/)
+})
+
 test('the overlay legend lists every rule in plain words and the limitation', () => {
   const { overlay } = overlayFor(layout)
   for (const id of ['TL-1', 'TL-2', 'TL-3', 'TL-4', 'TL-5']) assert.match(overlay, new RegExp(`${id} `))
   assert.match(overlay, /These lines are too close: a fingertip feels one line/)
-  assert.match(overlay, /not applicable: no labels yet/)
+  assert.match(overlay, /This label touches a line/)
   assert.match(overlay, /do not certify that a reader will understand this graphic by touch/)
   assert.match(overlay, /FAILED/)
 })
 
 test('after allowed fixes the overlay shows green passed checks and no red circles', () => {
-  const { overlay } = overlayFor({ ...layout, showGrid: false, yScaleMm: 40 })
+  const { overlay } = overlayFor(require(path.join(root, 'fixtures', 'touchcheck', 'good-projectile-key', 'layout.json')))
   assert.strictEqual(count(overlay, /<circle class="violation"/g), 0)
   assert.ok(count(overlay, /<circle class="passed"/g) > 0)
   assert.match(overlay, /PASSED/)

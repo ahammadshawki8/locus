@@ -15,8 +15,15 @@ measured value, e.g. "1.4 mm apart — needs 3.2 mm".
 **How TL-1 measures:** the clear gap between the raised *edges* of two lines, sampled every 0.5 mm. Where lines
 really cross or join, only the stretch where they are still moving apart is excused. A curve that touches a line
 without crossing it fails, and so does a line end that stops less than 3.2 mm clear of another line, even a short stub
-just past a crossing. Details and reasons: [decisions.md](decisions.md), 2026-10-14. TL-2 and TL-3 are "not
-applicable: no labels yet" until braille labels exist.
+just past a crossing. Details and reasons: [decisions.md](decisions.md), 2026-10-14.
+
+**How TL-2 / TL-3 measure:** each braille label's box (mark labels and key rows) is measured to the raised edge of
+every line and to every *other* mark; a label that runs off the plate also fails TL-2. TL-3 fails when two label boxes
+overlap. Nothing yet checks that a label stays near its own mark (open question). "Not applicable: no labels yet"
+appears only for a request with no marked points.
+
+**Seeded fixtures:** [`fixtures/touchcheck/`](../fixtures/touchcheck/) has one request seeded to break each rule and one
+that passes; a test requires exactly the expected failures.
 
 **Status:** values come from published guidance only. They have **not** yet been checked against
 [BANA 2022](https://www.brailleauthority.org/tg/web-manual/tgmanual.html), a practitioner (Gate 4) or our calibration

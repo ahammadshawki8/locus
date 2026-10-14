@@ -1,0 +1,20 @@
+{
+  "xScaleMm": 25,
+  "yScaleMm": 45,
+  "labelMode": "key",
+  "labelOffsets": {
+    "vertex": {
+      "dxMm": 8,
+      "dyMm": -6
+    },
+    "y-intercept": {
+      "dxMm": 4,
+      "dyMm": -2
+    },
+    "x-intercept+": {
+      "dxMm": -2,
+      "dyMm": 0
+    }
+  },
+  "showGrid": false
+}

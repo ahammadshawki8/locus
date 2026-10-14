@@ -54,6 +54,28 @@ test('a mark placed off the plate counts as missing, at its position', () => {
   assert.deepStrictEqual(v.at, { xMm: s.marks[0].xMm, yMm: s.marks[0].yMm })
 })
 
+test('a mark without its braille label fails', () => {
+  const s = scene()
+  s.labels = s.labels.filter((l) => l.for !== 'y-intercept')
+  const [v] = checkInventory(s, profile, { requested: spec.mark }).violations
+  assert.deepStrictEqual(v.subject, ['label-y-intercept'])
+  assert.match(v.message, /braille label for y-intercept \(not drawn\)/)
+})
+
+test('key mode: the key must list every keyed mark, each with a key row', () => {
+  const keyed = JSON.parse(JSON.stringify(buildScene(spec, { ...layout, labelMode: 'key' }, profile)))
+  assert.deepStrictEqual(checkInventory(keyed, profile, { requested: spec.mark }).violations, [])
+  assert.match(checkInventory(keyed, profile, { requested: spec.mark }).summary, /key/)
+
+  const noRow = JSON.parse(JSON.stringify(keyed))
+  noRow.labels = noRow.labels.filter((l) => l.id !== 'key-b')
+  assert.deepStrictEqual(checkInventory(noRow, profile, { requested: spec.mark }).violations.map((v) => v.subject), [['key-b']])
+
+  const noKey = JSON.parse(JSON.stringify(keyed))
+  noKey.key = null
+  assert.match(checkInventory(noKey, profile, { requested: spec.mark }).violations[0].message, /the key \(not drawn\)/)
+})
+
 test('without the spec, the requested list is what the scene drew or reported missing', () => {
   const s = buildScene({ ...spec, graph: { ...spec.graph, domain: { min: 1, max: 4.5 } } }, layout, profile)
   assert.deepStrictEqual(checkInventory(s, profile).violations.map((v) => v.subject), [['y-intercept']])

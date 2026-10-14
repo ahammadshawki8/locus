@@ -26,11 +26,8 @@ test('touchcheck on the rendered projectile writes the report and overlay and ex
 })
 
 test('touchcheck on a request folder whose layout uses only allowed fixes exits 0', () => {
-  const request = tmp()
-  const out = path.join(request, 'out')
-  fs.copyFileSync(path.join(root, 'examples', 'projectile.json'), path.join(request, 'spec.json'))
-  const layout = { ...readJson(path.join(root, 'examples', 'projectile.layout.json')), showGrid: false, yScaleMm: 40 }
-  fs.writeFileSync(path.join(request, 'layout.json'), JSON.stringify(layout))
+  const request = path.join('fixtures', 'touchcheck', 'good-projectile-key')
+  const out = tmp()
   assert.strictEqual(run(request, '--out', out).status, 0)
   const result = run('touchcheck', request, '--out', out)
   assert.strictEqual(result.status, 0, result.stdout + result.stderr)

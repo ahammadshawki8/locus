@@ -1,7 +1,7 @@
 const test = require('node:test')
 const assert = require('node:assert')
 
-const { nearestOnPolyline, polyline, intersections, angleBetweenDeg } = require('./geometry')
+const { nearestOnPolyline, nearestToRect, polyline, intersections, angleBetweenDeg } = require('./geometry')
 
 const near = (a, b, eps = 1e-9) => Math.abs(a - b) < eps
 
@@ -43,6 +43,20 @@ test('intersections reports each meeting point once, even at a shared vertex', (
 
 test('parallel lines do not intersect', () => {
   assert.deepStrictEqual(intersections(polyline([[0, 0], [10, 0]]), polyline([[0, 1], [10, 1]])), [])
+})
+
+test('nearestToRect: distance from a box to a polyline, 0 when the line passes through the box', () => {
+  const box = [0, 0, 10, 5]
+  const above = nearestToRect(box, polyline([[-5, 8], [20, 8]]))
+  assert.ok(near(above.distance, 3))
+  assert.strictEqual(above.rectPoint[1], 5)
+  assert.strictEqual(above.linePoint[1], 8)
+  const corner = nearestToRect(box, polyline([[13, 9], [20, 2]])) // diagonal past the top-right corner
+  assert.ok(near(corner.distance, 7 / Math.SQRT2)) // the line is x + y = 22
+  assert.deepStrictEqual(corner.rectPoint, [10, 5])
+  assert.ok(near(corner.linePoint[0], 13.5) && near(corner.linePoint[1], 8.5))
+  assert.strictEqual(nearestToRect(box, polyline([[-5, 2], [20, 3]])).distance, 0)
+  assert.strictEqual(nearestToRect(box, polyline([[2, 1], [3, 2]])).distance, 0) // wholly inside
 })
 
 test('angleBetweenDeg folds to 0..90 degrees', () => {

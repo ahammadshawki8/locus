@@ -23,24 +23,23 @@ test('the report lists all five rules in order and follows the contract schema',
   assert.strictEqual(report.fixture, undefined)
 })
 
-test('the projectile example fails on TL-1 only; TL-2 and TL-3 say they are not applicable yet', () => {
+test('the projectile example at its starting layout fails TL-1 (lines) and TL-2 (labels), and nothing else', () => {
   const { report } = touchcheck(sceneJson(), profile, { requested: spec.mark })
   assert.strictEqual(report.passed, false)
-  const byId = Object.fromEntries(report.rules.map((r) => [r.id, r]))
-  assert.strictEqual(byId['TL-1'].passed, false)
-  assert.ok(byId['TL-1'].violations.length > 0)
-  for (const id of ['TL-2', 'TL-3']) {
-    assert.strictEqual(byId[id].passed, true)
-    assert.strictEqual(byId[id].note, 'not applicable: no labels yet')
-  }
-  assert.strictEqual(byId['TL-4'].passed, true)
-  assert.strictEqual(byId['TL-5'].passed, true)
+  assert.deepStrictEqual(report.rules.filter((r) => !r.passed).map((r) => r.id), ['TL-1', 'TL-2'])
+  const tl2 = report.rules.find((r) => r.id === 'TL-2').violations
+  assert.deepStrictEqual(tl2.map((v) => v.subject), [
+    ['label-vertex', 'plate'], ['label-y-intercept', 'grid-x-1'], ['label-y-intercept', 'curve'], ['label-x-intercept+', 'plate']
+  ])
 })
 
 test('passed is true only when every rule passed', () => {
-  const { report } = touchcheck(sceneJson({ ...layout, showGrid: false, yScaleMm: 40 }), profile, { requested: spec.mark })
+  const good = require(path.join(root, 'fixtures', 'touchcheck', 'good-projectile-key', 'layout.json'))
+  const { report } = touchcheck(sceneJson(good), profile, { requested: spec.mark })
   assert.ok(report.rules.every((r) => r.passed))
   assert.strictEqual(report.passed, true)
+  const { report: failing } = touchcheck(sceneJson(), profile, { requested: spec.mark })
+  assert.strictEqual(failing.passed, false)
 })
 
 test('a scene rendered for another profile is refused', () => {

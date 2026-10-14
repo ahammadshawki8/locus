@@ -4,8 +4,8 @@ The Locus package. Standalone (`npm --prefix locus ci`); uses the in-repo JSCAD 
 
 | Folder | What | Status (14 Oct) |
 |---|---|---|
-| `core/` | schemas + validation, profiles, polynomial (no `eval`), marks, scene (mm), JSCAD solids → STL, SVG, description, render; next: braille, bundle, manifest | validation, polynomial + marks, scene, STL, SVG, description, render (Gate 2) |
-| `touchcheck/` | rules TL-1..TL-5 (`rules/`), report, overlay renderer, `remedies.json` | TL-1, TL-4, TL-5 measured; TL-2/TL-3 "not applicable: no labels yet"; report + overlay |
+| `core/` | schemas + validation, profiles, polynomial (no `eval`), marks, braille + labels, scene (mm), JSCAD solids → STL, SVG, description, render; next: bundle, manifest | validation, polynomial + marks, Grade 1 braille labels (inline + key), scene, STL, SVG, description, render |
+| `touchcheck/` | rules TL-1..TL-5 (`rules/`), report, overlay renderer, `remedies.json` | TL-1..TL-5 measured; report + overlay; seeded fixtures in `fixtures/touchcheck/` |
 | `guards/` | `guard-scope`, `guard-maths`, `guard-description`, `guard-revert` | not started |
 | `site/` | graph library site + `build-info.json` (Shawki) | not started |
 | `cli/` | `npm run locus -- <spec.json>`, `npm run locus -- touchcheck <spec.json>` | validates + renders; touch-checks the render output |

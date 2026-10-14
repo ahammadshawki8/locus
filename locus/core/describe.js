@@ -23,11 +23,22 @@ const sentenceFor = (point, coeffs) => {
   }
 }
 
-const describe = (spec, { points, missing }) => {
+const markName = (mark) => mark === 'turning-points' ? 'a turning point' : mark.startsWith('x-intercept') ? 'the x-intercept' : `the ${mark}`
+
+/** How to read the braille labels. Key letters follow the order of the marked points, as in core/labels.js. */
+const labelSentence = (points, labelMode) => {
+  if (!points.length) return []
+  if (labelMode !== 'key') return ['Each marked point has a braille label with its value.']
+  const entries = points.map((p, i) => `${'abcdefghijklmnopqrstuvwxyz'[i]}, ${markName(p.mark)}`)
+  return [`Each marked point has a braille letter. The key below the graph lists them: ${entries.join('; ')}.`]
+}
+
+const describe = (spec, { points, missing }, { labelMode = 'inline' } = {}) => {
   const { coeffs, domain } = spec.graph
   return [
     `This tactile graph shows ${formatPolynomial(coeffs)}, for x from ${formatNumber(domain.min)} to ${formatNumber(domain.max)}.`,
     ...points.map((p) => sentenceFor(p, coeffs)),
+    ...labelSentence(points, labelMode),
     ...missing.map((m) => `The ${m.mark} was requested but is not on this graph: ${m.reason}.`),
     LIMITATION
   ].join('\n') + '\n'
