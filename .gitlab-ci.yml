@@ -2,7 +2,7 @@
 #
 # Only jobs that do real work live here (docs/decisions.md, 2026-10-14). Planned jobs (projectLocus.md §13) are added
 # as each one is built:
-#   validate-spec · render · touchcheck · guard-scope · guard-maths · guard-description · license-check ·
+#   validate-spec · touchcheck · guard-scope · guard-maths · guard-description · license-check ·
 #   notify-agent (fallback) · bundle · publish-package · release · deploy-staging · validate-staging ·
 #   approve-production (supervised only) · promote-production · post-deploy-smoke · reply-teacher ·
 #   library-recheck (scheduled) · bisect-regression · guard-revert · deploy-production-pointer
@@ -17,6 +17,7 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == "schedule"
 
 stages:
+  - build
   - test
   - secure
   - package
@@ -30,6 +31,33 @@ include:
 
 variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
+# Render every request (and the example) to STL + SVG + description + scene.json. The CLI also validates the spec,
+# the layout and request.lock.json, so an invalid request fails here. Artifacts are kept even on failure.
+render:
+  stage: build
+  image: node:20
+  cache:
+    key: npm-locus
+    paths:
+      - .npm/
+  script:
+    - npm --prefix locus ci
+    - node locus/cli/index.js examples/projectile.json --out out/example-projectile
+    - |
+      for dir in requests/*/; do
+        [ -f "${dir}spec.json" ] || continue
+        node locus/cli/index.js "$dir" --out "out/$(basename "$dir")"
+      done
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - out/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
 
 # Migrated from upstream .github/workflows/node.yml (Node 20/22 matrix, same commands).
 upstream-test:

@@ -64,3 +64,9 @@ test('checkLock detects any change to the locked maths', () => {
   changed.graph.coeffs[3] = 2
   assert.deepStrictEqual(checkLock(changed, lock), ['/graph differs from request.lock.json'])
 })
+
+test('spec rejects a vertex mark on a graph that is not a quadratic', () => {
+  const cubic = projectile()
+  cubic.graph.coeffs = [1, 0, -1, 0]
+  assert.deepStrictEqual(validateSpec(cubic), ['/mark "vertex" needs a quadratic; use "turning-points"'])
+})

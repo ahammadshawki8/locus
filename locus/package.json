@@ -15,6 +15,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@jscad/modeling": "file:../packages/modeling",
     "ajv": "8.20.0"
   }
 }

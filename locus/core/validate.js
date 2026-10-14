@@ -2,6 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const Ajv2020 = require('ajv/dist/2020')
 
+const { degree } = require('./polynomial')
+
 const schemaDir = path.join(__dirname, 'schema')
 const profileDir = path.join(__dirname, 'profiles')
 
@@ -26,6 +28,7 @@ const validateSpec = (spec) => {
   const errors = []
   if (spec.graph.domain.min >= spec.graph.domain.max) errors.push('/graph/domain min must be less than max')
   if (!profileExists(spec.profileId)) errors.push(`/profileId unknown profile "${spec.profileId}"`)
+  if (spec.mark.includes('vertex') && degree(spec.graph.coeffs) !== 2) errors.push('/mark "vertex" needs a quadratic; use "turning-points"')
   return errors
 }
 

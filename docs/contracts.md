@@ -99,11 +99,17 @@ Schema [`locus/core/schema/manifest.schema.json`](../locus/core/schema/manifest.
 
 | Job | Consumes | Produces (artifacts) |
 |---|---|---|
-| `render` | `requests/<iid>/*` | `out/<iid>/graph.stl`, `out/<iid>/graph.svg`, `out/<iid>/description.txt` |
-| `touchcheck` | `out/<iid>/*` | `out/<iid>/touchcheck-report.json`, `out/<iid>/overlay.svg` — **kept on failure** (`artifacts:when: always`) |
+| `render` | `requests/<iid>/*` | `out/<iid>/graph.stl`, `out/<iid>/graph.svg`, `out/<iid>/description.txt`, `out/<iid>/scene.json` |
+| `touchcheck` | `out/<iid>/scene.json` (+ the other render outputs for the overlay) | `out/<iid>/touchcheck-report.json`, `out/<iid>/overlay.svg` — **kept on failure** (`artifacts:when: always`) |
 | `bundle` | `out/<iid>/*` | `dist/graph-<iid>-v<n>.zip` + `dist/graph-<iid>-v<n>/` (unzipped) + dotenv `bundle.env` |
 | `publish-package` | `bundle.env`, `dist/` | generic package `graph-<iid>`, version `<n>.0.0`, file `graph-<iid>-v<n>.zip` |
 | `release` | `bundle.env` | GitLab release, tag `graph-<iid>-v<n>`, asset link to the package file |
+
+`scene.json` is internal to render → touchcheck (not in the bundle): the 2D scene in mm, origin at the plate's
+bottom-left, y up — `plate {widthMm, heightMm, thicknessMm}`, `range {xMin, xMax, yMin, yMax}`,
+`lines [{id, kind: grid|axis|curve, points: [[xMm, yMm]…], widthMm, heightMm}]`,
+`marks [{id, mark, x, y, xMm, yMm, diameterMm, heightMm}]`, `missing [{mark, reason}]`, `labels []`.
+STL and SVG are both generated from it, so touchcheck measures exactly what is printed.
 
 `bundle.env` (dotenv report) variables: `LOCUS_IID`, `LOCUS_VERSION`, `LOCUS_BUNDLE`, `LOCUS_BUNDLE_ZIP`, `LOCUS_BRAILLE_ID`.
 

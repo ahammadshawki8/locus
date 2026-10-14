@@ -15,7 +15,7 @@ fingertip would, fixes its own mistakes, and ships it. No human in between.**
 Other tools draw tactile graphs ([related work](docs/related-work.md)). Locus **checks** them against measured
 touch-legibility rules, has an agent **fix** what fails within an allowed set of changes, and **ships only what passes**.
 
-> **Status (14 Oct 2026): project scaffolding only.** Nothing is generated, checked by touch, or validated with an
+> **Status (14 Oct 2026): rendering works (polynomial → STL + SVG); nothing is touch-checked yet**, and nothing is validated with an
 > educator or reader yet. See [docs/STATE.md](docs/STATE.md). Automated checks never certify that a reader will
 > understand a graphic by touch ([limitations](docs/limitations.md)).
 
@@ -24,7 +24,7 @@ touch-legibility rules, has an agent **fix** what fails within an allowed set of
 ```sh
 npm --prefix locus ci
 npm run test:locus
-npm run locus -- examples/projectile.json   # validates the spec; rendering arrives with Gate 2
+npm run locus -- examples/projectile.json   # renders out/projectile/{graph.stl,graph.svg,description.txt}
 ```
 
 ## Docs

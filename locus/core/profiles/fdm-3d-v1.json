@@ -3,6 +3,16 @@
   "description": "FDM 3D print (STL) with SVG preview. Values from published guidance; not yet checked against BANA 2022, a practitioner or our calibration print. See docs/touch-rules.md and docs/decisions.md.",
   "output": "stl",
   "bedMm": { "x": 180, "y": 180 },
+  "geometry": {
+    "note": "Design starting values (not from a published source). Calibrated with the test print (Gate 7b).",
+    "marginMm": 10,
+    "baseThicknessMm": 2,
+    "curve": { "widthMm": 2.0, "heightMm": 1.2 },
+    "axis": { "widthMm": 1.2, "heightMm": 0.8 },
+    "grid": { "widthMm": 1.2, "heightMm": 0.4 },
+    "mark": { "diameterMm": 4.0, "heightMm": 1.6 },
+    "curveSamples": 200
+  },
   "rules": {
     "TL-1": { "minLineGapMm": 3.2, "source": "tactilegraphics.org: 1/8 in absolute minimum" },
     "TL-2": { "minLabelGapMm": 6.4, "source": "tactilegraphics.org: 1/4 in separation" },

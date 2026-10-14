@@ -10,8 +10,9 @@ Never use Claude Code to make in-product fixes (editing `requests/<iid>/`) durin
 ## Commands
 
 ```sh
-npm run test:locus                                 # Locus tests (node:test, no install needed yet)
-npm run locus -- examples/projectile.json          # local CLI (stub until Gate 2)
+npm --prefix locus ci                              # once: installs ajv + links packages/modeling
+npm run test:locus                                 # Locus tests (node:test)
+npm run locus -- examples/projectile.json          # validate + render to out/projectile (STL, SVG, description, scene)
 npm install && npm test && npm run test:tsd        # upstream JSCAD tests (what `upstream-test` runs in CI)
 ```
 

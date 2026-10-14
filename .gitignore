@@ -20,3 +20,6 @@ objects/
 packages/web/examples/
 .history
 
+
+# Locus render output
+/out/
