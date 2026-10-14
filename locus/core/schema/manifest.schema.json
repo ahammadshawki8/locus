@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://locus.local/schema/manifest.schema.json",
+  "title": "Locus bundle manifest",
+  "description": "manifest.json inside graph-<iid>-v<n>.zip. Generated from real job output only. See docs/contracts.md §3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fixture", "bundle", "requestId", "version", "brailleId", "commit", "pipelineId",
+               "profileId", "hashes", "checks", "attempts", "release", "limitations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "fixture": { "description": "true only for test fixtures; never for a released bundle.", "type": "boolean" },
+    "bundle": { "type": "string", "pattern": "^graph-[0-9]+-v[1-9][0-9]*$" },
+    "requestId": { "type": "integer", "minimum": 0 },
+    "version": { "type": "integer", "minimum": 1 },
+    "brailleId": { "type": "string", "pattern": "^L[0-9]+-[1-9][0-9]*$" },
+    "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "pipelineId": { "type": "integer", "minimum": 0 },
+    "profileId": { "type": "string" },
+    "hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["graph.stl", "graph.svg", "description.txt", "touchcheck-report.json", "overlay.svg"],
+      "properties": {
+        "graph.stl": { "$ref": "#/$defs/sha256" },
+        "graph.svg": { "$ref": "#/$defs/sha256" },
+        "description.txt": { "$ref": "#/$defs/sha256" },
+        "touchcheck-report.json": { "$ref": "#/$defs/sha256" },
+        "overlay.svg": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "required": ["touchcheck", "guard-scope", "guard-maths", "guard-description", "secret-detection", "sast"],
+      "properties": {
+        "touchcheck": { "$ref": "#/$defs/check" },
+        "guard-scope": { "$ref": "#/$defs/check" },
+        "guard-maths": { "$ref": "#/$defs/check" },
+        "guard-description": { "$ref": "#/$defs/check" },
+        "secret-detection": { "$ref": "#/$defs/check" },
+        "sast": { "$ref": "#/$defs/check" }
+      },
+      "additionalProperties": { "$ref": "#/$defs/check" }
+    },
+    "attempts": { "type": "integer", "minimum": 1, "maximum": 3 },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "url"],
+      "properties": {
+        "tag": { "type": "string", "pattern": "^graph-[0-9]+-v[1-9][0-9]*$" },
+        "url": { "type": ["string", "null"] }
+      }
+    },
+    "limitations": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "check": { "enum": ["passed", "failed", "skipped"] },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

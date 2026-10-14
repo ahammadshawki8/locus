@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 3,
+  "requestId": 0,
+  "graph": { "type": "polynomial", "coeffs": [0, -0.5, 2, 1], "domain": { "min": -0.5, "max": 4.5 } },
+  "mark": ["vertex", "y-intercept", "x-intercept+"],
+  "labels": "braille-grade1",
+  "profileId": "fdm-3d-v1"
+}

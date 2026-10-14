@@ -1,0 +1,24 @@
+# DESIGN DRAFT. This is not yet GitLab Duo custom-flow syntax and has never run.
+# Convert and validate for Gate 5b (20 Oct). Depends on office-hours question 6 (triggers on scheduled pipelines).
+
+name: locus-regression-detective
+purpose: Regression detective. Explain why a shipped graph started failing and open an exact revert of the bad commit.
+stages: [Monitor, Create, Verify]
+trigger:
+  event: pipeline_failed
+  condition: scheduled `library-recheck` pipeline on `main`
+reads:
+  - the library-recheck report (which shipped graphs now fail which rules)
+  - the bisect-regression result (first bad commit, computed deterministically by CI)
+  - the diff of that commit
+allowed_paths:  # enforced by guard-scope and guard-revert
+  - the exact inverse of the commit named by bisect-regression
+  - or new requests/<iid>/ re-layout requests (T2.7)
+actions:
+  - comment a plain-language diagnosis on a new issue labelled `regression`
+    (e.g. "commit a1b2 changed curve thickness from 1.6 to 1.0 mm, so graph 7 now fails TL-5")
+  - if the change was unintended: open an MR containing exactly `git revert <sha>`
+  - if the change was intentional: open a re-layout request for each affected graph instead
+instructions: |
+  Never pick the bad commit yourself; use bisect-regression's result. A revert must exactly invert that commit.
+  When JUDGING_FREEZE is true, comment only: no issues, commits, MRs or releases.

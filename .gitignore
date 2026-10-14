@@ -5,6 +5,8 @@ node_modules/
 coverage/
 components/
 docs/
+!/docs/
+/docs/api/
 objects/
 
 # work files

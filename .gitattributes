@@ -1,0 +1,3 @@
+# Locus: fixture bytes are hashed in manifest.json, so never convert line endings.
+fixtures/** -text
+*.stl binary

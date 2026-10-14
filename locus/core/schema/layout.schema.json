@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://locus.local/schema/layout.schema.json",
+  "title": "Locus layout",
+  "description": "requests/<iid>/layout.json. The only file the fixer agent may edit. See docs/contracts.md §1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["xScaleMm", "yScaleMm", "labelMode", "labelOffsets", "showGrid"],
+  "properties": {
+    "xScaleMm": { "description": "Millimetres per x unit.", "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+    "yScaleMm": { "description": "Millimetres per y unit.", "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+    "labelMode": { "enum": ["inline", "key"] },
+    "labelOffsets": {
+      "description": "Per-mark label offsets, keyed by mark id (e.g. \"vertex\").",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dxMm", "dyMm"],
+        "properties": {
+          "dxMm": { "type": "number", "minimum": -50, "maximum": 50 },
+          "dyMm": { "type": "number", "minimum": -50, "maximum": 50 }
+        }
+      }
+    },
+    "showGrid": { "type": "boolean" }
+  }
+}

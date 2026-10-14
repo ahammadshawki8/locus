@@ -1,0 +1,25 @@
+# DESIGN DRAFT. This is not yet GitLab Duo custom-flow syntax and has never run.
+# Convert and validate during the Gate 5 spike (16 Oct). Primary trigger: pipeline failed. Fallback: a `notify-agent`
+# CI job posts an MR note mentioning the flow's service account (projectLocus.md §0.1, office-hours question 1).
+
+name: locus-fixer
+purpose: Layout fixer. Make a failing graph pass touchcheck using allowed fixes only, or refuse.
+stages: [Create, Verify]
+trigger:
+  event: pipeline_failed
+  condition: MR source branch matches `graph/*` and the failed job is `touchcheck`
+reads:
+  - touchcheck-report.json and overlay.svg from the failed pipeline's artifacts
+  - requests/<iid>/layout.json
+  - locus/touchcheck/remedies.json
+allowed_paths:  # enforced by guard-scope
+  - requests/<iid>/layout.json
+max_attempts: 3  # counted as layout commits the pipeline has checked on this MR
+actions:
+  - apply a combination of allowed fixes from remedies.json to layout.json, commit, push
+  - on the 3rd failure, or when a failing rule has no allowed fix (TL-4): comment a plain-language refusal,
+    add label `cannot-make-readable`, stop. Never ship.
+instructions: |
+  Fix only what the report says failed, using only fixes listed for that rule in remedies.json.
+  Never edit spec.json, request.lock.json, rule code, profiles or remedies.json. Never delete requested features.
+  Explain each change in one plain sentence in the commit message.

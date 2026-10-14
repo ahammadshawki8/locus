@@ -48,7 +48,7 @@
   },
   "opts": {
     "template": "node_modules/docdash",
-    "destination": "./docs",
+    "destination": "./docs/api",
     "tutorials": "./jsdoc/tutorials",
     "readme": "./jsdoc/assets/README.md"
   },

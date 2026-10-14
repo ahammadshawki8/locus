@@ -10,6 +10,8 @@
     "postinstall": "lerna run postinstall",
     "test": "lerna run --stream test",
     "test:tsd": "lerna run test:tsd",
+    "test:locus": "npm --prefix locus test",
+    "locus": "node locus/cli/index.js",
     "lint": "standardx 'packages/**/*.js'",
     "changed": "lerna changed",
     "graph": "lerna list --graph",

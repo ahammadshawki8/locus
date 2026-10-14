@@ -1,0 +1,72 @@
+# Locus pipeline. The pipeline is the quality gate that decides whether a student ever gets a file.
+#
+# Only jobs that do real work live here (docs/decisions.md, 2026-10-14). Planned jobs (projectLocus.md §13) are added
+# as each one is built:
+#   validate-spec · render · touchcheck · guard-scope · guard-maths · guard-description · license-check ·
+#   notify-agent (fallback) · bundle · publish-package · release · deploy-staging · validate-staging ·
+#   approve-production (supervised only) · promote-production · post-deploy-smoke · reply-teacher ·
+#   library-recheck (scheduled) · bisect-regression · guard-revert · deploy-production-pointer
+# `release` and `promote-production` must `needs:` touchcheck, all guards, security jobs and bundle (docs/contracts.md §5).
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+stages:
+  - test
+  - secure
+  - package
+  - release
+  - deploy
+  - monitor
+
+include:
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/SAST.gitlab-ci.yml
+
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
+# Migrated from upstream .github/workflows/node.yml (Node 20/22 matrix, same commands).
+upstream-test:
+  stage: test
+  image: node:${NODE_VERSION}
+  parallel:
+    matrix:
+      - NODE_VERSION: ["20", "22"]
+  cache:
+    key: npm-upstream-$NODE_VERSION
+    paths:
+      - .npm/
+  script:
+    - npm install
+    - npm test
+    - npm run test:tsd
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - changes:
+        - packages/**/*
+        - package.json
+        - package-lock.json
+        - lerna.json
+
+# Locus unit + contract tests (schemas, fixtures, remedies, profiles, rollback pointer format).
+locus-test:
+  stage: test
+  image: node:20
+  cache:
+    key: npm-locus
+    paths:
+      - .npm/
+  script:
+    - npm --prefix locus ci
+    - npm run test:locus
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
