@@ -28,6 +28,9 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
     skipped because it needs guard-scope.
   - Not in this pipeline, as designed: `library-recheck` and `bisect-regression` (default branch only),
     `library-impact` (MRs), `guard-revert` (`revert/*`).
+- **Pipeline 2952980743** (push of `cc69d522`): all 9 jobs passed. `locus-test` 182 of 182 on the runner. guard-scope
+  checked only the 1 commit since the previous push (`b7e8b2bc`, by a person), not the branch; `bundle` and the
+  guards had 0 requests. So the jobs run on GitLab; no graph has been through them there yet.
 - **Open:** the Showcase `main` needs our history before MRs and guard-scope can work there (Shawki's working repo
   `main` pushed over the organisers' README, or code imported into Shawki's project). That changes `main`, so it waits
   for Ashfaq's and Shawki's go-ahead.
