@@ -1,0 +1,5 @@
+* text=auto
+*.pdf binary
+*.stl binary
+*.png binary
+*.jpg binary
