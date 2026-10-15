@@ -1,0 +1,7 @@
+{
+  "description": "How guard-scope recognises an agent's commits. Each Duo flow gets its own service account, ai-<flow>-<group> (docs/decisions.md, 15 Oct 2026 (b), row 10). A commit is the flow's when its author name or the local part of its author email matches authorPattern. NOT YET CONFIRMED: Gate 5 must record the real author name and email of a create_commit commit and update these patterns.",
+  "flows": {
+    "locus-request": { "authorPattern": "^ai-locus-request-" },
+    "locus-ops": { "authorPattern": "^ai-locus-ops-" }
+  }
+}

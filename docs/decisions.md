@@ -4,6 +4,30 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (b): guards scope, maths and description (Gate 8, Ashfaq)
+
+- **Agent identity is the commit author.** Each flow's service account is `ai-<flow>-<group>` (15 Oct (b), row 10), so
+  `locus/guards/agents.json` matches `ai-locus-request-` and `ai-locus-ops-` against the author name or email local
+  part. **Unconfirmed:** Gate 5 must record the real author of a `create_commit` commit.
+- **Intake vs fixer** share one service account (`locus-request`), so the commit's place decides: the first commit on
+  `graph/<iid>` is intake's (contracts §7, "first commit"), every later one is the fixer's (`layout.json` only).
+  `locus-ops` agents are told apart by branch: `rollback/<n>` (release guard), `revert/<sha>` (regression detective;
+  paths limited to those `<sha>` changed until `guard-revert` checks the content). Agents may not delete files or merge.
+- **People's commits are not checked by guard-scope**; CODEOWNERS and protected branches cover them. They are counted
+  in the output, so a person editing a `graph/*` branch during a recorded run is visible.
+- **guard-maths checks what was rendered, with its own arithmetic** (Horner and the derivative written again in the
+  guard), not `locus/core`: a generator bug can't pass its own check. Every curve point is mapped back with the
+  layout's scales and must lie within 0.000001 mm of the locked polynomial; marks must be on the curve, at slope 0 for
+  a vertex or turning point, at y = 0 for an x-intercept, at x = 0 for the y-intercept.
+- **The lock's history** is checked too: written in the branch's first commit and never again (or not at all if it
+  already existed at the base).
+- **guard-description reads free text**, because the plan says an agent may write the description. Allowed numbers:
+  coefficients (signed or not), powers up to the degree after `^`, domain ends, marked point values, the braille ID.
+  A value matching only after rounding to 2 decimals must be preceded by "about". Numbers written as words are not
+  checked.
+- **Fail closed:** a guard that can't find its base commit or inputs exits 2, which fails the job.
+- **guard-revert** waits for `bisect-regression` (Gate 5b).
+
 ## 16 Oct 2026: code brought in line with plan v3 and contracts v1 (Ashfaq)
 
 No change to `docs/contracts.md`. These are how the code now follows it, and what that replaced.

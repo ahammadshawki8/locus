@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// Local CLI and the entry point of the `render` and `touchcheck` CI jobs.
+// Local CLI and the entry point of the `render`, `touchcheck` and `guard-*` CI jobs.
 //   locus <requests/<iid> | spec.json> [--out <dir>]
 //     writes graph.stl, graph.svg, description.txt and scene.json (the scene touchcheck measures)
 //   locus touchcheck <requests/<iid> | spec.json> [--out <dir>] [--attempt <n>]
 //     reads scene.json + graph.svg from the render output, writes touchcheck-report.json + overlay.svg and prints the
 //     report on one line after `LOCUS_REPORT ` (docs/contracts.md §4: agents read job logs, not artifacts);
 //     exits 0 when every rule passed, 1 when a rule failed, 2 when the render output is missing or stale
+//   locus guard <scope|maths|description> ...   (see guards/cli.js)
 // A request folder holds spec.json + layout.json (+ request.lock.json); a spec file `x.json` uses `x.layout.json`.
 // The output folder defaults to out/<folder or spec name>.
 const fs = require('fs')
@@ -15,6 +16,7 @@ const { validateSpec, validateLayout, checkLock } = require('../core/validate')
 const { render, writeOutputs, loadProfile } = require('../core/render')
 const { touchcheck, reportLine } = require('../touchcheck')
 const { toOverlay } = require('../touchcheck/overlay')
+const { runGuard } = require('../guards/cli')
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'))
 
@@ -92,6 +94,7 @@ const runTouchcheck = (target, outDir, attempt) => {
 
 const main = (argv) => {
   const args = argv.slice(2)
+  if (args[0] === 'guard') return runGuard(args.slice(1))
   const command = args[0] === 'touchcheck' ? args.shift() : 'render'
   const outIndex = args.indexOf('--out')
   const outArg = outIndex >= 0 ? args.splice(outIndex, 2)[1] : null

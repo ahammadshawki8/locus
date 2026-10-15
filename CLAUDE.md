@@ -53,6 +53,9 @@ npm install && npm test && npm run test:tsd           # upstream JSCAD tests (wh
 - Plan first, then TDD: failing test, then code. Tests live next to code as `*.test.js` (node:test).
 - Feature branch, MR, pipeline. Small commits, `git commit -s` (DCO 1.1), as yourself (H1).
 - End of each session: follow `projectLocus.md` S.6 (S.3 status board, `docs/decisions.md`, H2 check, commit, push).
+- Claude Code sessions: at the end of each step, explain what was done and why (enough depth for a person to carry
+  on alone), say whether to start a new session now so context doesn't pile up, and give a ready-to-paste prompt for
+  the next session (branch, last commit, next task with how to check it, the rules that matter).
 
 ## Ownership
 

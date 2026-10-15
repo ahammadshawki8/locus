@@ -2,7 +2,7 @@
 #
 # Only jobs that do real work live here (docs/decisions.md, 14 Oct 2026). Planned jobs (projectLocus.md §13) are added
 # as each one is built:
-#   validate-spec, guard-scope, guard-maths, guard-description, license-check, auto-merge (hands-off mode), bundle,
+#   validate-spec, license-check, auto-merge (hands-off mode), bundle,
 #   publish-package, release, deploy-staging, validate-staging, approve-production (supervised only),
 #   promote-production, post-deploy-smoke, reply-teacher, library-impact (MRs changing generator code or
 #   dependencies), library-recheck (main + nightly), bisect-regression, guard-revert, deploy-production-pointer,
@@ -108,6 +108,74 @@ touchcheck:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - when: on_success
+
+# Guards (projectLocus.md §11, docs/contracts.md §7). Deterministic; a guard that cannot check (no base commit, missing
+# render output) exits 2 and fails the job. Each writes out/guards/*.json for the bundle job's manifest.
+.guard:
+  stage: secure
+  image: node:20
+  variables:
+    GIT_DEPTH: 0 # full history: commit authors, lock history
+  cache:
+    key: npm-locus
+    paths:
+      - .npm/
+  before_script:
+    - npm --prefix locus ci
+    # the default branch, for branch pipelines that have no MR diff base
+    - git fetch -q origin "+refs/heads/${CI_DEFAULT_BRANCH}:refs/remotes/origin/${CI_DEFAULT_BRANCH}" || true
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - out/guards/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
+
+# Every agent commit since the base stays in its agent's allowed paths and branch (commit author = flow service account).
+guard-scope:
+  extends: .guard
+  needs: []
+  script:
+    - node locus/cli/index.js guard scope
+
+# Every request: spec equals request.lock.json, the lock was written once, and what was rendered lies on the locked maths.
+guard-maths:
+  extends: .guard
+  needs:
+    - job: render
+      artifacts: true
+  script:
+    - |
+      status=0
+      checked=0
+      for dir in requests/*/; do
+        [ -f "${dir}spec.json" ] || continue
+        checked=$((checked + 1))
+        node locus/cli/index.js guard maths "$dir" --out "out/$(basename "$dir")" || status=1
+      done
+      echo "guard-maths: ${checked} request(s) checked"
+      exit "$status"
+
+# Every request: every number in the learner description is a computed value.
+guard-description:
+  extends: .guard
+  needs:
+    - job: render
+      artifacts: true
+  script:
+    - |
+      status=0
+      checked=0
+      for dir in requests/*/; do
+        [ -f "${dir}spec.json" ] || continue
+        checked=$((checked + 1))
+        node locus/cli/index.js guard description "$dir" --out "out/$(basename "$dir")" || status=1
+      done
+      echo "guard-description: ${checked} request(s) checked"
+      exit "$status"
 
 # Migrated from upstream .github/workflows/node.yml (Node 20/22 matrix, same commands).
 upstream-test:
