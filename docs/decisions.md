@@ -44,9 +44,12 @@ No change to `docs/contracts.md`. This is how `locus bundle` and the `bundle` CI
 - **Local runs**: guard results are read from `out/guards/`, which the bundle can't date. Delete `out/` before a local
   chain; CI jobs always start clean.
 - `fixtures/touchcheck/good-print-b/` now has `request.lock.json`, so the whole chain runs on it locally:
-  `locus bundle fixtures/touchcheck/good-print-b` gives `graph-0-v1`, the D9 sample name.
+  `locus bundle fixtures/touchcheck/good-print-b` gives `graph-0-v1`, the D9 sample name. Run its guards with
+  `--base HEAD`: with the default base, guard-maths rightly blocks it (the lock was added after this branch's first
+  commit, as a fixture, not by an intake agent), and the bundle is refused.
 - The guards' `git` helper now captures git's stderr (it is still in the error), so expected failed probes don't
-  print `fatal:` lines.
+  print `fatal:` lines. `listCommits` now reads a commit's changed paths only when used (agent commits only):
+  guard-scope over this branch's 2,136 commits (the JSCAD import) went from minutes to under 2 seconds locally.
 - **Open (Gate 5):** how a flow's session URL reaches the bundle job for `agentSessions`. Until a flow has run in our
   account, the list stays empty rather than holding a made-up link (H3).
 
