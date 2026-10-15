@@ -15,5 +15,8 @@ and touch-checks each one and requires exactly those failures.
 | `tl4-mark-outside-domain` | TL-4 | TL-4 | The negative x-intercept is requested, but it is outside the domain (no allowed fix: refuse or ask) |
 | `tl5-too-tall` | TL-5 | TL-5 | y 22 mm per unit: the y-axis and label a run past the 3 mm edge margin |
 
+`good-print-b` also has the `request.lock.json` every real request folder has (contracts §1), so the guards and
+`locus bundle` can run on it locally (it gives `graph-0-v1`, the D9 sample name).
+
 These are test inputs, not teacher requests: `requestId` is 0. Render one with
 `npm run locus -- fixtures/touchcheck/<folder>` and check it with `npm run locus -- touchcheck fixtures/touchcheck/<folder>`.

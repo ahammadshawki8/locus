@@ -1,7 +1,8 @@
 // The git facts the guards need, read with plain `git` calls (no shell, so no injection from branch names or paths).
 const { execFileSync } = require('child_process')
 
-const git = (args, cwd) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trimEnd()
+// stderr is captured (it is in the thrown error), so probes that are expected to fail don't print `fatal:` lines.
+const git = (args, cwd) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trimEnd()
 
 const ZERO_SHA = /^0+$/
 

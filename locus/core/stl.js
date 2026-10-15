@@ -123,4 +123,20 @@ const countOpenEdges = (buffer) => {
   return [...edges.values()].filter((count) => count !== 2).length
 }
 
-module.exports = { toBinaryStl, watertightTriangles, readTriangleCount, countOpenEdges }
+/** Extent of a binary STL from its vertices: { min: [x, y, z], max: [x, y, z] } in the file's units (millimetres). */
+const readBounds = (buffer) => {
+  const min = [Infinity, Infinity, Infinity]
+  const max = [-Infinity, -Infinity, -Infinity]
+  for (let t = 0; t < readTriangleCount(buffer); t++) {
+    for (let k = 0; k < 3; k++) {
+      for (let j = 0; j < 3; j++) {
+        const v = buffer.readFloatLE(84 + 50 * t + 12 + k * 12 + j * 4)
+        min[j] = Math.min(min[j], v)
+        max[j] = Math.max(max[j], v)
+      }
+    }
+  }
+  return { min, max }
+}
+
+module.exports = { toBinaryStl, watertightTriangles, readTriangleCount, countOpenEdges, readBounds }

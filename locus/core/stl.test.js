@@ -2,7 +2,12 @@ const test = require('node:test')
 const assert = require('node:assert')
 const { primitives } = require('@jscad/modeling')
 
-const { toBinaryStl, readTriangleCount, countOpenEdges } = require('./stl')
+const { toBinaryStl, readTriangleCount, countOpenEdges, readBounds } = require('./stl')
+
+test('readBounds reads the extent of a binary STL from its vertices', () => {
+  const stl = toBinaryStl(primitives.cuboid({ size: [10, 20, 4], center: [5, 10, 2] }))
+  assert.deepStrictEqual(readBounds(stl), { min: [0, 0, 0], max: [10, 20, 4] })
+})
 
 test('a cube becomes 12 triangles in a valid binary STL', () => {
   const stl = toBinaryStl(primitives.cuboid({ size: [10, 10, 10] }), 'locus test')

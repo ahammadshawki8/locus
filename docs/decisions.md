@@ -4,6 +4,52 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (c): the bundle job and manifest (Ashfaq)
+
+No change to `docs/contracts.md`. This is how `locus bundle` and the `bundle` CI job follow §3, §5 and §6.
+
+- **Zip name.** Plan §9 says `graph-<iid>.zip`; contracts §3 says `out/bundle/graph-<iid>-v<n>.zip`. The code follows
+  the contract (H5). Shawki: plan §9 can say `graph-<iid>-v<n>.zip` to match.
+- **Where each manifest field comes from** (nothing is typed in by hand):
+
+  | Field | Source |
+  |---|---|
+  | `artifactId`, `brailleId`, `requestIssue` | `spec.json` `requestId` + the version `<n>` |
+  | `sourceCommit` | `CI_COMMIT_SHA`, else `git rev-parse HEAD` (a warning if the request folder has uncommitted changes) |
+  | `pipelineId` | `CI_PIPELINE_ID`, else 0, which means "built outside a pipeline" |
+  | `generatorVersion` | `locus/package.json` `version`, now 0.1.0 (was 0.0.0; 0.1.0 is the first version that makes bundles) |
+  | `profile` | `profiles/<profileId>.json` `id` + `version` |
+  | `hashes` | sha256 of the bundled `graph.stl`, `graph.svg`, `description.txt` (the render job's bytes, copied unchanged) |
+  | `touchcheck` | `touchcheck-report.json`: `pass`, and `attempts` = the report's `attempt` |
+  | `guards` | `pass` in `out/guards/scope.json`, `maths-<name>.json`, `description-<name>.json` |
+  | `agentSessions` | `--agent-session <url>` (repeatable); empty for now, see the open point below |
+  | `releaseMode` | `--release-mode`, else `RELEASE_MODE`, else `hands-off`. The pipeline sets `RELEASE_MODE: "hands-off"` |
+  | `releaseTag` | always `null`; the `release` job fills it in (§5) |
+
+- **No bundle for a failed check.** If touchcheck or any of the three guards did not pass, `locus bundle` refuses
+  (exit 1) and says which. A missing or stale input (no guard file, a report for another request or profile, folder
+  number not equal to `requestId`) exits 2. So in a real bundle `touchcheck.pass` and every `guards` value are true:
+  they record that the checks ran and passed. In CI the job `needs:` render, touchcheck and the three guards anyway.
+- **Version `<n>`** = the newest release tag `graph-<iid>-v<n>` + 1 (D5: the `release` job creates that tag). If the
+  request folder is unchanged since that tag, there is nothing new to bundle (exit 0), so a `main` pipeline does not
+  re-release every old graph. The job fetches `refs/tags/graph-*` explicitly. `--bundle-version <n>` overrides.
+- **README.txt**: print at 100% scale; the size the slicer must show, read from the STL's vertices (100.0 x 100.0 x
+  3.6 mm for print B); the settings the prototype prints used (`tools/prints/README.md`: PLA, 0.12 to 0.16 mm
+  layers, flat, no supports); triangle top-left, braille ID top-right; what each file is; the limitations line.
+- **Zip**: our own small writer (`locus/core/zip.js`, deflate, no new dependency). Entries sit in a
+  `graph-<iid>-v<n>/` folder and carry the source commit's time (UTC), so the same commit gives the same zip. Checked
+  with Info-ZIP `unzip -t` (in the tests when installed) and Python's `zipfile`.
+- **Where it runs**: MR and branch pipelines (not schedules). On an MR the bundle is a preview artifact; on `main` it
+  is what `publish-package`, `release` and `deploy-staging` take (§6).
+- **Local runs**: guard results are read from `out/guards/`, which the bundle can't date. Delete `out/` before a local
+  chain; CI jobs always start clean.
+- `fixtures/touchcheck/good-print-b/` now has `request.lock.json`, so the whole chain runs on it locally:
+  `locus bundle fixtures/touchcheck/good-print-b` gives `graph-0-v1`, the D9 sample name.
+- The guards' `git` helper now captures git's stderr (it is still in the error), so expected failed probes don't
+  print `fatal:` lines.
+- **Open (Gate 5):** how a flow's session URL reaches the bundle job for `agentSessions`. Until a flow has run in our
+  account, the list stays empty rather than holding a made-up link (H3).
+
 ## 16 Oct 2026 (b): guards scope, maths and description (Gate 8, Ashfaq)
 
 - **Agent identity is the commit author.** Each flow's service account is `ai-<flow>-<group>` (15 Oct (b), row 10), so

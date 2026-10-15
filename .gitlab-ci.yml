@@ -2,7 +2,7 @@
 #
 # Only jobs that do real work live here (docs/decisions.md, 14 Oct 2026). Planned jobs (projectLocus.md §13) are added
 # as each one is built:
-#   validate-spec, license-check, auto-merge (hands-off mode), bundle,
+#   validate-spec, license-check, auto-merge (hands-off mode),
 #   publish-package, release, deploy-staging, validate-staging, approve-production (supervised only),
 #   promote-production, post-deploy-smoke, reply-teacher, library-impact (MRs changing generator code or
 #   dependencies), library-recheck (main + nightly), bisect-regression, guard-revert, deploy-production-pointer,
@@ -33,6 +33,9 @@ include:
 
 variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  # hands-off: a green graph/* MR is merged and released without a person (projectLocus.md §13, Configure).
+  # supervised: the fallback, with one approval. Recorded in every bundle manifest (docs/contracts.md §5).
+  RELEASE_MODE: "hands-off"
 
 # Render every request (and the example) to STL + SVG + description + scene.json. The CLI also validates the spec,
 # the layout and request.lock.json, so an invalid request fails here. Artifacts are kept even on failure.
@@ -176,6 +179,52 @@ guard-description:
       done
       echo "guard-description: ${checked} request(s) checked"
       exit "$status"
+
+# Bundle every request that passed (docs/contracts.md §3, §5, §6): out/bundle/graph-<iid>-v<n>/ + .zip, with
+# manifest.json built only from the render, touchcheck and guard-* outputs above. Runs only when all of those passed.
+# <n> is one more than the newest release tag graph-<iid>-v<n>; a request unchanged since its last release is skipped.
+# The CLI refuses (exit 1) a request whose touchcheck or guards failed, and fails closed (exit 2) on missing input.
+bundle:
+  stage: package
+  image: node:20
+  needs:
+    - job: render
+      artifacts: true
+    - job: touchcheck
+      artifacts: true
+    - job: guard-scope
+      artifacts: true
+    - job: guard-maths
+      artifacts: true
+    - job: guard-description
+      artifacts: true
+  variables:
+    GIT_DEPTH: 0 # full history: release tags and the request folder's history
+  cache:
+    key: npm-locus
+    paths:
+      - .npm/
+  script:
+    - npm --prefix locus ci
+    - git fetch -q origin "+refs/tags/graph-*:refs/tags/graph-*" || true
+    - |
+      status=0
+      checked=0
+      for dir in requests/*/; do
+        [ -f "${dir}spec.json" ] || continue
+        checked=$((checked + 1))
+        node locus/cli/index.js bundle "$dir" --out "out/$(basename "$dir")" || status=1
+      done
+      echo "bundle: ${checked} request(s) checked"
+      exit "$status"
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - out/bundle/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
 
 # Migrated from upstream .github/workflows/node.yml (Node 20/22 matrix, same commands).
 upstream-test:
