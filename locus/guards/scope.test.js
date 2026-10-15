@@ -71,10 +71,18 @@ test('release guard: on rollback/<n> only deploy/gcp/production-revision', () =>
 })
 
 test('regression detective: on revert/<sha> only paths the named commit changed (guard-revert checks the content)', () => {
-  const pathsOf = (sha) => (sha === 'abc1234' ? ['locus/core/scene.js'] : [])
+  const pathsOf = (sha) => (sha === 'abc1234' ? [{ status: 'M', path: 'locus/core/scene.js' }] : [])
   assert.strictEqual(checkScope({ branch: 'revert/abc1234', commits: [commit(OPS, 'locus/core/scene.js')], pathsOf }).pass, true)
   const bad = checkScope({ branch: 'revert/abc1234', commits: [commit(OPS, 'locus/core/scene.js', 'locus/touchcheck/remedies.json')], pathsOf })
   assert.deepStrictEqual(bad.violations.map((v) => v.path), ['locus/touchcheck/remedies.json'])
+})
+
+test('regression detective: the inverse of an added file is its delete, and only that delete is allowed', () => {
+  const pathsOf = () => [{ status: 'A', path: 'locus/core/new.js' }, { status: 'M', path: 'locus/core/scene.js' }]
+  const del = (path) => commit(OPS, { status: 'D', path })
+  assert.strictEqual(checkScope({ branch: 'revert/abc1234', commits: [del('locus/core/new.js')], pathsOf }).pass, true)
+  const bad = checkScope({ branch: 'revert/abc1234', commits: [del('locus/core/scene.js')], pathsOf })
+  assert.match(violationsOf(bad)[0], /may not delete/)
 })
 
 test('locus-ops may not commit on any other branch (the impact reviewer only writes MR notes)', () => {

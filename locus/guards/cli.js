@@ -3,7 +3,9 @@
 //   locus guard scope [--base <sha>] [--head <ref>] [--branch <name>]
 //   locus guard maths <requests/<iid>> [--out <render dir>] [--base <sha>]
 //   locus guard description <requests/<iid>> [--out <render dir>]
-// Without --base, the base is the MR's diff base, the commit before a push, or where HEAD left the default branch.
+//   locus guard revert [--base <sha>] [--head <ref>] [--branch revert/<sha>]
+// Without --base, the base is the MR's diff base, the commit before a push, or where HEAD left the default branch
+// (guard-revert skips the commit before a push: its base is always where the branch left the default branch).
 // Each guard also writes out/guards/<name>[-<iid>].json for the bundle job (manifest `guards`, contracts §5).
 const fs = require('fs')
 const path = require('path')
@@ -12,6 +14,7 @@ const g = require('./git')
 const { checkScope } = require('./scope')
 const { checkMaths } = require('./maths')
 const { checkDescription } = require('./description')
+const { checkRevert } = require('./revert')
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'))
 const option = (args, name) => {
@@ -42,7 +45,14 @@ const runScope = (args) => {
   const head = option(args, '--head') || 'HEAD'
   const branch = g.resolveBranch({ branch: option(args, '--branch') })
   const commits = g.listCommits(base, head)
-  const result = checkScope({ branch, commits, pathsOf: (sha) => g.changedPaths(sha).map((p) => p.path) })
+  const pathsOf = (sha) => {
+    try {
+      return g.changedPaths(sha)
+    } catch {
+      return [] // not a commit here: nothing is allowed
+    }
+  }
+  const result = checkScope({ branch, commits, pathsOf })
   writeResult('scope', { branch, base, ...result })
   console.log(`guard-scope: ${commits.length} commit(s) on ${branch} since ${base.slice(0, 8)}: ${result.agentCommits} by agents, ${result.personCommits} by people`)
   return report('guard-scope', result.pass, result.violations.map((v) => `${v.sha.slice(0, 8)} (${v.flow})${v.path ? ` ${v.path}` : ''}: ${v.reason}`))
@@ -99,11 +109,36 @@ const runDescription = (args) => {
   return report(`guard-description ${dir}`, result.pass, result.errors)
 }
 
+const runRevert = (args) => {
+  const branch = g.resolveBranch({ branch: option(args, '--branch') })
+  const named = branch.match(/^revert\/([0-9a-f]{7,40})$/)
+  if (!named) return cannotCheck('guard-revert', `${branch} is not a revert/<sha> branch`)
+  const base = g.resolveBase({ base: option(args, '--base'), env: { ...process.env, CI_COMMIT_BEFORE_SHA: '' } })
+  if (!base) return cannotCheck('guard-revert', 'no base commit (pass --base, or run in an MR pipeline)')
+  const head = option(args, '--head') || 'HEAD'
+
+  const sha = g.resolveCommit(named[1])
+  const target = sha && { sha, onDefaultBranch: g.isAncestor(sha, base), hasParent: g.hasParent(sha) }
+  const commits = g.listCommits(base, head)
+  const ready = target && target.hasParent && commits.length === 1
+  const result = checkRevert({
+    name: named[1],
+    target,
+    commits,
+    targetChanges: ready ? g.changedPaths(sha) : [],
+    revertChanges: ready ? commits[0].paths : [],
+    entry: (ref, path) => g.treeEntry(ref, path)
+  })
+  writeResult('revert', { branch, base, target: sha, revert: commits.length === 1 ? commits[0].sha : null, ...result })
+  if (sha) console.log(`guard-revert: ${branch} must be the exact inverse of ${sha.slice(0, 8)} "${g.git(['show', '-s', '--format=%s', sha])}"`)
+  return report('guard-revert', result.pass, result.errors)
+}
+
 const runGuard = (args) => {
   const name = args.shift()
-  const guards = { scope: runScope, maths: runMaths, description: runDescription }
+  const guards = { scope: runScope, maths: runMaths, description: runDescription, revert: runRevert }
   if (!guards[name]) {
-    console.error('usage: locus guard <scope|maths|description> ...')
+    console.error('usage: locus guard <scope|maths|description|revert> ...')
     return 64
   }
   return guards[name](args)

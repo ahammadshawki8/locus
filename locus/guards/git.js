@@ -8,8 +8,7 @@ const ZERO_SHA = /^0+$/
 
 /** Changed paths of one commit against its first parent: [{ status, path }]; a rename gives both paths. */
 const changedPaths = (sha, cwd) => {
-  const hasParent = git(['rev-list', '--parents', '-n', '1', sha], cwd).split(' ').length > 1
-  const out = hasParent
+  const out = hasParent(sha, cwd)
     ? git(['diff', '--no-renames', '--name-status', `${sha}^1`, sha], cwd)
     : git(['diff-tree', '--root', '-r', '--no-commit-id', '--no-renames', '--name-status', sha], cwd)
   return out ? out.split('\n').map((line) => { const [status, path] = line.split('\t'); return { status: status[0], path } }) : []
@@ -51,13 +50,35 @@ const fileExistsAt = (ref, path, cwd) => {
   }
 }
 
-const resolves = (ref, cwd) => {
+/** The full sha of the commit `ref` names (an abbreviation must be unambiguous), or null. */
+const resolveCommit = (ref, cwd) => {
   try {
-    git(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], cwd)
+    return git(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], cwd)
+  } catch {
+    return null
+  }
+}
+
+const resolves = (ref, cwd) => resolveCommit(ref, cwd) !== null
+
+/** true when commit `a` is `b` or an ancestor of it. */
+const isAncestor = (a, b, cwd) => {
+  try {
+    git(['merge-base', '--is-ancestor', a, b], cwd)
     return true
   } catch {
     return false
   }
+}
+
+const hasParent = (sha, cwd) => git(['rev-list', '--parents', '-n', '1', sha], cwd).split(' ').length > 1
+
+/** "mode blob" of `path` (from the repository root) at `ref`, or null when it is absent there. */
+const treeEntry = (ref, path, cwd) => {
+  const out = git(['ls-tree', '--full-tree', ref, '--', path], cwd)
+  if (!out) return null
+  const [mode, , blob] = out.split('\t')[0].split(' ')
+  return `${mode} ${blob}`
 }
 
 /**
@@ -82,4 +103,6 @@ const resolveBase = ({ base, env = process.env, cwd } = {}) => {
 const resolveBranch = ({ branch, env = process.env, cwd } = {}) =>
   branch || env.CI_MERGE_REQUEST_SOURCE_BRANCH_NAME || env.CI_COMMIT_BRANCH || git(['rev-parse', '--abbrev-ref', 'HEAD'], cwd)
 
-module.exports = { git, listCommits, changedPaths, commitsTouching, fileExistsAt, resolveBase, resolveBranch }
+module.exports = {
+  git, listCommits, changedPaths, commitsTouching, fileExistsAt, resolveBase, resolveBranch, resolveCommit, isAncestor, hasParent, treeEntry
+}
