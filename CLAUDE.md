@@ -24,7 +24,9 @@ npm --prefix locus ci                                 # once: installs ajv + lin
 npm run test:locus                                    # Locus tests (node:test), including the prints A, B, C reproduction
 npm run locus -- examples/projectile.json             # validate + render to out/projectile (STL, SVG, description, scene)
 npm run locus -- touchcheck examples/projectile.json  # TL-1 to TL-5 on out/projectile: report + overlay + LOCUS_REPORT line (exit 1 = failed)
-npm run locus -- guard maths requests/<iid> --base <sha>  # guards write out/guards/*.json (also: scope, description)
+npm run locus -- guard maths requests/<iid> --base <sha>  # guards write out/guards/*.json (also: scope, description, revert)
+npm run locus -- recheck [--impact]                   # every shipped graph (newest graph-<iid>-v<n> tag) with this code: out/recheck or out/impact + LOCUS_RECHECK/LOCUS_IMPACT line
+npm run locus -- bisect                               # after a failed recheck: first bad commit per graph (git bisect in a worktree): out/bisect + LOCUS_BISECT line
 npm run locus -- bundle requests/<iid>                # out/bundle/graph-<iid>-v<n>/ + .zip + manifest from render, touchcheck, guard output
 npm install && npm test && npm run test:tsd           # upstream JSCAD tests (what `upstream-test` runs in CI)
 ```

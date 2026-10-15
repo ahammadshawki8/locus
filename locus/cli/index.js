@@ -6,8 +6,10 @@
 //     reads scene.json + graph.svg from the render output, writes touchcheck-report.json + overlay.svg and prints the
 //     report on one line after `LOCUS_REPORT ` (docs/contracts.md §4: agents read job logs, not artifacts);
 //     exits 0 when every rule passed, 1 when a rule failed, 2 when the render output is missing or stale
-//   locus guard <scope|maths|description> ...   (see guards/cli.js)
+//   locus guard <scope|maths|description|revert> ...   (see guards/cli.js)
 //   locus bundle <requests/<iid>> ...           (see cli/bundle.js): out/bundle/graph-<iid>-v<n>/ + .zip + manifest
+//   locus recheck [--impact]                    (see cli/recheck.js): re-check every shipped graph with this code
+//   locus bisect                                (see cli/bisect.js): the first commit after which a shipped graph fails
 // A request folder holds spec.json + layout.json (+ request.lock.json); a spec file `x.json` uses `x.layout.json`.
 // The output folder defaults to out/<folder or spec name>.
 const fs = require('fs')
@@ -19,6 +21,8 @@ const { touchcheck, reportLine } = require('../touchcheck')
 const { toOverlay } = require('../touchcheck/overlay')
 const { runGuard } = require('../guards/cli')
 const { runBundle } = require('./bundle')
+const { runRecheck } = require('./recheck')
+const { runBisect } = require('./bisect')
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'))
 
@@ -98,6 +102,8 @@ const main = (argv) => {
   const args = argv.slice(2)
   if (args[0] === 'guard') return runGuard(args.slice(1))
   if (args[0] === 'bundle') return runBundle(args.slice(1))
+  if (args[0] === 'recheck') return runRecheck(args.slice(1))
+  if (args[0] === 'bisect') return runBisect(args.slice(1))
   const command = args[0] === 'touchcheck' ? args.shift() : 'render'
   const outIndex = args.indexOf('--out')
   const outArg = outIndex >= 0 ? args.splice(outIndex, 2)[1] : null
@@ -109,7 +115,7 @@ const main = (argv) => {
   }
   const target = args[0]
   if (!target) {
-    console.error('usage: locus [touchcheck] <requests/<iid> | spec.json> [--out <dir>] [--attempt <n>]\n       locus guard <scope|maths|description> ...\n       locus bundle <requests/<iid>> ...')
+    console.error('usage: locus [touchcheck] <requests/<iid> | spec.json> [--out <dir>] [--attempt <n>]\n       locus guard <scope|maths|description|revert> ...\n       locus bundle <requests/<iid>> ...\n       locus recheck [--impact]\n       locus bisect')
     return 64
   }
   const outDir = outArg || path.join('out', resolveInputs(target).name)

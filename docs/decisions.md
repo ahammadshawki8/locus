@@ -4,6 +4,63 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (d): library-impact, library-recheck, bisect-regression and guard-revert (Gate 5b code, Ashfaq)
+
+No change to `docs/contracts.md`. This is how the four jobs follow §6 and §7 and plan §11 and S.4 steps 9 and 10. The
+agents that read their output (impact reviewer, regression detective in `locus-ops`) are not built yet.
+
+- **Order.** library-impact and library-recheck are one operation, so neither comes first: `locus recheck` re-checks
+  every shipped graph with the code of the checkout it runs in, and `--impact` only changes the output
+  (`out/impact/report.json` + `LOCUS_IMPACT` instead of `out/recheck/report.json` + `LOCUS_RECHECK`). bisect-regression
+  reuses the same per-graph check (`locus/cli/shipped.js`), so "fails" means the same thing in all three.
+- **Shipped graph** = the newest release tag `graph-<iid>-v<n>` of a request (D5), re-checked from the request files
+  **at that tag**, i.e. what was released. A request with no release tag is not shipped and is left to the render and
+  touchcheck jobs.
+- **Fails** = render exits non-zero, or touchcheck fails a rule or cannot run. Not guard-maths: the plan says re-render
+  and touch-check. (Open: re-checking the maths too would also catch a generator bug that draws a well-spaced but
+  wrong curve.)
+- **Report fields** (contracts §6 names the file and the log line, not the fields): `kind` (`recheck` | `impact`),
+  `commit`, `pipelineId`, `pass`, `graphs: [{ requestId, releaseTag, releaseCommit, pass, stage?, error?, failures }]`.
+  `failures` are the report's failing results (`rule`, `message`, `measuredMm`, `requiredMm`, `at`). Exit 0 = all pass
+  or nothing shipped, 1 = a shipped graph fails, 2 = a release tag lacks its request files.
+- **bisect-regression** reads `out/recheck/report.json` (it must be for HEAD) and, for each failing graph, runs
+  `git bisect run` between the graph's release commit and HEAD in a separate worktree (the job's checkout is not
+  touched). Each step renders and touch-checks the released request files with **that commit's own CLI**, so a commit
+  that changed the generator, a touchcheck rule or a profile is found alike. Both ends are tested first: if the graph
+  also fails at its release commit, or passes at HEAD, no commit is named (H3). Output: `out/bisect/report.json` +
+  `LOCUS_BISECT` line: per graph `goodCommit`, `firstBadCommit`, `subject`, `authorName`, `merge`, `paths`,
+  `failures`, `steps` (every commit tested and its verdict) and `revertBranch` = `revert/<full sha>`; `commits` groups
+  the graphs by first bad commit. Exit 0 = a commit named for every failing graph, 1 = not for all, 2 = no or stale
+  re-check report.
+- **Dependencies per step:** when a commit's `locus/package*.json` and `packages/` equal HEAD's, the step uses the job's
+  `locus/node_modules` (through `NODE_PATH`); otherwise it runs `npm ci` in the worktree. **The `npm ci` path is not
+  covered by the tests** (no commit in the test range changes dependencies).
+- **guard-revert = the diff reversed**, which is stricter than "contents equal to `<sha>^`": the branch holds one plain
+  commit; `<sha>` is on the default branch and has a parent; the commit changes exactly the paths `<sha>` changed; and
+  for each path the branch's base still holds `<sha>`'s version (mode + blob) and the commit puts back the version from
+  before `<sha>`. So when a later commit changed one of those files, no exact inverse exists and the guard blocks, even
+  a clean `git revert`; a person reverts it, or the detective files re-layout requests (D6). guard-revert does not
+  re-prove that `<sha>` is guilty: bisect named it on `main`, and library-impact on the revert MR shows whether the
+  shipped graphs pass again.
+- **guard-scope refined** (16 Oct (b) said agents may not delete files): on `revert/<sha>` an agent may delete a file
+  only if `<sha>` added it, because that delete is the inverse. **Open (Gate 5):** whether Duo's `create_commit` can
+  delete a file at all.
+- **CI:** `guard-revert` on `revert/*` MR and branch pipelines; `library-impact` on MRs changing exactly the contract's
+  paths (`locus/core/**`, `packages/**`, `package*.json` at the root and in `locus/`); `library-recheck` on every
+  default-branch pipeline (pushes and the nightly schedule Shawki sets up); `bisect-regression` after it fails
+  (`needs: library-recheck`, `when: on_failure`). With `JUDGING_FREEZE=true`, library-recheck is `allow_failure` (it
+  only logs, so the pipeline does not fail and no flow starts) and bisect-regression does not run (plan §14).
+- **Proposal (needs both, H5):** a shipped graph's result also depends on `locus/touchcheck/**` and `profiles/**`, which
+  contracts §6 does not list for library-impact. Add them? Until then the job follows the contract; library-recheck on
+  `main` still catches such a change after merge.
+- **Checked locally only** (H3): `locus/cli/monitor.test.js` builds a throwaway repo carrying its own copy of `locus/`
+  and `profiles/`, releases print B as `graph-12-v1`, then a person's commit (between unrelated ones) makes the curve
+  0.6 mm wide. library-recheck fails it on TL-5 (0.6 mm, needs 1 mm); bisect tests both ends and the steps and names
+  that commit; its `git revert` passes guard-revert and guard-scope and library-impact passes again; a near-inverse,
+  an extra file, a second commit and a revert after a later edit of the same file are blocked; a graph that fails at
+  its own release commit gets no commit named. None of these jobs has run on GitLab yet: `needs:` with
+  `when: on_failure` and `git worktree` on the runner are untested there.
+
 ## 16 Oct 2026 (c): the bundle job and manifest (Ashfaq)
 
 No change to `docs/contracts.md`. This is how `locus bundle` and the `bundle` CI job follow §3, §5 and §6.
