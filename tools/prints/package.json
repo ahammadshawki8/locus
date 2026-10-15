@@ -1,0 +1,14 @@
+{
+  "name": "locus-prototype-prints",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Prototype tactile graph prints for the Locus demo (attempt 1 and corrected)",
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "build": "node prints.js"
+  },
+  "dependencies": {
+    "@jscad/modeling": "2.13.0"
+  }
+}
