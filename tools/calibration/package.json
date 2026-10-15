@@ -1,0 +1,15 @@
+{
+  "name": "locus-calibration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Calibration test piece for Locus tactile prints: line gaps, line widths and braille dot heights",
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "build": "node calibration.js"
+  },
+  "dependencies": {
+    "@jscad/modeling": "2.13.0",
+    "@jscad/stl-serializer": "2.1.23"
+  }
+}
