@@ -4,6 +4,14 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (e): group access and credits (reported by Ashfaq)
+
+- The team has group access for the hackathon, and the Duo credits are there (15 Oct: "No credits remain for this
+  billing period"). Reported by Ashfaq on 16 Oct; no flow has run in our account yet, so nothing is claimed as working
+  (H3). Gate 5 is no longer blocked on credits; it still records whose credits a triggered flow uses.
+- `docs/contracts.md` §10 still lists "credits for triggered flows" as waiting; it is left as written (H5) until Gate 5
+  answers whose credits are used.
+
 ## 16 Oct 2026 (d): library-impact, library-recheck, bisect-regression and guard-revert (Gate 5b code, Ashfaq)
 
 No change to `docs/contracts.md`. This is how the four jobs follow §6 and §7 and plan §11 and S.4 steps 9 and 10. The

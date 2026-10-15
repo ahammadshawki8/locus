@@ -53,9 +53,9 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 
 | Area | State |
 |---|---|
-| Onboarding | Shawki, Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) onboarded to the GitLab hackathon group. Shawki asked on Discord (16 Oct) for Ashfaq and Nourin to be added to the Showcase project |
+| Onboarding | Shawki, Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) onboarded to the GitLab hackathon group. Shawki asked on Discord (16 Oct) for Ashfaq and Nourin to be added to the Showcase project. 16 Oct: Ashfaq reports the team now has group access for the hackathon |
 | GitLab project | `Transcend October 2026 / ahammadshawki8 / Showcase` exists (role: Developer+). Foundational flows enabled: Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection. Code not imported yet |
-| Credits | **Blocker:** Duo Chat showed "No credits remain for this billing period" on 15 Oct. Asked on Discord |
+| Credits | 15 Oct: Duo Chat showed "No credits remain for this billing period". 16 Oct: Ashfaq reports the credits are there now. Not yet used by a flow run in our account (H3); Gate 5 records whose credits a triggered flow uses |
 | Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
 | Prints | Calibration piece printed and judged good. Prototype plates A, B and C sent to print on 16 Oct (`tools/prints/`). About 500 tk budget |
 | Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. Product code is on Ashfaq's fork `ashfaqstu/locus`, branch `feat/gate2-render` (JSCAD import, `locus/`), not merged yet: it follows contracts v1, reproduces prints A, B and C (CI test), and `touchcheck` measures TL-1 to TL-5 with report, overlay and `LOCUS_REPORT` line (A fails, B and C pass). All four guards built with CI jobs (Gate 8 locally). `locus bundle` + `bundle` CI job build `out/bundle/graph-<iid>-v<n>/` + zip, with `manifest.json` from the render, touchcheck and guard output only (contracts §3, §5; `docs/decisions.md` 16 Oct (c)). Gate 5b code: `library-impact` (MR), `library-recheck` (main + nightly) and `bisect-regression` jobs re-check every shipped graph from its release tag and name the first bad commit with `git bisect`; `guard-revert` checks a `revert/<sha>` branch is the exact inverse (16 Oct (d)). 182 tests, including a seeded regression found by bisect, its inverse passing guard-revert and near-inverses blocked. Not built: the two flows (intake, fixer, impact reviewer, regression detective, release guard), Service Desk. Nothing has run on GitLab yet |
@@ -72,7 +72,7 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 9. Both: should `library-impact` also run on MRs changing `locus/touchcheck/**` and `profiles/**` (contracts §6 change, `docs/decisions.md` 16 Oct (d))?
 7. Shawki: answer the key-mode question in `docs/decisions.md` (16 Oct): with single-letter labels, is `key-mode` still a useful fix for TL-2 and TL-3?
 
-**Waiting on GitLab (Discord):** credits; whether triggered flows use personal credits; which tools ambient flows get; whether flows can merge; Secret FP Detection and Breaking Change Resolution.
+**Waiting on GitLab (Discord):** whether triggered flows use personal credits; which tools ambient flows get; whether flows can merge; Secret FP Detection and Breaking Change Resolution.
 
 ## S.4 Project flow, end to end (pipeline v2)
 
