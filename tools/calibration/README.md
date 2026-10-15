@@ -7,14 +7,14 @@ Regenerate with `npm install && npm run build`.
 ## Printing
 
 - **100% scale. Never resize**, because every measurement is real millimetres.
-- PLA, layer height 0.12–0.16 mm, flat on the bed, no supports.
+- PLA, layer height 0.12-0.16 mm, flat on the bed, no supports.
 - Optional: change filament colour at 2 mm height (where the base ends), so the raised parts stand out on camera.
 
 ## Layout (hold it with the triangle at the top-left)
 
 ```
  ◤   ||      | |      |  |      |   |      |     |     Row A: line pairs, gap between the lines
-      •      ••       •••      ••••      •••••         index dots = column number 1–5
+      •      ••       •••      ••••      •••••         index dots = column number 1-5
       |       |        |        ▌         █            Row B: single lines of increasing width
   LOCUS (low dots)          LOCUS (high dots)          Row C: braille, two dot heights
 ```
@@ -42,6 +42,6 @@ Regenerate with `npm install && npm run build`.
 1. Row A: in which column do you first feel **two separate lines** rather than one? That's the real minimum gap.
 2. Row B: which widths feel clearly like a line? Do the wide ones feel different from the thin ones? (This informs how the curve and axes are made to feel different.)
 3. Row C: are the low or high dots easier to read, and does either feel sharp?
-4. Can you count the index dots (1–5) without looking?
+4. Can you count the index dots (1-5) without looking?
 
 Write the answers in `docs/decisions.md`, along with a photo. Ashfaq then updates the rule values and printer profile from these measured results instead of the published placeholders.

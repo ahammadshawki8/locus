@@ -1,6 +1,8 @@
 # Locus contracts
 
-**Status: DRAFT for Ashfaq and Shawki to review together.** Once both agree, any change needs both people's sign-off and a dated line in `docs/decisions.md`.
+**Status: v1, FINAL (16 Oct 2026, set by Shawki).** These are fixed rules for everyone building Locus.
+- **Blocker window:** until **17 Oct 2026, 18:00 GMT+6**, Ashfaq may raise a **technical blocker**: something in this file that can't be built as written, for example a Duo tool that doesn't exist. It must come with a proposed alternative, posted as a dated entry in `docs/decisions.md`. Preferences aren't blockers.
+- **After the window:** any change needs a dated entry in `docs/decisions.md` that both Ashfaq and Shawki agree to.
 
 These are the interfaces between the parts each person builds. Ashfaq's side produces graphs, bundles and agent changes. Shawki's side packages, releases, deploys, monitors and replies. If both sides follow this file, they can build in parallel against `fixtures/bundle-sample/`.
 
@@ -37,8 +39,9 @@ Written by the intake agent in the first commit of a `graph/<iid>` branch. `<iid
 
 ### `layout.json`
 ```json
-{ "xScaleMm": 18, "yScaleMm": 10, "labelMode": "inline", "labelOffsets": {}, "showGrid": false }
+{ "xScaleMm": 16, "yScaleMm": 8, "labelMode": "inline", "labelOffsets": {}, "defaultLabelOffset": [4.5, 6], "showGrid": true }
 ```
+- This is the profile's default layout, and it matches the prototype print A (`tools/prints/layout-A.json`). The corrected print B is `tools/prints/layout-B.json`.
 - `labelMode`: `inline` | `key`.
 - `labelOffsets`: `{ "<mark>": [dxMm, dyMm] }`.
 
@@ -53,8 +56,11 @@ Written by the intake agent in the first commit of a `graph/<iid>` branch. `<iid
   "baseThicknessMm": 2,
   "curve": { "widthMm": 1.2, "heightMm": 1.0 },
   "axis": { "widthMm": 1.0, "heightMm": 0.7 },
-  "braille": { "dotDiameterMm": 1.5, "dotHeightMm": 0.6, "dotPitchMm": 2.5, "cellPitchMm": 6.2 },
-  "rules": { "minLineGapMm": 3.2, "minLabelClearanceMm": 6.4, "minFeatureWidthMm": 1.0 },
+  "grid": { "widthMm": 1.0, "heightMm": 0.5 },
+  "tick": { "widthMm": 1.0, "heightMm": 0.7, "lengthMm": 4 },
+  "point": { "diameterMm": 3.0, "heightMm": 1.6 },
+  "braille": { "dotDiameterMm": 1.5, "dotHeightMm": 0.8, "dotPitchMm": 2.5, "cellPitchMm": 6.2 },
+  "rules": { "minLineGapMm": 3.2, "minLabelClearanceMm": 6.4, "minLabelPointClearanceMm": 3.2, "minFeatureWidthMm": 1.0, "edgeMarginMm": 3 },
   "source": "placeholder values; replace with calibration-print results (Gate 7b)"
 }
 ```
@@ -93,7 +99,7 @@ Values are placeholders until the calibration print (`tools/calibration/`) is fe
 }
 ```
 - `at` is in plate millimetres, origin bottom-left. The overlay draws a circle there.
-- The `notify-agent` note and the fixer agent both read this file. Its plain `message` text is what the video shows.
+- The fixer agent reads this report. Agents can read job logs but not artifacts, so `touchcheck` also prints this JSON, compacted onto one line, to its job log, prefixed `LOCUS_REPORT `. Its plain `message` text is what the video shows.
 
 ## 5. `manifest.json`
 
@@ -125,8 +131,9 @@ Generated only from real job outputs, never hand-written.
 | Producer (Ashfaq) | Artifact | Consumer (Shawki) |
 |---|---|---|
 | `bundle` | `out/bundle/**` | `publish-package`, `release`, `deploy-staging` |
-| `touchcheck` | `touchcheck-report.json`, `overlay.svg` (kept on failure: `artifacts:when: always`) | `notify-agent` (fallback), video capture |
-| `library-recheck` (schedule set by Shawki) | `out/recheck/report.json` | `bisect-regression` → regression detective |
+| `touchcheck` | `touchcheck-report.json`, `overlay.svg` (kept on failure: `artifacts:when: always`) + `LOCUS_REPORT` log line | fixer agent, video capture |
+| `library-impact` (MRs changing `locus/core/**`, `packages/**`, `package*.json`) | `out/impact/report.json` + `LOCUS_IMPACT` log line | impact reviewer |
+| `library-recheck` (`main` pipelines + nightly schedule set by Shawki) | `out/recheck/report.json` + `LOCUS_RECHECK` log line | `bisect-regression` → regression detective |
 
 **Required `needs:`**
 - `release` needs: `touchcheck`, `guard-scope`, `guard-maths`, `guard-description`, `secret-detection`, `sast`, `license-check`, `bundle`.
@@ -144,13 +151,15 @@ Generated only from real job outputs, never hand-written.
 
 **Allowed paths per agent (`guard-scope`):**
 
-| Agent | May change |
-|---|---|
-| intake | `requests/<iid>/**` (first commit) |
-| fixer | `requests/<iid>/layout.json` |
-| release guard | `deploy/gcp/production-revision` |
-| regression detective | an exact `git revert` of the commit named by `bisect-regression` (checked by `guard-revert`) |
-| security triage (T2.9) | `package.json`, `package-lock.json` |
+Each flow has its own service account (`ai-<flow>-<group>`), so `guard-scope` checks the commit author and the branch prefix as well as the paths.
+
+| Agent (flow) | Branch | May change |
+|---|---|---|
+| intake (`locus-request`) | `graph/<iid>` | `requests/<iid>/**` (first commit) |
+| fixer (`locus-request`) | `graph/<iid>` | `requests/<iid>/layout.json` |
+| impact reviewer (`locus-ops`) | - | nothing; MR notes only |
+| release guard (`locus-ops`) | `rollback/<n>` | `deploy/gcp/production-revision` |
+| regression detective (`locus-ops`) | `revert/<sha>` | only the exact inverse of the commit named by `bisect-regression`, written with `create_commit` (checked by `guard-revert`) |
 
 ## 8. Issue summary note (the reply email uses it)
 
@@ -170,9 +179,18 @@ Note: automated checks measure spacing and size; they do not certify that a lear
 - **`build-info.json`** (served at `/build-info.json`): `{ "version": "", "commit": "", "builtAt": "", "graphs": ["graph-12-v1"] }`.
 - **Graph page URL:** `/graphs/<artifactId>/`. It shows the SVG preview, the text description, downloads, the braille ID and a link to the GitLab release.
 
-## 10. Open points to agree
+## 10. Decided (16 Oct)
 
-- [ ] Plate size: 100 × 100 mm handheld, pending the friend's printer bed size.
-- [ ] Do the axes feel different from the curve through height, width, or both? Decide after the calibration print.
-- [ ] Release tag format: `graph-<iid>-v<n>`?
-- [ ] Where the regression detective's "re-layout" requests go: a new issue per graph, or one issue listing all of them?
+| # | Point | Decision | Why |
+|---|---|---|---|
+| D1 | Plate size | **100 × 100 × 2 mm** (`fdm-handheld-v1`) | The prototype prints are this size, and they're the only prints we'll have |
+| D2 | Axes vs curve | **Both height and width:** curve 1.2 wide × 1.0 high; axes and ticks 1.0 × 0.7; grid 1.0 × 0.5; point marks 3.0 mm domes, 1.6 high | Matches the prints. Adjusted only if the calibration touch test says otherwise |
+| D3 | Feature sizes and placement | Exactly as `tools/prints/` builds them: placement rule, tick rules, braille 1.5 / 2.5 / 6.2 mm, dots 0.8 high, braille ID top-right, triangle top-left | `locus/core` must reproduce prints A, B and C from their spec + layout files (a CI test compares the STLs) |
+| D4 | Default layout | `tools/prints/layout-A.json` (§1) | The agent's attempt 1 then renders exactly print A |
+| D5 | Release tag | **`graph-<iid>-v<n>`**, the same as the bundle's `artifactId` | One name everywhere: tag, package, page URL, manifest |
+| D6 | Re-layout requests from the regression detective | **One issue per affected graph**, labelled `locus-request` + `regression`, linking the original issue. A person assigns each one to the bot | One issue = one flow session = one release `v<n+1>`. Agent-created issues can't start a flow on their own (`docs/decisions.md`, 15 Oct) |
+| D7 | Trigger design | **Pipeline v2** (`docs/decisions.md`, 15 Oct b): `locus-request` = intake → fixer in one session; `locus-ops` = triage → impact reviewer / regression detective / release guard; `auto-merge` CI job | Triggers only fire on a person's action |
+| D8 | Agent reads the touchcheck result | From the `LOCUS_REPORT` line in the job log (§4). If the flow can run commands, it also runs touchcheck locally | Works whether or not GitLab confirms that ambient flows get `run_command` |
+| D9 | Sample bundle | `fixtures/bundle-sample/graph-0-v1/` is generated from print B's spec and layout | Real geometry, so Shawki's release and deploy jobs are tested against realistic files |
+
+**Still waiting on GitLab (doesn't block building):** credits for triggered flows; whether flows can merge (fallback already chosen: the `auto-merge` CI job).
