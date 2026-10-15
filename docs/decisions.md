@@ -4,6 +4,34 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (f): first pipeline on GitLab, in Ashfaq's Showcase as a test bed (Ashfaq)
+
+- **Projects.** Each participant has their own public Showcase:
+  `gitlab-ai-hackathon/transcend-october-2026/<user id>/showcase`. Ashfaq (`Ashfaq909`, id 43396940) is Developer on
+  his (project 87669530) through the group. Shawki's is `.../43384339/showcase` (project 87666718); Ashfaq has no access
+  there yet. Both `main` branches hold only the organisers' `README.md`.
+- **Decision (Ashfaq):** until Ashfaq is added to Shawki's project, his own Showcase is the test bed: remote `gitlab`,
+  branch `feat/gate2-render` only (no tags, `main` untouched). It is not the submission project.
+- **Access from this machine:** `glab` 1.123.0, signed in as `Ashfaq909` with Ashfaq's personal access token, kept in
+  the OS keyring; Git uses `glab auth git-credential` for `gitlab.com` only. No token in the repo or any file (H8).
+- **Pipeline 2952962152** (push of `b7e8b2bc`, shared runners) is the first Locus pipeline that ran in our account:
+  - Passed: `render` (the example, print A, 100.0 x 100.0 mm), `touchcheck` (the example failed as expected, not a
+    gate), `upstream-test` on Node 20 and 22, `semgrep-sast`, `secret_detection`. `guard-maths` and
+    `guard-description` passed with **0 requests checked** (no `requests/` folder yet), so they show the jobs run, not
+    that a graph passed.
+  - `locus-test`: 176 of 182. The 6 failures (`cli/bundle.test.js`, `guards/cli.test.js`) were the runner's
+    `CI_COMMIT_BRANCH` leaking into the tests' throwaway repos, so guard-scope saw `feat/gate2-render` instead of
+    `graph/12`. Fixed: those tests (and `cli/monitor.test.js`) now drop every `CI_*` variable and `RELEASE_MODE`.
+    All 22 new monitor and guard-revert tests passed on the runner, including `git bisect` in a worktree.
+  - `guard-scope` failed closed (exit 2): no base commit, because a first push has no commit before it and the
+    Showcase `main` shares no history with our branch. Correct behaviour; its message now says this. `bundle` was
+    skipped because it needs guard-scope.
+  - Not in this pipeline, as designed: `library-recheck` and `bisect-regression` (default branch only),
+    `library-impact` (MRs), `guard-revert` (`revert/*`).
+- **Open:** the Showcase `main` needs our history before MRs and guard-scope can work there (Shawki's working repo
+  `main` pushed over the organisers' README, or code imported into Shawki's project). That changes `main`, so it waits
+  for Ashfaq's and Shawki's go-ahead.
+
 ## 16 Oct 2026 (e): group access and credits (reported by Ashfaq)
 
 - The team has group access for the hackathon, and the Duo credits are there (15 Oct: "No credits remain for this

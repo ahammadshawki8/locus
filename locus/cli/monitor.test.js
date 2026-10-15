@@ -17,12 +17,14 @@ const json = (o) => JSON.stringify(o, null, 2) + '\n'
 
 const PERSON = { GIT_AUTHOR_NAME: 'A Person', GIT_AUTHOR_EMAIL: 'person@example.org' }
 const OPS = { GIT_AUTHOR_NAME: 'ai-locus-ops-transcend', GIT_AUTHOR_EMAIL: 'ai-locus-ops-transcend@noreply.example' }
-const CLEAR = { CI_MERGE_REQUEST_DIFF_BASE_SHA: '', CI_COMMIT_BEFORE_SHA: '', CI_COMMIT_SHA: '', CI_PIPELINE_ID: '', CI_COMMIT_BRANCH: '', CI_MERGE_REQUEST_SOURCE_BRANCH_NAME: '' }
+// The throwaway repo is not the pipeline's repo: drop GitLab's CI_* variables (branch, base, commit, pipeline) and
+// RELEASE_MODE, which the runner sets for the real checkout.
+const HOST_ENV = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('CI_') && k !== 'RELEASE_MODE'))
 // The copied code has no node_modules of its own: it finds ajv and @jscad/modeling in this checkout's.
 const NODE_PATH = path.join(root, 'locus', 'node_modules')
 
 const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'locus-monitor-'))
-const env = (who) => ({ ...process.env, ...who, GIT_COMMITTER_NAME: who.GIT_AUTHOR_NAME, GIT_COMMITTER_EMAIL: who.GIT_AUTHOR_EMAIL, ...CLEAR, NODE_PATH })
+const env = (who) => ({ ...HOST_ENV, ...who, GIT_COMMITTER_NAME: who.GIT_AUTHOR_NAME, GIT_COMMITTER_EMAIL: who.GIT_AUTHOR_EMAIL, NODE_PATH })
 const git = (who, ...args) => execFileSync('git', args, { cwd: repo, env: env(who), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim()
 const write = (file, content) => {
   fs.mkdirSync(path.dirname(path.join(repo, file)), { recursive: true })

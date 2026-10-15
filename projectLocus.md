@@ -54,7 +54,7 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 | Area | State |
 |---|---|
 | Onboarding | Shawki, Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) onboarded to the GitLab hackathon group. Shawki asked on Discord (16 Oct) for Ashfaq and Nourin to be added to the Showcase project. 16 Oct: Ashfaq reports the team now has group access for the hackathon |
-| GitLab project | `Transcend October 2026 / ahammadshawki8 / Showcase` exists (role: Developer+). Foundational flows enabled: Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection. Code not imported yet |
+| GitLab project | Each participant has a public Showcase, `gitlab-ai-hackathon/transcend-october-2026/<user id>/showcase`. Shawki's (`.../43384339/showcase`) is the team project: foundational flows enabled (Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection); code not imported; Ashfaq has no access yet. Test bed: Ashfaq's (`.../43396940/showcase`), branch `feat/gate2-render` pushed 16 Oct; first pipeline ran: render, touchcheck, upstream-test, SAST, secret detection pass; guard-scope fails closed until `main` shares our history (`docs/decisions.md` 16 Oct (f)) |
 | Credits | 15 Oct: Duo Chat showed "No credits remain for this billing period". 16 Oct: Ashfaq reports the credits are there now. Not yet used by a flow run in our account (H3); Gate 5 records whose credits a triggered flow uses |
 | Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
 | Prints | Calibration piece printed and judged good. Prototype plates A, B and C sent to print on 16 Oct (`tools/prints/`). About 500 tk budget |
@@ -62,6 +62,7 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 | Hosting | Google Cloud not set up yet (Shawki, Gate 6b, 17 Oct) |
 
 **Next:**
+0. Ashfaq + Shawki: give the Showcase `main` our history (push the working repo's `main` over the organisers' README, or import into Shawki's project and add Ashfaq), so MRs and guard-scope work on GitLab (16 Oct (f)).
 1. Ashfaq: Gate 5 (16 Oct): a person files an issue, then one `locus-request` session runs spec → red → fix → green. Record which tools work in the flow and whose credits are used.
 2. Shawki: Google Cloud + Cloud Run staging and production skeleton (Gate 6b, 17 Oct).
 3. Shawki: generate `fixtures/bundle-sample/graph-0-v1/` from print B (contracts D9). It can now come from the real code: render, touchcheck, the three guards, then `npm run locus -- bundle fixtures/touchcheck/good-print-b` (`docs/decisions.md` 16 Oct (c)). Also: plan §9 says `graph-<iid>.zip`, contracts §3 says `graph-<iid>-v<n>.zip`; the code follows the contract.

@@ -18,10 +18,12 @@ const json = (o) => JSON.stringify(o, null, 2) + '\n'
 
 const AGENT = { GIT_AUTHOR_NAME: 'ai-locus-request-transcend', GIT_AUTHOR_EMAIL: 'ai-locus-request-transcend@noreply.example' }
 const PERSON = { GIT_AUTHOR_NAME: 'A Person', GIT_AUTHOR_EMAIL: 'person@example.org' }
-const CLEAR = { CI_MERGE_REQUEST_DIFF_BASE_SHA: '', CI_COMMIT_BEFORE_SHA: '', CI_COMMIT_SHA: '', CI_PIPELINE_ID: '', RELEASE_MODE: '' }
+// The throwaway repo is not the pipeline's repo: drop GitLab's CI_* variables (branch, base, commit, pipeline) and
+// RELEASE_MODE, which the runner sets for the real checkout.
+const HOST_ENV = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('CI_') && k !== 'RELEASE_MODE'))
 
 const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'locus-bundle-'))
-const env = (who, extra = {}) => ({ ...process.env, ...who, GIT_COMMITTER_NAME: who.GIT_AUTHOR_NAME, GIT_COMMITTER_EMAIL: who.GIT_AUTHOR_EMAIL, ...CLEAR, ...extra })
+const env = (who, extra = {}) => ({ ...HOST_ENV, ...who, GIT_COMMITTER_NAME: who.GIT_AUTHOR_NAME, GIT_COMMITTER_EMAIL: who.GIT_AUTHOR_EMAIL, ...extra })
 const git = (who, ...args) => execFileSync('git', args, { cwd: repo, env: env(who), encoding: 'utf8' }).trim()
 const write = (file, content) => {
   fs.mkdirSync(path.dirname(path.join(repo, file)), { recursive: true })

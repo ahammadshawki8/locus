@@ -28,6 +28,10 @@ const writeResult = (name, result) => {
   fs.writeFileSync(path.join(dir, `${name}.json`), JSON.stringify(result, null, 2) + '\n')
 }
 
+// Why no base was found: not an MR, no usable commit before the push, and HEAD shares no history with the default
+// branch (for example a first push to a project whose default branch holds other history).
+const NO_BASE = 'no base commit: not an MR pipeline, no commit before the push, and HEAD shares no history with the default branch (pass --base)'
+
 const cannotCheck = (name, why) => {
   console.error(`${name}: cannot check: ${why}`)
   return 2
@@ -41,7 +45,7 @@ const report = (name, pass, lines) => {
 
 const runScope = (args) => {
   const base = g.resolveBase({ base: option(args, '--base') })
-  if (!base) return cannotCheck('guard-scope', 'no base commit (pass --base, or run in an MR or branch pipeline)')
+  if (!base) return cannotCheck('guard-scope', NO_BASE)
   const head = option(args, '--head') || 'HEAD'
   const branch = g.resolveBranch({ branch: option(args, '--branch') })
   const commits = g.listCommits(base, head)
@@ -81,7 +85,7 @@ const runMaths = (args) => {
   if (missing) return cannotCheck('guard-maths', `${missing} not found (render first; every request needs request.lock.json)`)
 
   const base = g.resolveBase({ base: option(args, '--base') })
-  if (!base) return cannotCheck('guard-maths', 'no base commit to check the lock history against')
+  if (!base) return cannotCheck('guard-maths', `${NO_BASE}; the lock history needs one`)
   const root = g.git(['rev-parse', '--show-toplevel'])
   const lockPath = path.relative(root, path.resolve(files.lock)).split(path.sep).join('/')
   const branchCommits = g.git(['rev-list', '--reverse', `${base}..HEAD`])
@@ -114,7 +118,7 @@ const runRevert = (args) => {
   const named = branch.match(/^revert\/([0-9a-f]{7,40})$/)
   if (!named) return cannotCheck('guard-revert', `${branch} is not a revert/<sha> branch`)
   const base = g.resolveBase({ base: option(args, '--base'), env: { ...process.env, CI_COMMIT_BEFORE_SHA: '' } })
-  if (!base) return cannotCheck('guard-revert', 'no base commit (pass --base, or run in an MR pipeline)')
+  if (!base) return cannotCheck('guard-revert', NO_BASE)
   const head = option(args, '--head') || 'HEAD'
 
   const sha = g.resolveCommit(named[1])
