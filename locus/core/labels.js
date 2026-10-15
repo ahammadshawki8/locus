@@ -1,16 +1,19 @@
-// Braille labels for marked points. Inline mode puts each value next to its dot; key mode puts a letter there and lists
-// letter + value in a key below the plot. Default label place: up and right of the dot by the profile's TL-2 gap;
-// layout.labelOffsets moves it from there (the fixer's "move-label" fix).
-const { toBraille, cellLayout } = require('./braille')
+// Braille labels on the plate, placed exactly as tools/prints/prints.js places them (docs/contracts.md D3):
+// - each marked point gets a letter (a, b, c, ... in the order the marks were requested), its box centred at the
+//   point plus layout.labelOffsets[pointId] (default: layout.defaultLabelOffset); moving it is the fixer's "move-label";
+// - the braille ID (number sign + issue number) sits in the top-right corner, 6 mm in from both edges;
+// - key mode adds a key in the bottom-left corner: one row per letter with the value it stands for.
+const { toBraille, cellBox, brailleDots } = require('./braille')
 
-const KEY_LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+const LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+const CORNER_INSET_MM = 6
 
 const value = (v) => {
   const rounded = Math.round(v * 100) / 100
   return String(rounded === 0 ? 0 : rounded)
 }
 
-/** The short print text of a mark's label: what a reader needs to know about that point. */
+/** The value a key row gives for a mark: x,y for a vertex or turning point, y for the y-intercept, x for an x-intercept. */
 const labelText = (point) => {
   switch (point.mark) {
     case 'vertex':
@@ -20,54 +23,56 @@ const labelText = (point) => {
   }
 }
 
-const makeLabel = (props, text, xMm, yMm, cellSize) => {
+/** A label whose box is centred on (cx, cy). `box` is [x0, y0, x1, y1] in plate mm. */
+const makeLabel = (props, text, cx, cy, b) => {
   const braille = toBraille(text)
-  const { widthMm, heightMm, dots } = cellLayout(braille, cellSize)
+  const { w, h } = cellBox([...braille].length, b)
   return {
     ...props,
     text,
     braille,
-    xMm,
-    yMm,
-    widthMm,
-    heightMm,
-    dots: dots.map(([x, y]) => [xMm + x, yMm + y]),
-    dotDiameterMm: cellSize.dotDiameterMm,
-    dotHeightMm: cellSize.dotHeightMm
+    cx,
+    cy,
+    box: [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2],
+    dots: brailleDots(braille, cx, cy, b),
+    dotDiameterMm: b.dotDiameterMm,
+    dotHeightMm: b.dotHeightMm
   }
 }
 
-/** Height of the key area under the plot, so the key's top row is TL-2 clear of the lowest raised feature. */
-const keyHeightMm = (count, profile) => {
-  if (!count) return 0
-  const g = profile.geometry
-  const b = g.braille
-  const clearance = Math.max(g.curve.widthMm / 2, g.axis.widthMm / 2, g.grid.widthMm / 2, g.mark.diameterMm / 2)
-  return (count - 1) * b.lineSpacingMm + (2 * b.dotSpacingMm + b.dotDiameterMm) + profile.rules['TL-2'].minLabelGapMm + clearance
-}
-
 /**
- * @param {object[]} marks scene marks (with xMm, yMm, diameterMm)
+ * @param {object[]} marks scene marks (with xMm, yMm), in requested order
+ * @param {number} brailleIdNumber the number embossed in the top-right corner (the request's issue number)
  * @returns {{ labels: object[], key: null | { entries: {letter, for, text}[] } }}
  */
-const buildLabels = (marks, layout, profile) => {
-  const g = profile.geometry
-  const gap = profile.rules['TL-2'].minLabelGapMm
-  const keyed = layout.labelMode === 'key'
-  if (keyed && marks.length > KEY_LETTERS.length) throw new Error(`key mode supports up to ${KEY_LETTERS.length} marks`)
+const buildLabels = (marks, layout, profile, brailleIdNumber) => {
+  const b = profile.braille
+  const [W, H] = profile.plateMm
+  if (marks.length > LETTERS.length) throw new Error(`labels support up to ${LETTERS.length} marked points`)
 
   const labels = marks.map((m, i) => {
-    const offset = layout.labelOffsets[m.id] || { dxMm: 0, dyMm: 0 }
-    const r = m.diameterMm / 2
-    const text = keyed ? KEY_LETTERS[i] : labelText(m)
-    return makeLabel({ id: `label-${m.id}`, kind: 'mark', for: m.id }, text, m.xMm + r + gap + offset.dxMm, m.yMm + r + gap + offset.dyMm, g.braille)
+    const [dx, dy] = layout.labelOffsets[m.id] ?? layout.defaultLabelOffset
+    return makeLabel({ id: `label-${m.id}`, kind: 'mark', for: m.id }, LETTERS[i], m.xMm + dx, m.yMm + dy, b)
   })
-  if (!keyed) return { labels, key: null }
 
-  const entries = marks.map((m, i) => ({ letter: KEY_LETTERS[i], for: m.id, text: labelText(m) }))
-  const rows = entries.map((e, k) =>
-    makeLabel({ id: `key-${e.letter}`, kind: 'key', for: e.for }, `${e.letter} ${e.text}`, g.marginMm, g.marginMm + (entries.length - 1 - k) * g.braille.lineSpacingMm, g.braille))
-  return { labels: [...labels, ...rows], key: { entries } }
+  let key = null
+  if (layout.labelMode === 'key') {
+    const entries = marks.map((m, i) => ({ letter: LETTERS[i], for: m.id, text: labelText(m) }))
+    const rowPitch = cellBox(1, b).h + profile.rules.minLineGapMm
+    entries.forEach((e, k) => {
+      const text = `${e.letter} ${e.text}`
+      const { w, h } = cellBox([...toBraille(text)].length, b)
+      const bottom = CORNER_INSET_MM + (entries.length - 1 - k) * rowPitch
+      labels.push(makeLabel({ id: `key-${e.letter}`, kind: 'key', for: e.for }, text, CORNER_INSET_MM + w / 2, bottom + h / 2, b))
+    })
+    key = { entries }
+  }
+
+  const idText = String(brailleIdNumber)
+  const { w: iw, h: ih } = cellBox([...toBraille(idText)].length, b)
+  labels.push(makeLabel({ id: 'braille-id', kind: 'braille-id', for: null }, idText, W - CORNER_INSET_MM - iw / 2, H - CORNER_INSET_MM - ih / 2, b))
+
+  return { labels, key }
 }
 
-module.exports = { labelText, buildLabels, keyHeightMm }
+module.exports = { labelText, buildLabels, LETTERS }

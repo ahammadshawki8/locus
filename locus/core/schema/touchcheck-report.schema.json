@@ -2,62 +2,33 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://locus.local/schema/touchcheck-report.schema.json",
   "title": "Locus touchcheck report",
-  "description": "touchcheck-report.json, written by the touchcheck job and shipped in the bundle. See docs/contracts.md §4.",
+  "description": "touchcheck-report.json, also printed on one line to the job log after `LOCUS_REPORT `. See docs/contracts.md §4. A passing rule has one result { rule, pass: true }; a failing rule has one result per place it fails. `at` is in plate millimetres, origin bottom-left, and is left out when the problem has no place on the plate.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "profileId", "passed", "rules"],
+  "required": ["requestId", "attempt", "profileId", "pass", "results"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "fixture": { "description": "true only for test fixtures; absent in a real report.", "type": "boolean" },
+    "requestId": { "type": "integer", "minimum": 0 },
+    "attempt": { "type": "integer", "minimum": 1 },
     "profileId": { "type": "string" },
-    "passed": { "description": "true only if every rule passed.", "type": "boolean" },
-    "rules": {
-      "description": "Always all five rules, in order.",
+    "pass": { "type": "boolean" },
+    "results": {
       "type": "array",
       "minItems": 5,
-      "prefixItems": [
-        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-1" } } }] },
-        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-2" } } }] },
-        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-3" } } }] },
-        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-4" } } }] },
-        { "allOf": [{ "$ref": "#/$defs/rule" }, { "type": "object", "properties": { "id": { "const": "TL-5" } } }] }
-      ],
-      "items": false
-    }
-  },
-  "$defs": {
-    "rule": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["id", "passed", "violations"],
-      "properties": {
-        "id": { "enum": ["TL-1", "TL-2", "TL-3", "TL-4", "TL-5"] },
-        "passed": { "type": "boolean" },
-        "violations": { "type": "array", "items": { "$ref": "#/$defs/violation" } },
-        "note": { "description": "Plain words on how the rule was applied, e.g. \"not applicable: no labels yet\".", "type": "string" }
-      }
-    },
-    "violation": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["message", "measuredMm", "requiredMm", "at"],
-      "properties": {
-        "message": { "description": "Plain words, shown on the overlay.", "type": "string", "minLength": 1 },
-        "measuredMm": { "description": "null when nothing is measured (e.g. a missing mark).", "anyOf": [{ "type": "number" }, { "type": "null" }] },
-        "requiredMm": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
-        "at": {
-          "description": "Where on the plate (scene mm, origin bottom-left, y up); null when the problem has no place on the plate.",
-          "anyOf": [
-            {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["xMm", "yMm"],
-              "properties": { "xMm": { "type": "number" }, "yMm": { "type": "number" } }
-            },
-            { "type": "null" }
-          ]
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "pass"],
+        "properties": {
+          "rule": { "enum": ["TL-1", "TL-2", "TL-3", "TL-4", "TL-5"] },
+          "pass": { "type": "boolean" },
+          "message": { "type": "string" },
+          "measuredMm": { "type": "number" },
+          "requiredMm": { "type": "number" },
+          "at": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+          "allowedFixes": { "type": "array", "items": { "type": "string" } }
         },
-        "subject": { "description": "Scene ids involved: line ids, mark ids or \"plate\".", "type": "array", "items": { "type": "string" } }
+        "if": { "properties": { "pass": { "const": false } } },
+        "then": { "properties": { "message": true, "allowedFixes": true }, "required": ["message", "allowedFixes"] }
       }
     }
   }

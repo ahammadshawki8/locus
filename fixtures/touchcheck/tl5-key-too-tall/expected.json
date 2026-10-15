@@ -1,8 +1,0 @@
-{
-  "fixture": true,
-  "seeded": "TL-5",
-  "fails": [
-    "TL-5"
-  ],
-  "why": "Key mode adds the key under the plot; with y stretched to 45 mm per unit the plate is 195.5 mm tall, more than the 180 mm bed. Fixes conflict."
-}

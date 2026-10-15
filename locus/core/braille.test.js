@@ -1,7 +1,7 @@
 const test = require('node:test')
 const assert = require('node:assert')
 
-const { toBraille, dotsOf, cellLayout } = require('./braille')
+const { toBraille, dotsOf, cellBox, brailleDots } = require('./braille')
 
 test('letters use the standard Grade 1 cells', () => {
   assert.strictEqual(toBraille('abc'), '⠁⠃⠉')
@@ -33,11 +33,13 @@ test('dotsOf lists raised dot numbers of a cell', () => {
   assert.deepStrictEqual(dotsOf('⠀'), [])
 })
 
-test('cellLayout places dot centres inside a box of the profile cell size, origin bottom-left', () => {
-  const b = { dotDiameterMm: 1.44, dotSpacingMm: 2.34, cellSpacingMm: 6.2 }
-  const { widthMm, heightMm, dots } = cellLayout('⠁⠿', b)
-  assert.ok(Math.abs(widthMm - (6.2 + 2.34 + 1.44)) < 1e-9)
-  assert.ok(Math.abs(heightMm - (2 * 2.34 + 1.44)) < 1e-9)
-  assert.strictEqual(dots.length, 1 + 6)
-  assert.deepStrictEqual(dots[0], [0.72, 0.72 + 2 * 2.34]) // dot 1: top-left of the first cell
+test('cellBox and brailleDots use the profile cell size, centred on the given point (tools/prints/prints.js)', () => {
+  const b = { dotDiameterMm: 1.5, dotPitchMm: 2.5, cellPitchMm: 6.2 }
+  assert.deepStrictEqual(cellBox(2, b), { w: 6.2 + 2.5 + 1.5, h: 2 * 2.5 + 1.5 })
+  const dots = brailleDots('⠼⠁', 50, 50, b) // number sign + a: the braille ID "1"
+  assert.strictEqual(dots.length, 4 + 1)
+  const left = 50 - (6.2 + 2.5 + 1.5) / 2 + 0.75
+  const top = 50 + (2 * 2.5 + 1.5) / 2 - 0.75
+  assert.deepStrictEqual(dots[0], [left, top - 2 * 2.5]) // dot 3 of the number sign: bottom-left
+  assert.deepStrictEqual(dots[4], [left + 6.2, top]) // dot 1 of a: top-left of the second cell
 })

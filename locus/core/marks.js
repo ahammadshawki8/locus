@@ -4,8 +4,18 @@ const STEP = 1e-6
 
 const changesSign = (coeffs, x) => (evaluate(coeffs, x - STEP) < 0) !== (evaluate(coeffs, x + STEP) < 0)
 
+// Point ids are what layout.labelOffsets is keyed by (docs/contracts.md §1, tools/prints/layout-C.json).
+// A plural mark numbers its points left to right: turning-point-1, turning-point-2, x-intercept-1, ...
+// A singular mark keeps its name; if it finds several points they are numbered after it: x-intercept+1, x-intercept+2.
+const PLURAL = { 'turning-points': 'turning-point', 'x-intercepts': 'x-intercept' }
+
+const pointId = (mark, i, count) => {
+  if (PLURAL[mark]) return `${PLURAL[mark]}-${i + 1}`
+  return count === 1 ? mark : `${mark}${i + 1}`
+}
+
 /**
- * Find every requested mark on the graph.
+ * Find every requested mark on the graph, in the order the spec asks for them.
  * @returns {{ points: {id, mark, x, y}[], missing: {mark, reason}[] }}
  *   `missing` lists requested marks that are not on this graph, so TL-4 and the description can say so.
  */
@@ -42,7 +52,7 @@ const computeMarks = (spec) => {
       continue
     }
     xs.forEach((x, i) => points.push({
-      id: xs.length === 1 ? mark : `${mark}#${i + 1}`,
+      id: pointId(mark, i, xs.length),
       mark,
       x,
       y: onXAxis.has(mark) ? 0 : evaluate(coeffs, x)

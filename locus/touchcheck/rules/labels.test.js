@@ -1,72 +1,59 @@
 const test = require('node:test')
 const assert = require('node:assert')
+const path = require('path')
 
 const { checkLabelGap, checkLabelOverlap } = require('./labels')
-const profile = require('../../core/profiles/fdm-3d-v1.json')
-const { minLabelGapMm } = profile.rules['TL-2']
+const { buildScene } = require('../../core/scene')
+const { loadProfile } = require('../../core/profiles')
 
-// A 1-cell label is about 3.8 x 6.1 mm; the rules only use the box.
-const label = (id, xMm, yMm, extra = {}) => ({ id, kind: 'mark', for: null, text: 'a', xMm, yMm, widthMm: 3.78, heightMm: 6.12, dots: [], ...extra })
-const line = (id, points, widthMm = 1.2) => ({ id, kind: 'axis', points, widthMm, heightMm: 0.8 })
-const mark = (id, xMm, yMm) => ({ id, mark: id, xMm, yMm, diameterMm: 4, heightMm: 1.6 })
-const sceneOf = ({ lines = [], marks = [], labels = [] }) => ({ plate: { widthMm: 100, heightMm: 100 }, lines, marks, labels })
+const prints = path.join(__dirname, '..', '..', '..', 'tools', 'prints')
+const spec = require(path.join(prints, 'spec.json'))
+const layoutA = require(path.join(prints, 'layout-A.json'))
+const layoutB = require(path.join(prints, 'layout-B.json'))
+const profile = loadProfile('fdm-handheld-v1')
+const { minLabelClearanceMm, minLabelPointClearanceMm } = profile.rules
 
-test('TL-2 and TL-3 pass as not applicable while a scene has no labels, and say so', () => {
-  for (const [check, id] of [[checkLabelGap, 'TL-2'], [checkLabelOverlap, 'TL-3']]) {
-    const result = check(sceneOf({}), profile)
-    assert.strictEqual(result.id, id)
-    assert.strictEqual(result.passed, true)
-    assert.deepStrictEqual(result.violations, [])
-    assert.strictEqual(result.note, 'not applicable: no labels yet')
-  }
-})
+const scene = (layout) => JSON.parse(JSON.stringify(buildScene(spec, layout, profile, { brailleIdNumber: 2 })))
+const label = (id, box) => ({ id, kind: 'mark', for: null, box })
+const synthetic = (labels, lines = [], marks = []) => ({ labels, lines, marks })
 
-test('TL-2: a label at least the gap clear of every line passes', () => {
-  // line along y = 50 (edge at 50.6); label bottom at 57.0 -> 6.4 mm clear
-  const result = checkLabelGap(sceneOf({ lines: [line('x-axis', [[0, 50], [100, 50]])], labels: [label('l1', 40, 57)] }), profile)
-  assert.deepStrictEqual(result.violations, [])
-  assert.strictEqual(result.passed, true)
-})
-
-test('TL-2: a label closer to a line than the gap fails, measured from the box to the raised edge', () => {
-  const result = checkLabelGap(sceneOf({ lines: [line('x-axis', [[0, 50], [100, 50]])], labels: [label('l1', 40, 53.6)] }), profile)
+test('TL-2: a label box closer to a line than the profile clearance fails, measured from the line edge', () => {
+  const lines = [{ id: 'axis', kind: 'axis', points: [[0, 0], [50, 0]], widthMm: 1.0 }]
+  const result = checkLabelGap(synthetic([label('l', [10, 4, 16, 10])], lines), profile)
   assert.strictEqual(result.passed, false)
-  const [v] = result.violations
-  assert.strictEqual(v.measuredMm, 3)
-  assert.strictEqual(v.requiredMm, minLabelGapMm)
-  assert.deepStrictEqual(v.subject, ['l1', 'x-axis'])
-  assert.match(v.message, /This label touches a line/)
-  assert.ok(v.at.yMm > 50 && v.at.yMm < 53.6)
+  assert.deepStrictEqual(result.violations.map((v) => [v.subject, v.measuredMm, v.requiredMm]), [[['l', 'axis'], 3.5, minLabelClearanceMm]])
 })
 
-test('TL-2: a line through a label measures 0', () => {
-  const [v] = checkLabelGap(sceneOf({ lines: [line('curve', [[0, 0], [100, 100]], 2)], labels: [label('l1', 48, 48)] }), profile).violations
-  assert.strictEqual(v.measuredMm, 0)
+test('TL-2: a label needs the smaller point clearance from every point mark, its own included', () => {
+  const marks = [{ id: 'vertex', xMm: 0, yMm: 0, diameterMm: 3 }]
+  const near = checkLabelGap(synthetic([label('l', [4, -3, 10, 3])], [], marks), profile)
+  assert.deepStrictEqual(near.violations.map((v) => [v.subject, v.measuredMm, v.requiredMm]), [[['l', 'vertex'], 2.5, minLabelPointClearanceMm]])
+  assert.strictEqual(checkLabelGap(synthetic([label('l', [5, -3, 11, 3])], [], marks), profile).passed, true)
 })
 
-test("TL-2: other marks count, the label's own mark does not", () => {
-  // own mark 2.2 mm clear of the label, the other mark 3.2 mm clear
-  const marks = [mark('vertex', 30, 30), mark('y-intercept', 42, 36)]
-  const own = checkLabelGap(sceneOf({ marks, labels: [label('label-vertex', 33, 33, { for: 'vertex' })] }), profile)
-  assert.deepStrictEqual(own.violations.map((v) => v.subject), [['label-vertex', 'y-intercept']])
-  assert.match(own.violations[0].message, /This label touches a marked point/)
+test('TL-2 on print A: label b sits on the curve; on print B every label clears', () => {
+  const a = checkLabelGap(scene(layoutA), profile)
+  assert.strictEqual(a.passed, false)
+  assert.ok(a.violations.some((v) => v.subject[0] === 'label-y-intercept' && v.subject[1] === 'curve' && v.measuredMm < 0))
+  const b = checkLabelGap(scene(layoutB), profile)
+  assert.strictEqual(b.passed, true, JSON.stringify(b.violations))
 })
 
-test('TL-2: a label that runs off the plate fails by how far it runs off', () => {
-  const [v] = checkLabelGap(sceneOf({ labels: [label('l1', 98, 10)] }), profile).violations
-  assert.match(v.message, /This label runs off the plate/)
-  assert.strictEqual(v.measuredMm, 1.78)
-  assert.strictEqual(v.requiredMm, 0)
-  assert.deepStrictEqual(v.subject, ['l1', 'plate'])
+test('TL-2 checks the braille ID and key rows like any other label', () => {
+  const keyed = scene({ ...layoutB, labelMode: 'key' })
+  const result = checkLabelGap(keyed, profile)
+  const ids = new Set(result.violations.map((v) => v.subject[0]))
+  assert.ok(keyed.labels.some((l) => l.kind === 'braille-id'))
+  assert.ok([...ids].every((id) => keyed.labels.some((l) => l.id === id)))
 })
 
-test('TL-3: overlapping labels fail by how much they overlap; touching but separate boxes pass', () => {
-  const overlap = checkLabelOverlap(sceneOf({ labels: [label('l1', 10, 10), label('l2', 12, 12)] }), profile)
-  assert.strictEqual(overlap.passed, false)
-  const [v] = overlap.violations
-  assert.deepStrictEqual(v.subject, ['l1', 'l2'])
-  assert.strictEqual(v.measuredMm, 1.78)
-  assert.strictEqual(v.requiredMm, 0)
-  assert.match(v.message, /These labels overlap/)
-  assert.ok(checkLabelOverlap(sceneOf({ labels: [label('l1', 10, 10), label('l2', 13.78, 10)] }), profile).passed)
+test('TL-3: overlapping label boxes fail with the overlap depth; touching boxes do not', () => {
+  const result = checkLabelOverlap(synthetic([label('a', [0, 0, 6, 6]), label('b', [4, 1, 10, 7])]))
+  assert.deepStrictEqual(result.violations.map((v) => [v.subject, v.measuredMm]), [[['a', 'b'], 2]])
+  assert.strictEqual(checkLabelOverlap(synthetic([label('a', [0, 0, 6, 6]), label('b', [6, 0, 12, 6])])).passed, true)
+})
+
+test('TL-3 passes on prints A and B', () => {
+  assert.strictEqual(checkLabelOverlap(scene(layoutA)).passed, true)
+  assert.strictEqual(checkLabelOverlap(scene(layoutB)).passed, true)
 })

@@ -1,61 +1,35 @@
 const test = require('node:test')
 const assert = require('node:assert')
 const path = require('path')
-const { measurements } = require('@jscad/modeling')
 
 const { render } = require('./render')
-const { toBinaryStl, readTriangleCount, countOpenEdges } = require('./stl')
+const { readTriangleCount, watertightTriangles } = require('./stl')
 
-const root = path.join(__dirname, '..', '..')
-const spec = require(path.join(root, 'examples', 'projectile.json'))
-const layout = require(path.join(root, 'examples', 'projectile.layout.json'))
+const prints = path.join(__dirname, '..', '..', 'tools', 'prints')
+const spec = require(path.join(prints, 'spec.json'))
+const layoutA = require(path.join(prints, 'layout-A.json'))
+const layoutB = require(path.join(prints, 'layout-B.json'))
 
-test('render produces a printable STL, an SVG preview and a description from one scene', () => {
-  const out = render(spec, layout)
-  assert.ok(readTriangleCount(out.stl) > 100)
-  const { widthMm, heightMm } = out.scene.plate
-  assert.match(out.svg, new RegExp(`width="${widthMm}mm" height="${heightMm}mm"`))
+test('render produces a watertight STL, an SVG preview and a description from one scene', () => {
+  const out = render(spec, layoutB)
+  assert.ok(readTriangleCount(out.stl) > 1000)
+  assert.strictEqual(watertightTriangles(out.solid).openAfter, 0) // the prints' check: every edge paired
+  assert.match(out.svg, /width="100mm" height="100mm"/)
   assert.match(out.svg, /class="curve"/)
+  assert.match(out.svg, /class="orientation"/)
   assert.match(out.svg, /data-mark="vertex"/)
   assert.match(out.description, /vertex/)
 })
 
-test('render bounding box is the plate, plus any braille label that runs off it (TL-2 reports that)', () => {
-  const out = render(spec, layout)
-  const [[x0, y0, z0], [x1, y1]] = out.bounds
-  const { widthMm, heightMm } = out.scene.plate
-  const dotEdges = out.scene.labels.flatMap((l) => l.dots.map(([x, y]) => [x + l.dotDiameterMm / 2, y + l.dotDiameterMm / 2]))
-  assert.ok(Math.abs(x0) < 1e-6 && Math.abs(y0) < 1e-6 && Math.abs(z0) < 1e-6)
-  assert.ok(Math.abs(x1 - Math.max(widthMm, ...dotEdges.map(([x]) => x))) < 1e-6)
-  assert.ok(Math.abs(y1 - Math.max(heightMm, ...dotEdges.map(([, y]) => y))) < 1e-6)
-  const { bedMm } = require('./profiles/fdm-3d-v1.json')
-  assert.ok(x1 <= bedMm.x && y1 <= bedMm.y)
-})
-
-test('every printed shell is watertight (no open edges), braille dots included', () => {
-  for (const labelMode of ['inline', 'key']) {
-    const out = render(spec, { ...layout, showGrid: true, labelMode })
-    const dots = out.scene.labels.reduce((n, l) => n + l.dots.length, 0)
-    assert.ok(dots > 0)
-    assert.strictEqual(out.solids.length, 1 + out.scene.lines.length + out.scene.marks.length + dots)
-    out.solids.forEach((solid, i) => assert.strictEqual(countOpenEdges(toBinaryStl(solid)), 0, `${labelMode} shell ${i}`))
-  }
-})
-
-test('braille dots are domes that rise the profile dot height above the plate', () => {
-  const out = render(spec, layout)
-  const { baseThicknessMm, braille } = require('./profiles/fdm-3d-v1.json').geometry
-  const dotShells = out.solids.slice(1 + out.scene.lines.length + out.scene.marks.length)
-  assert.ok(dotShells.length > 0)
-  for (const shell of dotShells) {
-    const [[, , z0], [, , z1]] = measurements.measureBoundingBox(shell)
-    assert.ok(Math.abs(z1 - (baseThicknessMm + braille.dotHeightMm)) < 1e-6)
-    assert.ok(z0 < baseThicknessMm) // the lower half sits inside the plate
-  }
+test('the solid is the 100 x 100 mm plate, 3.6 mm at the tallest feature (the point domes)', () => {
+  const [[x0, y0, z0], [x1, y1, z1]] = render(spec, layoutA).bounds
+  assert.ok([x0, y0, z0].every((v) => Math.abs(v) < 1e-6))
+  assert.ok(Math.abs(x1 - 100) < 1e-6 && Math.abs(y1 - 100) < 1e-6)
+  assert.ok(Math.abs(z1 - 3.6) < 1e-6)
 })
 
 test('the SVG preview draws every braille dot and carries the print text for sighted helpers', () => {
-  const out = render(spec, { ...layout, labelMode: 'key' })
+  const out = render(spec, { ...layoutB, labelMode: 'key' })
   for (const label of out.scene.labels) {
     const open = `<g class="braille" data-label="${label.id}">`
     const start = out.svg.indexOf(open)
@@ -64,4 +38,9 @@ test('the SVG preview draws every braille dot and carries the print text for sig
     assert.strictEqual((group.match(/<circle/g) || []).length, label.dots.length)
     assert.ok(group.includes(`<title>${label.text}</title>`))
   }
+})
+
+test('a mesh where one point got two ids (print B with the grid on) is welded and still closes', () => {
+  const out = render(spec, { ...layoutB, showGrid: true })
+  assert.strictEqual(watertightTriangles(out.solid).openAfter, 0)
 })

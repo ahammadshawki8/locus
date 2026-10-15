@@ -49,7 +49,7 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 
 ## S.3 Status board (update at the end of every session)
 
-**Last updated: 16 Oct 2026 (Shawki).**
+**Last updated: 16 Oct 2026 (Ashfaq).**
 
 | Area | State |
 |---|---|
@@ -58,7 +58,7 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 | Credits | **Blocker:** Duo Chat showed "No credits remain for this billing period" on 15 Oct. Asked on Discord |
 | Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
 | Prints | Calibration piece printed and judged good. Prototype plates A, B and C sent to print on 16 Oct (`tools/prints/`). About 500 tk budget |
-| Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. No product code yet |
+| Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. Product code is on Ashfaq's fork `ashfaqstu/locus`, branch `feat/gate2-render` (JSCAD import, `locus/`), not merged yet: it follows contracts v1, reproduces prints A, B and C (CI test), and `touchcheck` measures TL-1 to TL-5 with report, overlay and `LOCUS_REPORT` line (A fails, B and C pass; 119 tests). Not built: flows, guards, bundle, Service Desk. Nothing has run on GitLab yet |
 | Hosting | Google Cloud not set up yet (Shawki, Gate 6b, 17 Oct) |
 
 **Next:**
@@ -67,6 +67,8 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 3. Shawki: generate `fixtures/bundle-sample/graph-0-v1/` from print B (contracts D9).
 4. Record the calibration touch results in `docs/decisions.md` (which gap felt like two lines; 0.5 or 0.8 mm braille dots).
 5. Decide Nourin's role.
+6. Ashfaq: get `feat/gate2-render` into the working repo (PR from the fork), then into the GitLab Showcase project once code import is allowed, so `render`, `touchcheck` and `locus-test` run in CI.
+7. Shawki: answer the key-mode question in `docs/decisions.md` (16 Oct): with single-letter labels, is `key-mode` still a useful fix for TL-2 and TL-3?
 
 **Waiting on GitLab (Discord):** credits; whether triggered flows use personal credits; which tools ambient flows get; whether flows can merge; Secret FP Detection and Breaking Change Resolution.
 

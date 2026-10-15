@@ -8,27 +8,25 @@ const LINE = 4.2 // legend line height, mm
 const CIRCLE_R = 5
 const PAD = 4
 const CHAR_W = 0.56 // average glyph width as a fraction of the font size
-const LIMITATION = 'Automated checks measure spacing and completeness. They do not certify that a reader will understand this graphic by touch.'
+const LIMITATION = 'Automated checks measure spacing and size; they do not certify that a learner can understand the graphic.'
 
 const round = (v) => Math.round(v * 100) / 100
 const escapeXml = (text) => String(text).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c])
 const textWidth = (text, size = FONT) => text.length * size * CHAR_W
 
-const offPlate = (v) => v.subject && v.subject[1] === 'plate'
-
 const measureText = (ruleId, v) => {
   if (v.measuredMm == null) return ''
-  if (ruleId === 'TL-1') return `${v.measuredMm} mm apart — needs ${v.requiredMm} mm`
-  if (ruleId === 'TL-3' || offPlate(v)) return `by ${v.measuredMm} mm`
-  if (ruleId === 'TL-2') return `${v.measuredMm} mm — needs ${v.requiredMm} mm`
-  return `${v.measuredMm} mm — ${v.subject && v.subject[0] === 'plate' ? 'bed is' : 'needs'} ${v.requiredMm} mm`
+  if (ruleId === 'TL-1') return `${v.measuredMm} mm apart, needs ${v.requiredMm} mm`
+  if (ruleId === 'TL-3') return `by ${v.measuredMm} mm`
+  if (ruleId === 'TL-2') return `${v.measuredMm} mm, needs ${v.requiredMm} mm`
+  return `${v.measuredMm} mm, needs ${v.requiredMm} mm`
 }
 const shortText = (ruleId, v) => {
   if (ruleId === 'TL-2') {
-    if (offPlate(v)) return `Label off the plate by ${v.measuredMm} mm`
-    return `Label ${v.measuredMm} mm from a ${/marked point/.test(v.message) ? 'mark' : 'line'} — needs ${v.requiredMm} mm`
+    return `Label ${v.measuredMm} mm from a ${/marked point/.test(v.message) ? 'mark' : 'line'}, needs ${v.requiredMm} mm`
   }
   if (ruleId === 'TL-3') return `Labels overlap by ${v.measuredMm} mm`
+  if (ruleId === 'TL-5' && v.subject && v.subject[1] === 'plate') return `${v.measuredMm} mm from the edge, needs ${v.requiredMm} mm`
   const head = ruleId === 'TL-1' ? 'Too close' : ruleId === 'TL-4' ? `Missing: ${(v.subject || []).join(', ')}` : v.message.split(':')[0]
   const measure = measureText(ruleId, v)
   return measure ? `${head}: ${measure}` : head
@@ -78,7 +76,7 @@ const drawSpot = (s, cls) => {
 /**
  * @param {string} previewSvg graph.svg from the render job
  * @param {object} scene the scene the report was measured on
- * @param {{report: object, results: object[]}} checked output of touchcheck()
+ * @param {{report: object, results: object[]}} checked output of touchcheck(); drawn from the full results
  */
 const toOverlay = (previewSvg, scene, { report, results }) => {
   const { widthMm: w, heightMm: h } = scene.plate
@@ -89,9 +87,9 @@ const toOverlay = (previewSvg, scene, { report, results }) => {
     .slice(previewSvg.indexOf('>', previewSvg.indexOf('<svg')) + 1, previewSvg.lastIndexOf('</svg>'))
     .replace(/\s*<title>[\s\S]*?<\/title>/, '')
 
-  // Violations, numbered in report order.
+  // Violations, numbered in rule order.
   let n = 0
-  const numbered = report.rules.flatMap((rule) => rule.violations.map((v) => ({ n: ++n, ruleId: rule.id, v })))
+  const numbered = results.flatMap((rule) => rule.violations.map((v) => ({ n: ++n, ruleId: rule.id, v })))
   const redSpots = numbered.filter(({ v }) => v.at).map(({ n, ruleId, v }) => ({
     x: v.at.xMm, y: flipY(v.at.yMm), r: CIRCLE_R, colour: RED, text: `${n}. ${shortText(ruleId, v)}`
   }))
@@ -102,7 +100,7 @@ const toOverlay = (previewSvg, scene, { report, results }) => {
   const tl1 = resultOf('TL-1')
   if (tl1.passed && tl1.closestPassed) {
     const c = tl1.closestPassed
-    greenSpots.push({ x: c.at.xMm, y: flipY(c.at.yMm), r: CIRCLE_R, colour: GREEN, text: `Closest lines: ${c.measuredMm} mm apart — OK, needs ${c.requiredMm} mm` })
+    greenSpots.push({ x: c.at.xMm, y: flipY(c.at.yMm), r: CIRCLE_R, colour: GREEN, text: `Closest lines: ${c.measuredMm} mm apart, OK (needs ${c.requiredMm} mm)` })
   }
   const markRings = (resultOf('TL-4').present || [])
     .map((p) => scene.marks.find((m) => m.id === p.subject))
@@ -110,10 +108,10 @@ const toOverlay = (previewSvg, scene, { report, results }) => {
     .map((m) => `  <circle class="passed" cx="${round(m.xMm)}" cy="${round(flipY(m.yMm))}" r="${m.diameterMm / 2 + 1.5}" fill="none" stroke="${GREEN}" stroke-width="0.5"/>`)
 
   // Legend: one line per rule, the numbered violations under it, notes in grey, then the limitation.
-  const legend = [{ text: `touchcheck, profile ${report.profileId}: ${report.passed ? 'PASSED' : `FAILED (${report.rules.filter((r) => !r.passed).map((r) => r.id).join(', ')})`}`, colour: report.passed ? GREEN : RED, bold: true }]
-  for (const rule of report.rules) {
+  const legend = [{ text: `touchcheck, profile ${report.profileId}, attempt ${report.attempt}: ${report.pass ? 'PASSED' : `FAILED (${results.filter((r) => !r.passed).map((r) => r.id).join(', ')})`}`, colour: report.pass ? GREEN : RED, bold: true }]
+  for (const rule of results) {
     const { summary } = resultOf(rule.id)
-    legend.push({ text: `${rule.passed ? '✓' : '✗'} ${rule.id} ${summary || (rule.passed ? 'passed' : 'failed')}`, colour: rule.passed ? GREEN : RED })
+    legend.push({ text: `${rule.passed ? 'PASS' : 'FAIL'} ${rule.id} ${summary || (rule.passed ? 'passed' : 'failed')}`, colour: rule.passed ? GREEN : RED })
     if (rule.note && rule.note !== summary) legend.push({ text: `     ${rule.note}`, colour: GREY, small: true })
     for (const { n: k, v } of numbered.filter((x) => x.ruleId === rule.id)) {
       const measure = measureText(rule.id, v)

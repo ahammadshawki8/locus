@@ -1,0 +1,6 @@
+{
+  "fixture": true,
+  "seeded": null,
+  "fails": [],
+  "why": "Nothing: print B, the corrected layout (grid hidden, y 16 mm per unit, labels moved)"
+}

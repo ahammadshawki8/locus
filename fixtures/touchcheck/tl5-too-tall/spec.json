@@ -14,7 +14,11 @@
       "max": 4.5
     }
   },
-  "mark": [],
+  "mark": [
+    "vertex",
+    "y-intercept",
+    "x-intercept+"
+  ],
   "labels": "braille-grade1",
-  "profileId": "fdm-3d-v1"
+  "profileId": "fdm-handheld-v1"
 }

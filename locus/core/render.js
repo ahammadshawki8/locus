@@ -3,25 +3,27 @@ const path = require('path')
 const { measurements } = require('@jscad/modeling')
 
 const { buildScene } = require('./scene')
-const { toSolids } = require('./geometry')
+const { toSolid } = require('./geometry')
 const { toBinaryStl } = require('./stl')
 const { toSvg } = require('./svg')
 const { describe } = require('./describe')
 const { formatPolynomial } = require('./polynomial')
+const { loadProfile } = require('./profiles')
 
-const loadProfile = (profileId) => JSON.parse(fs.readFileSync(path.join(__dirname, 'profiles', `${profileId}.json`), 'utf8'))
-
-/** Render a validated spec + layout into the render-job outputs (docs/contracts.md §5). */
-const render = (spec, layout, profile = loadProfile(spec.profileId)) => {
-  const scene = buildScene(spec, layout, profile)
-  const solids = toSolids(scene)
+/**
+ * Render a validated spec + layout into graph.stl, graph.svg, description.txt and scene.json.
+ * @param {object} [options.brailleIdNumber] number embossed top-right; defaults to the request's issue number
+ */
+const render = (spec, layout, profile = loadProfile(spec.profileId), options = {}) => {
+  const scene = buildScene(spec, layout, profile, options)
+  const solid = toSolid(scene)
   return {
     scene,
-    solids,
-    stl: toBinaryStl(solids, `Locus request ${spec.requestId} ${profile.id}`),
+    solid,
+    stl: toBinaryStl(solid, `Locus request ${spec.requestId}, ${profile.id}, millimetres`),
     svg: toSvg(scene, formatPolynomial(spec.graph.coeffs)),
-    description: describe(spec, { points: scene.marks, missing: scene.missing }, { labelMode: scene.labelMode }),
-    bounds: measurements.measureAggregateBoundingBox(solids)
+    description: describe(spec, { points: scene.marks, missing: scene.missing }, { labelMode: scene.labelMode, brailleIdNumber: scene.brailleIdNumber }),
+    bounds: measurements.measureBoundingBox(solid)
   }
 }
 

@@ -1,6 +1,0 @@
-{
-  "fixture": true,
-  "seeded": null,
-  "fails": [],
-  "why": "The projectile after allowed fixes only: grid hidden, y stretched to 40 mm per unit, key mode, labels moved. Passes all five rules."
-}

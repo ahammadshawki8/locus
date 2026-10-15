@@ -1,7 +1,8 @@
 // Plain-language learner description. Every number here comes from computed values; guard-description checks that.
 const { formatPolynomial } = require('./polynomial')
+const { LETTERS } = require('./labels')
 
-const LIMITATION = 'Note: automated checks do not certify that a reader will understand this graphic by touch.'
+const LIMITATION = 'Note: automated checks measure spacing and size; they do not certify that a learner can understand the graphic.'
 
 /** Round to 2 decimals; prefix "about" when rounding changed the value. */
 const formatNumber = (value) => {
@@ -25,21 +26,25 @@ const sentenceFor = (point, coeffs) => {
 
 const markName = (mark) => mark === 'turning-points' ? 'a turning point' : mark.startsWith('x-intercept') ? 'the x-intercept' : `the ${mark}`
 
-/** How to read the braille labels. Key letters follow the order of the marked points, as in core/labels.js. */
-const labelSentence = (points, labelMode) => {
+/** How to read the braille labels. Letters follow the order of the marked points, as in core/labels.js. */
+const labelSentences = (points, labelMode) => {
   if (!points.length) return []
-  if (labelMode !== 'key') return ['Each marked point has a braille label with its value.']
-  const entries = points.map((p, i) => `${'abcdefghijklmnopqrstuvwxyz'[i]}, ${markName(p.mark)}`)
-  return [`Each marked point has a braille letter. The key below the graph lists them: ${entries.join('; ')}.`]
+  const entries = points.map((p, i) => `${LETTERS[i]}, ${markName(p.mark)}`)
+  return [
+    `Each marked point has a braille letter next to it: ${entries.join('; ')}.`,
+    ...(labelMode === 'key' ? ['A key in the bottom-left corner gives the value for each letter.'] : [])
+  ]
 }
 
-const describe = (spec, { points, missing }, { labelMode = 'inline' } = {}) => {
+const describe = (spec, { points, missing }, { labelMode = 'inline', brailleIdNumber = spec.requestId } = {}) => {
   const { coeffs, domain } = spec.graph
   return [
     `This tactile graph shows ${formatPolynomial(coeffs)}, for x from ${formatNumber(domain.min)} to ${formatNumber(domain.max)}.`,
+    'Hold the plate with the raised triangle at the top-left.',
     ...points.map((p) => sentenceFor(p, coeffs)),
-    ...labelSentence(points, labelMode),
+    ...labelSentences(points, labelMode),
     ...missing.map((m) => `The ${m.mark} was requested but is not on this graph: ${m.reason}.`),
+    `The braille number in the top-right corner, ${brailleIdNumber}, is this graph's ID.`,
     LIMITATION
   ].join('\n') + '\n'
 }

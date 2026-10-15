@@ -52,26 +52,24 @@ const dotsOf = (brailleCell) => {
   return [1, 2, 3, 4, 5, 6].filter((d) => bits & (1 << (d - 1)))
 }
 
+/** Size of the box around `cells` braille cells, edge of dot to edge of dot (profile `braille`, contracts §2). */
+const cellBox = (cells, { dotDiameterMm: d, dotPitchMm: p, cellPitchMm: cp }) => ({ w: (cells - 1) * cp + p + d, h: 2 * p + d })
+
 /**
- * Dot centres for a braille string, in mm from the bottom-left of its box (y up).
- * Dots 1-3 run down the left column, 4-6 down the right.
+ * Dot centres, in plate mm (y up), for a braille string whose box is centred on (cx, cy).
+ * Dots 1-3 run down the left column, 4-6 down the right. Same arithmetic as tools/prints/prints.js, so the
+ * dots land on exactly the same coordinates as on the prototype prints.
  */
-const cellLayout = (braille, { dotDiameterMm, dotSpacingMm, cellSpacingMm }) => {
-  const r = dotDiameterMm / 2
+const brailleDots = (braille, cx, cy, b) => {
+  const { dotDiameterMm: d, dotPitchMm: p, cellPitchMm: cp } = b
   const cells = [...braille]
-  const dots = []
-  cells.forEach((c, i) => {
-    for (const d of dotsOf(c)) {
-      const col = d > 3 ? 1 : 0
-      const row = (d - 1) % 3
-      dots.push([r + i * cellSpacingMm + col * dotSpacingMm, r + (2 - row) * dotSpacingMm])
-    }
-  })
-  return {
-    widthMm: (cells.length - 1) * cellSpacingMm + dotSpacingMm + dotDiameterMm,
-    heightMm: 2 * dotSpacingMm + dotDiameterMm,
-    dots
-  }
+  const { w, h } = cellBox(cells.length, b)
+  const left = cx - w / 2 + d / 2
+  const top = cy + h / 2 - d / 2
+  return cells.flatMap((c, i) => dotsOf(c).map((n) => [
+    left + i * cp + (n <= 3 ? 0 : p),
+    top - ((n - 1) % 3) * p
+  ]))
 }
 
-module.exports = { toBraille, dotsOf, cellLayout }
+module.exports = { toBraille, dotsOf, cellBox, brailleDots }

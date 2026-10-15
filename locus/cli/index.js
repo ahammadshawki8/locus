@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Local CLI and the entry point of the `render` and `touchcheck` CI jobs.
 //   locus <requests/<iid> | spec.json> [--out <dir>]
-//     writes graph.stl, graph.svg, description.txt and scene.json (docs/contracts.md §5)
-//   locus touchcheck <requests/<iid> | spec.json> [--out <dir>]
-//     reads scene.json + graph.svg from the render output, writes touchcheck-report.json + overlay.svg;
+//     writes graph.stl, graph.svg, description.txt and scene.json (the scene touchcheck measures)
+//   locus touchcheck <requests/<iid> | spec.json> [--out <dir>] [--attempt <n>]
+//     reads scene.json + graph.svg from the render output, writes touchcheck-report.json + overlay.svg and prints the
+//     report on one line after `LOCUS_REPORT ` (docs/contracts.md §4: agents read job logs, not artifacts);
 //     exits 0 when every rule passed, 1 when a rule failed, 2 when the render output is missing or stale
 // A request folder holds spec.json + layout.json (+ request.lock.json); a spec file `x.json` uses `x.layout.json`.
 // The output folder defaults to out/<folder or spec name>.
@@ -12,7 +13,7 @@ const path = require('path')
 
 const { validateSpec, validateLayout, checkLock } = require('../core/validate')
 const { render, writeOutputs, loadProfile } = require('../core/render')
-const { touchcheck } = require('../touchcheck')
+const { touchcheck, reportLine } = require('../touchcheck')
 const { toOverlay } = require('../touchcheck/overlay')
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'))
@@ -54,7 +55,7 @@ const runRender = (target, outDir) => {
   return 0
 }
 
-const runTouchcheck = (target, outDir) => {
+const runTouchcheck = (target, outDir, attempt) => {
   const sceneFile = path.join(outDir, 'scene.json')
   const svgFile = path.join(outDir, 'graph.svg')
   for (const file of [sceneFile, svgFile]) {
@@ -70,13 +71,14 @@ const runTouchcheck = (target, outDir) => {
     console.error(`${target}: spec.json asks for profile "${spec.profileId}" but ${sceneFile} was rendered for "${scene.profileId}". Render again.`)
     return 2
   }
-  const checked = touchcheck(scene, loadProfile(scene.profileId), { requested: spec.mark })
-  const { report } = checked
+  const checked = touchcheck(scene, loadProfile(scene.profileId), { requested: spec.mark, requestId: spec.requestId, attempt })
+  const { report, results } = checked
   fs.writeFileSync(path.join(outDir, 'touchcheck-report.json'), JSON.stringify(report, null, 2) + '\n')
   fs.writeFileSync(path.join(outDir, 'overlay.svg'), toOverlay(fs.readFileSync(svgFile, 'utf8'), scene, checked))
 
-  console.log(`${target}: touchcheck ${report.passed ? 'passed' : 'FAILED'} (${report.profileId}); report and overlay in ${outDir}`)
-  for (const rule of report.rules) {
+  console.log(reportLine(report))
+  console.log(`${target}: touchcheck ${report.pass ? 'passed' : 'FAILED'} (${report.profileId}, attempt ${attempt}); report and overlay in ${outDir}`)
+  for (const rule of results) {
     console.log(`  ${rule.id} ${rule.passed ? 'passed' : 'failed'}${rule.note ? `: ${rule.note}` : ''}`)
     for (const v of rule.violations) {
       const where = v.at ? ` at (${v.at.xMm}, ${v.at.yMm}) mm` : ''
@@ -84,8 +86,8 @@ const runTouchcheck = (target, outDir) => {
       console.log(`    - ${(v.subject || []).join(' / ')}${where}: ${v.message}${measured}`)
     }
   }
-  console.log('  Passing these checks does not mean a reader will understand the graphic by touch.')
-  return report.passed ? 0 : 1
+  console.log('  Automated checks measure spacing and size; they do not certify that a learner can understand the graphic.')
+  return report.pass ? 0 : 1
 }
 
 const main = (argv) => {
@@ -93,13 +95,19 @@ const main = (argv) => {
   const command = args[0] === 'touchcheck' ? args.shift() : 'render'
   const outIndex = args.indexOf('--out')
   const outArg = outIndex >= 0 ? args.splice(outIndex, 2)[1] : null
+  const attemptIndex = args.indexOf('--attempt')
+  const attempt = attemptIndex >= 0 ? Number(args.splice(attemptIndex, 2)[1]) : 1
+  if (!Number.isInteger(attempt) || attempt < 1) {
+    console.error('--attempt must be a whole number from 1')
+    return 64
+  }
   const target = args[0]
   if (!target) {
-    console.error('usage: locus [touchcheck] <requests/<iid> | spec.json> [--out <dir>]')
+    console.error('usage: locus [touchcheck] <requests/<iid> | spec.json> [--out <dir>] [--attempt <n>]')
     return 64
   }
   const outDir = outArg || path.join('out', resolveInputs(target).name)
-  return command === 'touchcheck' ? runTouchcheck(target, outDir) : runRender(target, outDir)
+  return command === 'touchcheck' ? runTouchcheck(target, outDir, attempt) : runRender(target, outDir)
 }
 
 process.exitCode = main(process.argv)

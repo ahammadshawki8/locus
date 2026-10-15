@@ -1,0 +1,45 @@
+# DESIGN DRAFT. This is not yet GitLab Duo custom-flow syntax and has never run.
+# Convert and validate for Gates 5b (impact reviewer, regression detective; Ashfaq) and 5c (release guard; Shawki).
+# Design: pipeline v2 (docs/decisions.md, 15 Oct 2026 (b); contracts D7). Source of truth for the AI Catalog copy.
+
+name: locus-ops
+purpose: One flow, a triage supervisor and three subagents that own lifecycle jobs after a pipeline fails.
+stages: [Verify, Monitor, Create, Release, Configure]
+triggers:  # only a person's action starts a flow
+  - pipeline_failed: fires only for pipelines a person caused (their MR, their push or merge to main)
+  - assign: a person assigns a nightly `regression` issue to the flow's service account
+components:
+  triage:
+    reads: [the pipeline webhook payload (ref, source, user, status, jobs)]
+    routes:
+      - library-impact failed on a person's MR -> impact-reviewer
+      - library-recheck failed on main, or an assigned `regression` issue -> regression-detective
+      - validate-staging or post-deploy-smoke failed on main -> release-guard
+      - anything else -> end (only the triage step is spent)
+  impact-reviewer:
+    reads: [the `LOCUS_IMPACT ` log line / out/impact/report.json, the MR diff]
+    may_change: []  # MR notes only (contracts §7)
+    actions:
+      - post a plain-language review on the MR before merge (e.g. "this change makes graph 7 fail TL-5: curve 1.2 to
+        1.0 mm wide"); request changes or list the graphs that would need a re-layout
+  regression-detective:
+    reads: [the `LOCUS_RECHECK ` log line, the bisect-regression result, the diff of that commit]
+    may_change:  # branch revert/<sha>, checked by guard-revert
+      - only the exact inverse of the commit named by bisect-regression, written with create_commit
+    actions:
+      - explain the cause in plain words on a `regression` issue
+      - if unintended: open the inverse-commit MR
+      - if intentional: one re-layout issue per affected graph, labelled `locus-request` + `regression`, linking the
+        original (contracts D6); a person assigns each one to the bot
+    instructions: |
+      Never pick the bad commit yourself; use bisect-regression's result.
+  release-guard:  # owner: Shawki
+    reads: [the validation / smoke report, the release manifest, deploy/gcp/production-revision and its history]
+    may_change:  # branch rollback/<n>
+      - deploy/gcp/production-revision
+    actions:
+      - open an MR that sets production-revision to the last good revision (contracts §9); comment an incident note
+        on the request issue and add label `incident`
+    instructions: |
+      If no earlier good revision exists, do not guess: comment and ask for a person.
+freeze: when JUDGING_FREEZE is true, comment only. No issues, commits, MRs, releases or deploys.

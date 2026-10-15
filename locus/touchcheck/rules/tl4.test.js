@@ -8,7 +8,7 @@ const { buildScene } = require('../../core/scene')
 const root = path.join(__dirname, '..', '..', '..')
 const spec = require(path.join(root, 'examples', 'projectile.json'))
 const layout = require(path.join(root, 'examples', 'projectile.layout.json'))
-const profile = require('../../core/profiles/fdm-3d-v1.json')
+const profile = require('../../core/profiles').loadProfile('fdm-handheld-v1')
 
 const scene = () => JSON.parse(JSON.stringify(buildScene(spec, layout, profile)))
 

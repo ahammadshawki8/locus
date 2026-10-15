@@ -4,7 +4,7 @@ Cloud Run hosting for the graph library site (staging + production). **Owner: Sh
 
 | File | What |
 |---|---|
-| `production-revision` | GitOps rollback pointer: one line, the Cloud Run revision that gets 100% of production traffic, or `UNSET` (docs/contracts.md §7). Only `locus-release-guard` and humans may change it. |
+| `production-revision` | GitOps rollback pointer: one line, the Cloud Run revision that gets 100% of production traffic, or `UNSET` (docs/contracts.md §9). Only the release guard (`locus-ops`) and people may change it. |
 | _to add_ | Cloud Run service config for staging and production (min instances 0), budget alert notes |
 
 CI variable **names** go here once they exist. Never commit values.

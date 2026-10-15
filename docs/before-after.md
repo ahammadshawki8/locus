@@ -7,13 +7,13 @@ Upstream: [JSCAD / OpenJSCAD.org](https://github.com/jscad/OpenJSCAD.org) (MIT),
 | Lifecycle | One GitHub Actions job: `npm test` on Node 20/22 (`.github/workflows/node.yml`) | Migrated tests (`upstream-test`) + a 9-stage automated lifecycle |
 | Making a tactile graph | Write a script by hand, guess the dimensions, hope it's readable | Email a sentence; an agent delivers a checked file |
 | Safety | None | Touch checks + guards decide what ships |
-| Downstream | A JSCAD change that alters geometry goes unnoticed | A nightly re-check of every shipped graph catches it (downstream contract test for JSCAD) |
+| Downstream | A JSCAD change that alters geometry goes unnoticed | Every code change re-renders every shipped graph, before and after merge; an agent explains what would break (**downstream contract test for JSCAD**) |
 
 ## Upstream vs new
 
 - **Upstream (unchanged except as noted in [decisions.md](decisions.md)):** `packages/**`, `jsdoc/`, root config, `.github/`, `README.jscad.md`, `LICENSE`.
-- **New for Locus (dated on or after 14 Oct 2026):** `locus/`, `requests/`, `examples/`, `fixtures/`, `deploy/`, `docs/`,
-  `.gitlab-ci.yml`, `.gitlab/`, `CLAUDE.md`, `README.md`, `projectLocus.md`.
+- **New for Locus (dated on or after 14 Oct 2026):** `locus/`, `profiles/`, `requests/`, `examples/`, `fixtures/`, `tools/`,
+  `assets/`, `deploy/`, `docs/`, `.gitlab-ci.yml`, `.gitlab/`, `CLAUDE.md`, `README.md`, `projectLocus.md`.
 
 ## Migrated CI
 

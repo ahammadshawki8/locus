@@ -50,15 +50,18 @@ test('spec rejects unknown fields, marks and profiles', () => {
 })
 
 test('layout schema accepts a typical layout and rejects extra keys', () => {
-  const layout = { xScaleMm: 20, yScaleMm: 20, labelMode: 'inline', labelOffsets: { vertex: { dxMm: 0, dyMm: 8 } }, showGrid: false }
+  const layout = { xScaleMm: 16, yScaleMm: 16, labelMode: 'inline', labelOffsets: { vertex: [0, 10.75] }, defaultLabelOffset: [4.5, 6], showGrid: false }
   assert.deepStrictEqual(validateLayout(layout), [])
+  assert.notDeepStrictEqual(validateLayout({ ...layout, labelOffsets: { vertex: { dxMm: 0, dyMm: 8 } } }), [])
+  const { defaultLabelOffset, ...noDefault } = layout
+  assert.notDeepStrictEqual(validateLayout(noDefault), [])
   assert.notDeepStrictEqual(validateLayout({ ...layout, coeffs: [1] }), [])
   assert.notDeepStrictEqual(validateLayout({ ...layout, xScaleMm: 0 }), [])
 })
 
 test('checkLock detects any change to the locked maths', () => {
   const spec = projectile()
-  const lock = { schemaVersion: spec.schemaVersion, requestId: spec.requestId, graph: spec.graph, mark: spec.mark }
+  const lock = { graph: spec.graph, mark: spec.mark }
   assert.deepStrictEqual(checkLock(spec, lock), [])
   const changed = projectile()
   changed.graph.coeffs[3] = 2
@@ -69,4 +72,13 @@ test('spec rejects a vertex mark on a graph that is not a quadratic', () => {
   const cubic = projectile()
   cubic.graph.coeffs = [1, 0, -1, 0]
   assert.deepStrictEqual(validateSpec(cubic), ['/mark "vertex" needs a quadratic; use "turning-points"'])
+})
+
+test('spec rejects x-intercepts together with x-intercept+ or x-intercept- (same points twice)', () => {
+  assert.deepStrictEqual(validateSpec({ ...projectile(), mark: ['x-intercepts', 'x-intercept+'] }), ['/mark "x-intercepts" already marks every x-intercept; drop "x-intercept+" / "x-intercept-"'])
+})
+
+test('the prints specs and layouts are valid requests', () => {
+  for (const f of ['spec.json', 'spec-C.json']) assert.deepStrictEqual(validateSpec(readJson('tools', 'prints', f)), [], f)
+  for (const f of ['layout-A.json', 'layout-B.json', 'layout-C.json']) assert.deepStrictEqual(validateLayout(readJson('tools', 'prints', f)), [], f)
 })

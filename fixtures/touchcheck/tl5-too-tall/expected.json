@@ -1,0 +1,8 @@
+{
+  "fixture": true,
+  "seeded": "TL-5",
+  "fails": [
+    "TL-5"
+  ],
+  "why": "y 22 mm per unit: the y-axis and label a run past the 3 mm edge margin (reduce-scale is the fix)"
+}

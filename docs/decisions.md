@@ -4,6 +4,63 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026: code brought in line with plan v3 and contracts v1 (Ashfaq)
+
+No change to `docs/contracts.md`. These are how the code now follows it, and what that replaced.
+
+**Generator (D1 to D4).**
+- Profile `fdm-handheld-v1` lives at `profiles/fdm-handheld-v1.json`, exactly as contracts §2. `fdm-3d-v1` is gone.
+- `locus/core` now builds plates the way `tools/prints/prints.js` does: 100 x 100 x 2 mm plate, placement rule, tick
+  rules, letters a, b, c next to the points, braille ID top-right, orientation triangle top-left, one boolean union,
+  and Shawki's T-junction fix for a watertight STL. `core/prints.test.js` renders A, B and C from their spec + layout
+  files and compares the STLs with `tools/prints/`: A and B are byte-identical after the 80-byte header; for C every
+  triangle has exactly the same vertices, and only the stored normals of a few sliver triangles differ. Reason: our
+  turning points are exact (x = 1 and 3) where `prints.js` finds them numerically, which changes float64 noise below
+  float32 precision. Slicers recompute normals from the vertices.
+- The example (`examples/projectile.*`) is the demo request with the default layout, which is print A (D4).
+- **Added beyond the prints:** if open edges remain after the T-junction fix, vertices on them closer than 0.001 mm
+  are welded and the fix runs again. Print B with the grid turned back on needed it: one point had two ids, 0.00003 mm
+  apart, on either side of the 0.0001 mm rounding step. A, B and C never reach this step, so their bytes are unchanged.
+- Point ids (the keys of `labelOffsets`): `turning-point-1`, `turning-point-2` as in `layout-C.json`; `x-intercepts`
+  gives `x-intercept-1`, ... . A spec may not ask for `x-intercepts` together with `x-intercept+` or `x-intercept-`.
+- Key mode keeps the letters at the points and adds a key (letter + value) in the bottom-left corner. **Open
+  question (Shawki):** labels are single letters now, so switching to key mode no longer makes labels smaller. It is
+  still listed as a fix for TL-2 and TL-3 (plan §10), but it rarely helps. Keep it, or drop it from `remedies.json`?
+
+**touchcheck.**
+- Rule values come from the profile's `rules` (`minLineGapMm`, `minLabelClearanceMm`, `minLabelPointClearanceMm`,
+  `minFeatureWidthMm`, `edgeMarginMm`).
+- TL-1 now measures the curve against every other line, as plan §10 says ("curve and axis/grid"), not every pair of
+  lines. A line end inside the unavoidable stretch next to a real crossing is now excused. The 14 Oct rule failed it as
+  a stub, but print B's curve ends just past the x-axis at both ends, and the prints' check (`prints.js`) excuses that
+  stretch. This applies to every request, not only print B.
+- TL-2 measures every label (letters, key rows, braille ID) to every line (6.4 mm) and to every point, its own
+  included (3.2 mm). Labels running off the plate are now TL-5 (edge margin), as in the prints' check.
+- TL-5 is now the edge margin and the feature width on the fixed plate. There is no bed check: the plate is the bed limit.
+- Results on the prints match `tools/prints/README.md`: A fails TL-1 (curve on grid line y = 3 at the vertex), TL-2
+  (label b on the curve) and TL-5 (label c 2.31 mm from the edge); B and C pass. Measured values differ slightly from
+  `report.json` where the methods differ: for example the closest TL-1 gap on C is 3.23 mm here and 4.5 mm in
+  `prints.js`, because our excused stretch around a crossing is shorter.
+- Report format is contracts §4: `requestId`, `attempt`, `profileId`, `pass`, `results`. A passing rule gives one
+  `{ rule, pass: true }`; a failing rule gives one result per place, with the rule's plain words from plan §10,
+  `measuredMm` and `at` to 0.1 mm, and `allowedFixes` from `remedies.json`. The CLI prints it after `LOCUS_REPORT `.
+  The CI job passes `--attempt` = number of commits that changed the request's `layout.json`.
+- `remedies.json` ids: `rescale-x`, `rescale-y`, `hide-grid`, `move-label`, `key-mode`, `reduce-scale` (the contract
+  example uses `rescale-y` and `hide-grid`).
+
+**Other.**
+- Manifest schema is contracts §5 (`artifactId`, `brailleId` = `G` + issue number, ...). Our 14 Oct sample bundle in
+  `fixtures/bundle-sample/` was in the old format, so it is removed. `fixtures/bundle-sample/graph-0-v1/` from print B
+  is Shawki's task (S.3, D9).
+- Flow drafts: the four files became `locus-request.yml` (intake + fixer) and `locus-ops.yml` (triage, impact reviewer,
+  regression detective, release guard), still marked as drafts until Gate 5.
+- `docs/STATE.md` is removed; the status board is `projectLocus.md` S.3. `CLAUDE.md` carries S.2's hard rules word for word.
+- H1: the `Co-Authored-By` lines were removed from our four unpushed commits (messages only; content and authorship unchanged).
+
+**Superseded from 14 Oct:** `fdm-3d-v1` and its values (180 x 180 bed, 2.0 mm curve, NLS 800 cell size), separate
+shells instead of a union, value labels next to points, braille ID `L<iid>-<n>`, the TL-2 rule that skipped a label's
+own mark, the report fields `note`/`subject`, and the line-end stub rule inside an excused stretch.
+
 ## 15 Oct 2026 (b): pipeline checked against the Duo Agent Platform docs → pipeline v2 (PROPOSED, agree tonight)
 
 Sources read on 15 Oct:

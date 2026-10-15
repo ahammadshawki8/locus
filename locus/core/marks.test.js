@@ -16,9 +16,15 @@ test('projectile marks: vertex, y-intercept, positive x-intercept', () => {
   assert.ok(near(points[2].x, 2 + Math.sqrt(6)) && points[2].y === 0)
 })
 
-test('several points of one kind get numbered ids', () => {
+test('plural marks number their points left to right, as layout-C.json does (turning-point-1, turning-point-2)', () => {
   const { points } = computeMarks(spec({ coeffs: [1, 0, -1, 0], domain: { min: -2, max: 2 } }, ['x-intercepts', 'turning-points']))
-  assert.deepStrictEqual(points.map((p) => p.id), ['x-intercepts#1', 'x-intercepts#2', 'x-intercepts#3', 'turning-points#1', 'turning-points#2'])
+  assert.deepStrictEqual(points.map((p) => p.id), ['x-intercept-1', 'x-intercept-2', 'x-intercept-3', 'turning-point-1', 'turning-point-2'])
+})
+
+test('a single turning point is still turning-point-1; several positive roots are x-intercept+1, x-intercept+2', () => {
+  assert.deepStrictEqual(computeMarks(spec(projectile, ['turning-points'])).points.map((p) => p.id), ['turning-point-1'])
+  const twoPositive = computeMarks(spec({ coeffs: [1, -3, 2], domain: { min: 0.5, max: 3 } }, ['x-intercept+'])).points
+  assert.deepStrictEqual(twoPositive.map((p) => p.id), ['x-intercept+1', 'x-intercept+2'])
 })
 
 test('a requested mark that is outside the domain is reported missing, not dropped silently', () => {

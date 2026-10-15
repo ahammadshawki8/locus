@@ -5,15 +5,17 @@ const path = require('path')
 const { buildScene } = require('./scene')
 const { labelText } = require('./labels')
 const { toBraille } = require('./braille')
+const { loadProfile } = require('./profiles')
 
-const root = path.join(__dirname, '..', '..')
-const spec = require(path.join(root, 'examples', 'projectile.json'))
-const layout = require(path.join(root, 'examples', 'projectile.layout.json'))
-const profile = require('./profiles/fdm-3d-v1.json')
-const gap = profile.rules['TL-2'].minLabelGapMm
+const prints = path.join(__dirname, '..', '..', 'tools', 'prints')
+const spec = require(path.join(prints, 'spec.json'))
+const layoutA = require(path.join(prints, 'layout-A.json'))
+const layoutB = require(path.join(prints, 'layout-B.json'))
+const profile = loadProfile('fdm-handheld-v1')
 const near = (a, b, eps = 1e-9) => Math.abs(a - b) < eps
+const centre = (l) => [(l.box[0] + l.box[2]) / 2, (l.box[1] + l.box[3]) / 2]
 
-test('label text: the value a reader needs for each kind of mark, rounded to 2 decimals', () => {
+test('key row text: the value a reader needs for each kind of mark, rounded to 2 decimals', () => {
   assert.strictEqual(labelText({ mark: 'vertex', x: 2, y: 3 }), '2,3')
   assert.strictEqual(labelText({ mark: 'turning-points', x: -1, y: 0.5 }), '-1,0.5')
   assert.strictEqual(labelText({ mark: 'y-intercept', x: 0, y: 1 }), '1')
@@ -21,56 +23,49 @@ test('label text: the value a reader needs for each kind of mark, rounded to 2 d
   assert.strictEqual(labelText({ mark: 'x-intercepts', x: -1e-12, y: 0 }), '0')
 })
 
-test('inline mode: one braille label per mark, up and right of the dot by the TL-2 gap', () => {
-  const scene = buildScene(spec, layout, profile)
-  assert.strictEqual(scene.labelMode, 'inline')
-  assert.strictEqual(scene.key, null)
-  assert.deepStrictEqual(scene.labels.map((l) => [l.kind, l.for, l.text]), [
-    ['mark', 'vertex', '2,3'], ['mark', 'y-intercept', '1'], ['mark', 'x-intercept+', '4.45']
+test('each marked point gets a letter in requested order, centred at the default offset (print A)', () => {
+  const scene = buildScene(spec, layoutA, profile)
+  const marks = scene.labels.filter((l) => l.kind === 'mark')
+  assert.deepStrictEqual(marks.map((l) => [l.for, l.text, l.braille]), [
+    ['vertex', 'a', toBraille('a')], ['y-intercept', 'b', toBraille('b')], ['x-intercept+', 'c', toBraille('c')]
   ])
-  for (const label of scene.labels) {
+  for (const label of marks) {
     const mark = scene.marks.find((m) => m.id === label.for)
-    const r = mark.diameterMm / 2
-    assert.strictEqual(label.braille, toBraille(label.text))
-    assert.ok(near(label.xMm, mark.xMm + r + gap) && near(label.yMm, mark.yMm + r + gap))
-    for (const [x, y] of label.dots) {
-      assert.ok(x > label.xMm && x < label.xMm + label.widthMm && y > label.yMm && y < label.yMm + label.heightMm)
-    }
+    const [cx, cy] = centre(label)
+    assert.ok(near(cx, mark.xMm + layoutA.defaultLabelOffset[0]) && near(cy, mark.yMm + layoutA.defaultLabelOffset[1]))
+    for (const [x, y] of label.dots) assert.ok(x > label.box[0] && x < label.box[2] && y > label.box[1] && y < label.box[3])
   }
 })
 
-test('labelOffsets move a label (and its dots) from its default place', () => {
-  const plain = buildScene(spec, layout, profile).labels.find((l) => l.for === 'vertex')
-  const moved = buildScene(spec, { ...layout, labelOffsets: { vertex: { dxMm: -20, dyMm: -15 } } }, profile).labels.find((l) => l.for === 'vertex')
-  assert.ok(near(moved.xMm, plain.xMm - 20) && near(moved.yMm, plain.yMm - 15))
-  assert.ok(near(moved.dots[0][0], plain.dots[0][0] - 20))
+test('labelOffsets move a label from the point (print B)', () => {
+  const scene = buildScene(spec, layoutB, profile)
+  for (const [id, [dx, dy]] of Object.entries(layoutB.labelOffsets)) {
+    const label = scene.labels.find((l) => l.for === id)
+    const mark = scene.marks.find((m) => m.id === id)
+    const [cx, cy] = centre(label)
+    assert.ok(near(cx, mark.xMm + dx) && near(cy, mark.yMm + dy), id)
+  }
 })
 
-test('key mode: each mark gets a letter, and a key below the plot lists letter and value', () => {
-  const scene = buildScene(spec, { ...layout, labelMode: 'key' }, profile)
-  assert.strictEqual(scene.labelMode, 'key')
-  const marks = scene.labels.filter((l) => l.kind === 'mark')
-  assert.deepStrictEqual(marks.map((l) => l.text), ['a', 'b', 'c'])
+test('the braille ID is the number sign + issue number, 6 mm in from the top-right corner', () => {
+  const scene = buildScene({ ...spec, requestId: 12 }, layoutA, profile)
+  const id = scene.labels.find((l) => l.kind === 'braille-id')
+  assert.strictEqual(id.text, '12')
+  assert.strictEqual(id.braille, toBraille('12'))
+  assert.strictEqual(id.braille[0], toBraille('1')[0]) // number sign first
+  assert.ok(near(id.box[2], 100 - 6) && near(id.box[3], 100 - 6))
+})
+
+test('key mode adds a key in the bottom-left corner: one row per letter with its value', () => {
+  const scene = buildScene(spec, { ...layoutB, labelMode: 'key' }, profile)
   assert.deepStrictEqual(scene.key.entries, [
     { letter: 'a', for: 'vertex', text: '2,3' }, { letter: 'b', for: 'y-intercept', text: '1' }, { letter: 'c', for: 'x-intercept+', text: '4.45' }
   ])
   const rows = scene.labels.filter((l) => l.kind === 'key')
   assert.deepStrictEqual(rows.map((l) => l.text), ['a 2,3', 'b 1', 'c 4.45'])
-  // rows read top to bottom, start at the left margin, and sit clear of every raised line and mark by the TL-2 gap
-  assert.ok(rows[0].yMm > rows[1].yMm && rows[1].yMm > rows[2].yMm)
-  assert.ok(rows.every((l) => near(l.xMm, profile.geometry.marginMm)))
-  const lowest = Math.min(
-    ...scene.lines.flatMap((l) => l.points.map(([, y]) => y - l.widthMm / 2)),
-    ...scene.marks.map((m) => m.yMm - m.diameterMm / 2)
-  )
-  assert.ok(rows[0].yMm + rows[0].heightMm <= lowest - gap + 1e-9)
-})
-
-test('key mode makes the plate taller by the key, and keeps the plot itself the same size', () => {
-  const inline = buildScene(spec, layout, profile)
-  const keyed = buildScene(spec, { ...layout, labelMode: 'key' }, profile)
-  assert.ok(keyed.plate.heightMm > inline.plate.heightMm)
-  assert.strictEqual(keyed.plate.widthMm, inline.plate.widthMm)
-  const span = (s) => { const c = s.lines.find((l) => l.id === 'curve').points; return c[c.length - 1][0] - c[0][0] }
-  assert.strictEqual(span(keyed), span(inline))
+  assert.ok(rows[0].box[1] > rows[1].box[1] && rows[1].box[1] > rows[2].box[1]) // read top to bottom
+  assert.ok(rows.every((l) => near(l.box[0], 6)))
+  assert.ok(near(rows[2].box[1], 6))
+  // the point letters stay where they were
+  assert.deepStrictEqual(scene.labels.filter((l) => l.kind === 'mark'), buildScene(spec, layoutB, profile).labels.filter((l) => l.kind === 'mark'))
 })

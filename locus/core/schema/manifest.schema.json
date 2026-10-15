@@ -2,60 +2,52 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://locus.local/schema/manifest.schema.json",
   "title": "Locus bundle manifest",
-  "description": "manifest.json inside graph-<iid>-v<n>.zip. Generated from real job output only. See docs/contracts.md §3.",
+  "description": "manifest.json in out/bundle/graph-<iid>-v<n>/. Generated only from real job outputs, never hand-written. See docs/contracts.md §5. Cross-field checks (artifactId and brailleId match requestIssue) live in core/validate.js.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "fixture", "bundle", "requestId", "version", "brailleId", "commit", "pipelineId",
-               "profileId", "hashes", "checks", "attempts", "release", "limitations"],
+  "required": ["artifactId", "brailleId", "requestIssue", "sourceCommit", "pipelineId", "generatorVersion", "profile", "hashes",
+               "touchcheck", "guards", "agentSessions", "releaseMode", "releaseTag", "limitations"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "fixture": { "description": "true only for test fixtures; never for a released bundle.", "type": "boolean" },
-    "bundle": { "type": "string", "pattern": "^graph-[0-9]+-v[1-9][0-9]*$" },
-    "requestId": { "type": "integer", "minimum": 0 },
-    "version": { "type": "integer", "minimum": 1 },
-    "brailleId": { "type": "string", "pattern": "^L[0-9]+-[1-9][0-9]*$" },
-    "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "artifactId": { "description": "graph-<iid>-v<n>; also the release tag, package and page name (D5).", "type": "string", "pattern": "^graph-[0-9]+-v[1-9][0-9]*$" },
+    "brailleId": { "description": "G + issue number, embossed in braille in the plate's corner.", "type": "string", "pattern": "^G[0-9]+$" },
+    "requestIssue": { "type": "integer", "minimum": 0 },
+    "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "pipelineId": { "type": "integer", "minimum": 0 },
-    "profileId": { "type": "string" },
+    "generatorVersion": { "type": "string" },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": { "id": { "type": "string" }, "version": { "type": "integer", "minimum": 1 } }
+    },
     "hashes": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["graph.stl", "graph.svg", "description.txt", "touchcheck-report.json", "overlay.svg"],
+      "required": ["graph.stl", "graph.svg", "description.txt"],
       "properties": {
         "graph.stl": { "$ref": "#/$defs/sha256" },
         "graph.svg": { "$ref": "#/$defs/sha256" },
-        "description.txt": { "$ref": "#/$defs/sha256" },
-        "touchcheck-report.json": { "$ref": "#/$defs/sha256" },
-        "overlay.svg": { "$ref": "#/$defs/sha256" }
+        "description.txt": { "$ref": "#/$defs/sha256" }
       }
     },
-    "checks": {
-      "type": "object",
-      "required": ["touchcheck", "guard-scope", "guard-maths", "guard-description", "secret-detection", "sast"],
-      "properties": {
-        "touchcheck": { "$ref": "#/$defs/check" },
-        "guard-scope": { "$ref": "#/$defs/check" },
-        "guard-maths": { "$ref": "#/$defs/check" },
-        "guard-description": { "$ref": "#/$defs/check" },
-        "secret-detection": { "$ref": "#/$defs/check" },
-        "sast": { "$ref": "#/$defs/check" }
-      },
-      "additionalProperties": { "$ref": "#/$defs/check" }
-    },
-    "attempts": { "type": "integer", "minimum": 1, "maximum": 3 },
-    "release": {
+    "touchcheck": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["tag", "url"],
-      "properties": {
-        "tag": { "type": "string", "pattern": "^graph-[0-9]+-v[1-9][0-9]*$" },
-        "url": { "type": ["string", "null"] }
-      }
+      "required": ["pass", "attempts"],
+      "properties": { "pass": { "type": "boolean" }, "attempts": { "type": "integer", "minimum": 1 } }
     },
+    "guards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "maths", "description"],
+      "properties": { "scope": { "type": "boolean" }, "maths": { "type": "boolean" }, "description": { "type": "boolean" } }
+    },
+    "agentSessions": { "type": "array", "items": { "type": "string" } },
+    "releaseMode": { "enum": ["hands-off", "supervised"] },
+    "releaseTag": { "description": "null in the bundle; filled in by the release job.", "type": ["string", "null"] },
     "limitations": { "type": "string", "minLength": 1 }
   },
   "$defs": {
-    "check": { "enum": ["passed", "failed", "skipped"] },
-    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
   }
 }

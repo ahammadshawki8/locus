@@ -7,6 +7,7 @@ const path = require('path')
 
 const { touchcheck } = require('./index')
 const { render } = require('../core/render')
+const { loadProfile } = require('../core/profiles')
 const { validateSpec, validateLayout, validateTouchcheckReport } = require('../core/validate')
 
 const dir = path.join(__dirname, '..', '..', 'fixtures', 'touchcheck')
@@ -27,10 +28,10 @@ for (const name of names) {
     assert.deepStrictEqual([...validateSpec(spec), ...validateLayout(layout)], [])
 
     const { scene } = render(spec, layout)
-    const { report } = touchcheck(JSON.parse(JSON.stringify(scene)), require(`../core/profiles/${spec.profileId}.json`), { requested: spec.mark })
+    const { report } = touchcheck(JSON.parse(JSON.stringify(scene)), loadProfile(spec.profileId), { requested: spec.mark, requestId: spec.requestId })
     assert.deepStrictEqual(validateTouchcheckReport(report), [])
-    assert.deepStrictEqual(report.rules.filter((r) => !r.passed).map((r) => r.id), expected.fails)
+    assert.deepStrictEqual([...new Set(report.results.filter((r) => !r.pass).map((r) => r.rule))], expected.fails)
     if (expected.seeded) assert.ok(expected.fails.includes(expected.seeded))
-    assert.strictEqual(report.passed, expected.fails.length === 0)
+    assert.strictEqual(report.pass, expected.fails.length === 0)
   })
 }

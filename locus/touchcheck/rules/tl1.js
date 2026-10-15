@@ -1,5 +1,6 @@
-// TL-1 line gap: every two raised lines keep at least `minLineGapMm` of clear space between their edges, except where
-// they really meet. How a real meeting is told apart from lines running together: docs/decisions.md (2026-10-14).
+// TL-1 line gap: the curve keeps at least `minLineGapMm` of clear space between its raised edge and the edge of every
+// other line (axes, ticks, grid), except where they really meet (projectLocus.md §10). How a real meeting is told
+// apart from lines running together: docs/decisions.md (14 Oct 2026, and 16 Oct 2026 for line ends).
 const { polyline, nearestOnPolyline, boundsGap, intersections, sideOf, dist } = require('../geometry')
 
 const MESSAGE = 'These lines are too close: a fingertip feels one line'
@@ -111,10 +112,12 @@ const checkPair = (A, B, minGap) => {
     }
   }
 
-  // Every line end either joins the other line (raised edges touch) or stays minGap clear of it. An end in between,
-  // including a short stub just past a crossing, is felt as a bump: the reader cannot tell whether the lines join.
-  for (const [line, other] of [[A, B], [B, A]]) {
+  // Every line end either joins the other line (raised edges touch) or stays minGap clear of it. An end in between is
+  // felt as a bump: the reader cannot tell whether the lines join. An end inside the unavoidable stretch next to a real
+  // crossing is excused with that stretch (a curve that crosses the x-axis and stops just past it).
+  for (const [line, other, intervals] of [[A, B, excusedA], [B, A, excusedB]]) {
     for (const s of [0, line.pl.length]) {
+      if (excused(intervals, s)) continue
       const m = measure(line.pl.pointAt(s), other)
       if (m.gap > 0 && m.gap < minGap) candidates.push(m)
     }
@@ -127,18 +130,16 @@ const checkPair = (A, B, minGap) => {
   return { violations, meetings: meetings.length, closest: closest && { ...closest, subject: [A.id, B.id] } }
 }
 
-/** TL-1 on a scene (docs/contracts.md §5) with the profile's rule values. */
+/** TL-1 on a scene with the profile's rule values: the curve against every other line. */
 const checkLineGap = (scene, profile) => {
-  const { minLineGapMm: minGap } = profile.rules['TL-1']
+  const { minLineGapMm: minGap } = profile.rules
   const lines = scene.lines.map((l) => ({ ...l, pl: polyline(l.points) }))
   const violations = []
   let meetings = 0
   let closest = null
 
-  for (let i = 0; i < lines.length; i++) {
-    for (let j = i + 1; j < lines.length; j++) {
-      const A = lines[i]
-      const B = lines[j]
+  for (const A of lines.filter((l) => l.kind === 'curve')) {
+    for (const B of lines.filter((l) => l.kind !== 'curve')) {
       if (boundsGap(A.pl.bounds, B.pl.bounds) - (A.widthMm + B.widthMm) / 2 >= minGap) continue
       const pair = checkPair(A, B, minGap)
       violations.push(...pair.violations)
@@ -156,7 +157,7 @@ const checkLineGap = (scene, profile) => {
     id: 'TL-1',
     passed,
     violations,
-    note: `Clear gap between raised edges, outside ${meetings} real crossings or joins (docs/decisions.md, 2026-10-14).`,
+    note: `Clear gap between the curve's raised edge and every other line, outside ${meetings} real crossings or joins.`,
     summary: passed
       ? `Lines at least ${minGap} mm apart${closestPassed ? `; closest ${closestPassed.measuredMm} mm` : ''}`
       : `${violations.length} ${violations.length === 1 ? 'place' : 'places'} where lines are closer than ${minGap} mm; closest ${worst} mm`,
