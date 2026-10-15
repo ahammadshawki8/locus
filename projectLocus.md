@@ -25,11 +25,11 @@
 
 | Finding | Source | What it means for us |
 |---|---|---|
-| Tools that turn equations into tactile graphs **already exist**: TactileView math module (~$775), ViewPlus Audio Graphing Calculator, SVGPlott (research), Desmos-based workflows | [AHG: automated tactile maths](https://accessinghigherground.org/automated-generation-of-tactile-mathematics/), [TactileView](https://specialneedscomputers.ca/products/tactileview-software), [SVGPlott](https://www.springerprofessional.de/svgplott-generating-adaptive-and-accessible-audio-tactile-functi/2191120), [ViewPlus calculator guide](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/Creating-Tactile-Graphs-with-the-ViewPlus-Audio-Graphing-Calculator.pdf) | **"We generate tactile graphs" is not novel.** Don't claim it. |
-| A July 2026 paper builds a **JSCAD-based** pipeline that makes tactile STL charts with Grade 1 braille labels, and reports manual CAD takes **~2 hours per chart**. It has **no automated legibility validation**, **no user study**, and its LLM step needs teacher review. | [arXiv 2607.01214 (summary)](https://www.emergentmind.com/papers/2607.01214) | (1) Strong evidence for the problem (2 h/chart). (2) It confirms JSCAD is the right engine. (3) **The open gap is verifying readability and fixing failures automatically.** That's Locus. Cite it as related work and don't overlap with it: it does statistical charts, we do function graphs. |
-| A practitioner source notes that Desmos-based methods "do not create acceptable braille labels presently". | [AHG Desmos guide](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/CreatingTactileGraphsWithDesMos.pdf) | Label collisions are a known pain point. Our label rules target exactly that. |
+| Tools that turn equations into tactile graphs **already exist**: [TactileView](https://specialneedscomputers.ca/products/tactileview-software) math module (~$775), [ViewPlus Audio Graphing Calculator](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/Creating-Tactile-Graphs-with-the-ViewPlus-Audio-Graphing-Calculator.pdf), [SVGPlott](https://www.springerprofessional.de/svgplott-generating-adaptive-and-accessible-audio-tactile-functi/2191120) (research), [Desmos-based workflows](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/CreatingTactileGraphsWithDesMos.pdf) | [AHG: automated tactile maths](https://accessinghigherground.org/automated-generation-of-tactile-mathematics/), [TactileView](https://specialneedscomputers.ca/products/tactileview-software), [SVGPlott](https://www.springerprofessional.de/svgplott-generating-adaptive-and-accessible-audio-tactile-functi/2191120), [ViewPlus calculator guide](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/Creating-Tactile-Graphs-with-the-ViewPlus-Audio-Graphing-Calculator.pdf) | **"We generate tactile graphs" is not novel.** Don't claim it. |
+| A [July 2026 paper](https://www.emergentmind.com/papers/2607.01214) builds a **JSCAD-based** pipeline that makes tactile STL charts with Grade 1 braille labels, and reports manual CAD takes **~2 hours per chart**. It has **no automated legibility validation**, **no user study**, and its LLM step needs teacher review. | [arXiv 2607.01214 (summary)](https://www.emergentmind.com/papers/2607.01214) | (1) Strong evidence for the problem (2 h/chart). (2) It confirms JSCAD is the right engine. (3) **The open gap is verifying readability and fixing failures automatically.** That's Locus. Cite it as related work and don't overlap with it: it does statistical charts, we do function graphs. |
+| A [practitioner source](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/CreatingTactileGraphsWithDesMos.pdf) notes that Desmos-based methods "do not create acceptable braille labels presently". | [AHG Desmos guide](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/CreatingTactileGraphsWithDesMos.pdf) | Label collisions are a known pain point. Our label rules target exactly that. |
 | Spacing guidance: **1/8 in (3.2 mm) absolute minimum** between elements; **1/4 in (6.4 mm)** may be needed (e.g. capsule paper); separate elements at least 1/4 in. Braille map labels should be **3/8 in (9.5 mm)** from unrelated elements. | [tactilegraphics.org readability](https://tactilegraphics.org/readability.html), [NPS tactile map guidelines 2008](https://www.npshistory.com/publications/interpretation/hfc/tactile-map-guidelines-2008.pdf), [BANA Tactile Graphics 2022](https://www.brailleauthority.org/tg/web-manual/tgmanual.html) | Rule values now cite a source. Still check them against BANA 2022 and a practitioner. |
-| Evidence for 3D-printed maths graphs is promising but thin (e.g. SenseMath, n=8). | [Visio SenseMath study](https://www.visio.org/visio.org/media/Visio/Downloads/KEI/Vision-2017/Does-multisensory-presentation-of-mathematical-graphs-improve-visually-impaired-students-performance-on-identifying-mathematical-graphs-A-comparison.pdf), [Sci Am: 3D prints for blind students](https://blogs.scientificamerican.com/guest-blog/teaching-blind-students-with-3-d-prints/) | Don't over-claim the learning benefit. Claim time saved and quality checked. |
+| Evidence for 3D-printed maths graphs is promising but thin (e.g. [SenseMath](https://www.visio.org/visio.org/media/Visio/Downloads/KEI/Vision-2017/Does-multisensory-presentation-of-mathematical-graphs-improve-visually-impaired-students-performance-on-identifying-mathematical-graphs-A-comparison.pdf), n=8). | [Visio SenseMath study](https://www.visio.org/visio.org/media/Visio/Downloads/KEI/Vision-2017/Does-multisensory-presentation-of-mathematical-graphs-improve-visually-impaired-students-performance-on-identifying-mathematical-graphs-A-comparison.pdf), [Sci Am: 3D prints for blind students](https://blogs.scientificamerican.com/guest-blog/teaching-blind-students-with-3-d-prints/) | Don't over-claim the learning benefit. Claim time saved and quality checked. |
 | GitLab custom flows can reportedly be triggered on **pipeline state changes, including Failed**. The docs history says the feature flag was removed in 19.1, but one older source says it's still flagged. | [GitLab blog: agentic flows](https://about.gitlab.com/blog/multi-step-software-delivery-with-agentic-flows/), [custom flows docs](https://docs.gitlab.com/user/duo_agent_platform/flows/custom/) | **Primary retry path = pipeline-failed trigger.** Fallback = a CI job posting an MR note that mentions the agent. Verify both on 15–16 Oct. |
 
 ## 0.2 The new positioning (one line)
@@ -79,14 +79,14 @@ Five boxes, one loop. Every other detail goes in the README.
 
 | | Before: JSCAD on GitHub | After: Locus on GitLab |
 |---|---|---|
-| Lifecycle | One GitHub Actions job: `npm test` on Node 20/22 (`.github/workflows/node.yml`, checked 13 Oct) | Migrated tests + a 9-stage automated lifecycle |
+| Lifecycle | One GitHub Actions job: `npm test` on Node 20/22 ([`.github/workflows/node.yml`](https://github.com/jscad/OpenJSCAD.org/blob/master/.github/workflows/node.yml), checked 13 Oct) | Migrated tests + a 9-stage automated lifecycle |
 | Making a tactile graph | Write a script by hand, guess the dimensions, hope it's readable | Email a sentence; an agent delivers a checked file |
 | Safety | None | Touch checks + guards decide what ships |
 | Downstream | A JSCAD change that alters geometry goes unnoticed | A nightly re-check of every shipped graph catches it (**downstream contract test for JSCAD**) |
 
 ## 4b. Why not just use existing tools? (README + Devpost)
 
-| | TactileView math module | ViewPlus Audio Graphing Calculator | 2026 JSCAD STL pipeline (paper) | **Locus** |
+| | [TactileView](https://specialneedscomputers.ca/products/tactileview-software) math module | [ViewPlus Audio Graphing Calculator](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/Creating-Tactile-Graphs-with-the-ViewPlus-Audio-Graphing-Calculator.pdf) | [2026 JSCAD STL pipeline (paper)](https://www.emergentmind.com/papers/2607.01214) | **Locus** |
 |---|---|---|---|---|
 | Makes tactile function graphs | Yes | Yes | Statistical charts only | Yes |
 | Cost / setup | ~$775, Windows software | Paid, embosser workflow | Research code | Free; send an email |
@@ -153,16 +153,16 @@ We build with Claude Code (§7.4), so the build goes beyond a minimal MVP. **But
 | T2.3 | **Agent eval suite:** 30 real-style teacher requests → expected specs. A CI job scores the Duo agent's parsing and publishes accuracy in the README | Tech + Innovation: answers "how do you know the agent is reliable?" Anthropic and GitLab judges will value this |
 | T2.4 | **`guard-injection` + refusal showcase:** malicious and unreadable requests, with real linked issues | Secure stage depth; responsible autonomy |
 | T2.5 | **Built-in Code Review Flow** on every agent MR | More Duo Agent Platform features used |
-| T2.6 | **Accessible graph library site:** a page per graph with text description, downloads, braille ID and release link; automated accessibility check job (axe-core, MPL-2.0, OSI-approved) | Design + Verify depth; something judges can click |
+| T2.6 | **Accessible graph library site:** a page per graph with text description, downloads, braille ID and release link; automated accessibility check job ([axe-core](https://github.com/dequelabs/axe-core), MPL-2.0, OSI-approved) | Design + Verify depth; something judges can click |
 | T2.7 | **Self-healing re-layout:** when the regression detective decides a generator change was intentional, each affected graph re-enters the fixer loop and is re-released as `v2` | Monitor stage creativity |
-| T2.8 | **Property-based tests** for geometry invariants (fast-check, MIT) | Tech: non-trivial testing |
+| T2.8 | **Property-based tests** for geometry invariants ([fast-check](https://github.com/dubzzz/fast-check), MIT) | Tech: non-trivial testing |
 | T2.9 | **Security triage agent** (§6b) | Puts an agent in the Secure stage |
 
 ### 7.3 Tier 3 — stretch
 - MCP tools exposing `render` and `touchcheck`, so the agent can pre-check a layout before pushing.
 - Publish the Locus agent/flow to the AI Catalog.
 
-**Never build:** image-to-tactile, arbitrary user code, accounts, printer control, contracted braille, statistical charts (already covered by the 2026 paper; don't overlap).
+**Never build:** image-to-tactile, arbitrary user code, accounts, printer control, contracted braille, statistical charts (already covered by the [2026 paper](https://www.emergentmind.com/papers/2607.01214); don't overlap).
 
 ### 7.4 How we build: Claude Code
 
@@ -181,11 +181,11 @@ We build with Claude Code (§7.4), so the build goes beyond a minimal MVP. **But
 **Session routine** (the msr / superpowers skills if installed; otherwise follow the same steps by hand):
 1. Start: `/msr-session-start`. It reads `STATE.md` and recent commits and proposes the next task.
 2. For each module, plan first (brainstorm → written plan), then **test-driven development**: write the failing test, then the code.
-3. Before each commit: `/msr-gate` runs the real lint, test and build commands. Review every diff yourself, because the FAQ says you own what the AI creates.
+3. Before each commit: `/msr-gate` runs the real lint, test and build commands. Review every diff yourself, because the [hackathon FAQ](https://gitlab-transcend.devpost.com/) says you own what the AI creates.
 4. End: `/msr-handoff` updates `STATE.md` and proposes the commit message.
 5. Before submission: `/msr-ship` (Shawki).
 
-**Git hygiene:** feature branch → MR → pipeline, so the history shows the automation. Small commits. `git commit -s` (DCO 1.1 sign-off by the human author). Never paste tokens or keys into prompts; use protected, masked CI variables. Use git worktrees or parallel Claude Code sessions for independent modules (for example touchcheck rules and braille labels).
+**Git hygiene:** feature branch → MR → pipeline, so the history shows the automation. Small commits. `git commit -s` ([DCO 1.1](https://docs.gitlab.com/ee/legal/developer_certificate_of_origin.html) sign-off by the human author). Never paste tokens or keys into prompts; use protected, masked CI variables. Use git worktrees or parallel Claude Code sessions for independent modules (for example touchcheck rules and braille labels).
 
 ## 8. Architecture
 
@@ -252,10 +252,10 @@ OpenJSCAD.org/                       # imported upstream; MIT LICENSE preserved 
 
 ## 10. `touchcheck` rules (5)
 
-| ID | Plain words (shown on the overlay) | Measured | Value (source; confirm vs BANA 2022 + practitioner) |
+| ID | Plain words (shown on the overlay) | Measured | Value (source; confirm vs [BANA 2022](https://www.brailleauthority.org/tg/web-manual/tgmanual.html) + practitioner) |
 |---|---|---|---|
-| TL-1 | "These lines are too close: a fingertip feels one line" | min distance between curve and axis/grid outside real crossings | ≥ 3.2 mm (1/8 in absolute min, tactilegraphics.org) |
-| TL-2 | "This label touches a line" | min distance from braille label box to any line | ≥ 6.4 mm (1/4 in; NPS map labels use 9.5 mm) |
+| TL-1 | "These lines are too close: a fingertip feels one line" | min distance between curve and axis/grid outside real crossings | ≥ 3.2 mm (1/8 in absolute min, [tactilegraphics.org](https://tactilegraphics.org/readability.html)) |
+| TL-2 | "This label touches a line" | min distance from braille label box to any line | ≥ 6.4 mm (1/4 in, [tactilegraphics.org](https://tactilegraphics.org/readability.html); [NPS map labels](https://www.npshistory.com/publications/interpretation/hfc/tactile-map-guidelines-2008.pdf) use 9.5 mm) |
 | TL-3 | "These labels overlap" | label box intersection | none |
 | TL-4 | "Something requested is missing" | inventory: axes, curve, each requested mark, key if used | all present |
 | TL-5 | "Too big for the printer / features too thin" | bounding box vs bed; min line width/height | profile-defined (e.g. 180×180 mm bed, ≥ 1.2 mm width) |
@@ -275,7 +275,7 @@ OpenJSCAD.org/                       # imported upstream; MIT LICENSE preserved 
 
 Plus protected branches and tags, CODEOWNERS, `secret-detection` and `sast` templates, and a licence check (MIT preferred; others must be OSI-approved and listed).
 
-## 12. The nine official stages (README table + video tracker bar)
+## 12. The nine [official stages](https://about.gitlab.com/topics/devops/#the-dev-ops-lifecycle-and-how-dev-ops-works) (README table + video tracker bar)
 
 | Stage | What happens | Agent involved |
 |---|---|---|
@@ -307,7 +307,7 @@ Plus protected branches and tags, CODEOWNERS, `secret-detection` and `sast` temp
 |---|---|---|---|---|
 | 0 | Both: Devpost team joined (Shawki = Representative), **GitLab onboarding requested**, Discord joined, Claude Code set up | Both | 13 Oct | — |
 | C | **Contracts agreed:** `docs/contracts.md` + `fixtures/bundle-sample/` committed | Both | 14 Oct | Blocks parallel work; do it first |
-| 1 | JSCAD imported, MIT in About, `node.yml` migrated, `CLAUDE.md` + `STATE.md` in repo | Ashfaq | 15 Oct | Standalone packages against published `@jscad/*` |
+| 1 | JSCAD imported, MIT in About, [`node.yml`](https://github.com/jscad/OpenJSCAD.org/blob/master/.github/workflows/node.yml) migrated, `CLAUDE.md` + `STATE.md` in repo | Ashfaq | 15 Oct | Standalone packages against published `@jscad/*` |
 | 2 | Polynomial → STL + SVG + overlay in CI | Ashfaq | 15 Oct | SVG first |
 | 3 | 3D print access confirmed; quote + turnaround known | Shawki | 15 Oct | Show files only; say so (big Impact hit) |
 | 4 | Practitioner booked (15th), spoken to (20th) | Ashfaq | 20 Oct | Narrow the claim; never invent quotes |
@@ -344,7 +344,7 @@ Plus protected branches and tags, CODEOWNERS, `secret-detection` and `sast` temp
 |---|---|---|
 | **Tue 13** | Create the Devpost team; onboarding request; Discord; Claude Code setup; email 3–5 TVIs/schools/disability offices, also asking whether one blind/low-vision reader could try two prints on 23–24 Oct | Join the team; onboarding request; Claude Code setup; Google Cloud account + budget alert; ask 2–3 Dhaka print services/labs for quote + turnaround |
 | **Wed 14** | **Together: write `docs/contracts.md` + sample bundle fixture (1 h).** JSCAD polynomial → STL/SVG locally; overlay prototype; check Service Desk | **Together: contracts (1 h).** Cloud Run service skeleton + `deploy/gcp/` |
-| **Thu 15** | Import JSCAD, migrate `node.yml`, `CLAUDE.md` + `STATE.md`; generation in CI; **office hours 19:00 UTC** | Confirm print access; design the calibration STL (spacing ladder, line widths, braille dots) |
+| **Thu 15** | Import JSCAD, migrate [`node.yml`](https://github.com/jscad/OpenJSCAD.org/blob/master/.github/workflows/node.yml), `CLAUDE.md` + `STATE.md`; generation in CI; **office hours 19:00 UTC** | Confirm print access; design the calibration STL (spacing ladder, line widths, braille dots) |
 | **Fri 16** | **Duo loop spike → hands-off or supervised** (`docs/decisions.md`) | Send the calibration print; storyboard the video from Part V |
 | **Sat 17** | Service Desk intake; touchcheck TL-1, TL-2, TL-4 | Hosting skeleton: CI → Cloud Run staging + production (Gate 6b) |
 | **Sun 18** | TL-3, TL-5; braille + key mode | Release + package jobs against the sample bundle; **from today, run Ashfaq's loop daily on own machine** and log friction in `STATE.md` |
@@ -457,7 +457,7 @@ Earlier versions of this plan scored themselves higher with each revision, even 
 - [ ] Original JSCAD URL; production URL (Cloud Run); Google Cloud link.
 - [ ] Visible pipeline history: a failing touchcheck → agent fix → pass → release → staging → production; nightly re-check → bisect → revert MR; release-guard rollback run.
 - [ ] README includes the §4b comparison table (carefully worded) and links to each agent's real runs.
-- [ ] Flow YAML committed (MIT, DCO 1.1); agent session links in the README; README states Claude Code was the build tool and GitLab Duo runs the product's agents.
+- [ ] Flow YAML committed (MIT, [DCO 1.1](https://docs.gitlab.com/ee/legal/developer_certificate_of_origin.html)); agent session links in the README; README states Claude Code was the build tool and GitLab Duo runs the product's agents.
 - [ ] Agent eval results (T2.3) published in the README, real numbers only.
 - [ ] All new work dated on or after 5 Oct 2026; README "upstream vs new".
 - [ ] Devpost text opens with the 10-second version and the one diagram.
@@ -466,9 +466,27 @@ Earlier versions of this plan scored themselves higher with each revision, even 
 - [ ] `JUDGING_FREEZE=true`; links checked while signed out; live until about 16 Nov; nothing changes after 13:00 UTC on 27 Oct.
 
 ## Sources
-- Hackathon rules, FAQ and resources (pasted by the user, 13 Oct 2026): https://gitlab-transcend.devpost.com/
-- JSCAD + current CI: https://github.com/jscad/OpenJSCAD.org · `.github/workflows/node.yml`
-- GitLab custom flows: https://docs.gitlab.com/user/duo_agent_platform/flows/custom/ · agentic flows blog: https://about.gitlab.com/blog/multi-step-software-delivery-with-agentic-flows/
-- Related work: [arXiv 2607.01214 summary](https://www.emergentmind.com/papers/2607.01214) · [SVGPlott](https://www.springerprofessional.de/svgplott-generating-adaptive-and-accessible-audio-tactile-functi/2191120) · [TactileView](https://specialneedscomputers.ca/products/tactileview-software) · [AHG automated tactile maths](https://accessinghigherground.org/automated-generation-of-tactile-mathematics/)
-- Touch guidance: [tactilegraphics.org readability](https://tactilegraphics.org/readability.html) · [BANA Guidelines and Standards for Tactile Graphics 2022](https://www.brailleauthority.org/tg/web-manual/tgmanual.html) · [NPS tactile map guidelines](https://www.npshistory.com/publications/interpretation/hfc/tactile-map-guidelines-2008.pdf)
-- Evidence on 3D-printed maths graphs: [Visio SenseMath](https://www.visio.org/visio.org/media/Visio/Downloads/KEI/Vision-2017/Does-multisensory-presentation-of-mathematical-graphs-improve-visually-impaired-students-performance-on-identifying-mathematical-graphs-A-comparison.pdf) · [Scientific American](https://blogs.scientificamerican.com/guest-blog/teaching-blind-students-with-3-d-prints/)
+
+**Hackathon**
+- [Hackathon overview and FAQ](https://gitlab-transcend.devpost.com/) · [Official rules](https://gitlab-transcend.devpost.com/rules) · [Resources](https://gitlab-transcend.devpost.com/resources) (text also pasted by the user, 13 Oct 2026)
+- [GitLab DevSecOps lifecycle (official stage reference)](https://about.gitlab.com/topics/devops/#the-dev-ops-lifecycle-and-how-dev-ops-works)
+- [GitLab Developer Certificate of Origin 1.1](https://docs.gitlab.com/ee/legal/developer_certificate_of_origin.html)
+
+**Upstream project**
+- [JSCAD / OpenJSCAD.org](https://github.com/jscad/OpenJSCAD.org) · [MIT licence](https://github.com/jscad/OpenJSCAD.org/blob/master/LICENSE) · [current CI: `.github/workflows/node.yml`](https://github.com/jscad/OpenJSCAD.org/blob/master/.github/workflows/node.yml)
+
+**GitLab Duo Agent Platform**
+- [Custom flows docs](https://docs.gitlab.com/user/duo_agent_platform/flows/custom/) · [Agentic flows blog (pipeline triggers)](https://about.gitlab.com/blog/multi-step-software-delivery-with-agentic-flows/)
+
+**Related work and existing tools**
+- [Touching and Feeling the Data (arXiv 2607.01214, summary)](https://www.emergentmind.com/papers/2607.01214)
+- [SVGPlott](https://www.springerprofessional.de/svgplott-generating-adaptive-and-accessible-audio-tactile-functi/2191120) · [TactileView](https://specialneedscomputers.ca/products/tactileview-software) · [ViewPlus Audio Graphing Calculator guide](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/Creating-Tactile-Graphs-with-the-ViewPlus-Audio-Graphing-Calculator.pdf) · [Desmos tactile graphs guide](https://accessinghigherground.org/wp/wp-content/uploads/2025/04/CreatingTactileGraphsWithDesMos.pdf) · [AHG: automated generation of tactile mathematics](https://accessinghigherground.org/automated-generation-of-tactile-mathematics/)
+
+**Touch-readability guidance**
+- [tactilegraphics.org: readability](https://tactilegraphics.org/readability.html) · [BANA Guidelines and Standards for Tactile Graphics 2022](https://www.brailleauthority.org/tg/web-manual/tgmanual.html) · [NPS tactile map guidelines 2008](https://www.npshistory.com/publications/interpretation/hfc/tactile-map-guidelines-2008.pdf)
+
+**Evidence on 3D-printed maths graphs**
+- [Visio SenseMath study](https://www.visio.org/visio.org/media/Visio/Downloads/KEI/Vision-2017/Does-multisensory-presentation-of-mathematical-graphs-improve-visually-impaired-students-performance-on-identifying-mathematical-graphs-A-comparison.pdf) · [Scientific American: teaching blind students with 3D prints](https://blogs.scientificamerican.com/guest-blog/teaching-blind-students-with-3-d-prints/)
+
+**Tools named in the plan**
+- [axe-core](https://github.com/dequelabs/axe-core) · [fast-check](https://github.com/dubzzz/fast-check)
