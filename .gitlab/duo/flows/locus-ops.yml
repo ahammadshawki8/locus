@@ -25,7 +25,6 @@ components:
         as: "goal"
       - from: "context:project_id"
         as: "project_id"
-    max_cycles: 6
     toolset:
       - "get_issue"
     ui_log_events:
@@ -40,7 +39,6 @@ components:
         as: "goal"
       - from: "context:project_id"
         as: "project_id"
-    max_cycles: 25
     toolset:
       - "get_job_logs"
       - "get_merge_request"
@@ -59,7 +57,6 @@ components:
         as: "goal"
       - from: "context:project_id"
         as: "project_id"
-    max_cycles: 60
     toolset:
       - "get_issue"
       - "get_job_logs"

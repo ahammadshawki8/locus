@@ -22,7 +22,6 @@ components:
         as: "project_id"
       - from: "context:session_url"
         as: "session_url"
-    max_cycles: 20
     toolset:
       - "get_issue"
       - "get_job_logs"

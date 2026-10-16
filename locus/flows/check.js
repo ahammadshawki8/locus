@@ -4,13 +4,18 @@
 // - custom flow restrictions: https://docs.gitlab.com/user/duo_agent_platform/flows/custom_flows_schema/
 // - size limit: https://docs.gitlab.com/user/duo_agent_platform/ai_catalog/#configuration-size-limits
 // - tool names: ./tools.json
-// Passing this check means the YAML follows the docs. It does not mean the flow has run (rule H3).
+// - GitLab's own validator: ./gitlab-flow-schema.json, a copy of gitlab-org/gitlab
+//   app/validators/json_schemas/ai_catalog/flow_v2.json at 827a2fb1 (29 Sep 2026, MIT). The docs do not list every
+//   field it rejects (max_cycles, seen in the AI Catalog on 16 Oct).
+// Passing this check means the YAML follows the docs and that schema. It does not mean the flow has run (rule H3).
 
 const fs = require('node:fs')
 const path = require('node:path')
+const Ajv = require('ajv')
 const YAML = require('yaml')
 
 const tools = require('./tools.json')
+const gitlabSchema = new Ajv({ allErrors: true, strict: false }).compile(require('./gitlab-flow-schema.json'))
 
 const MAX_FLOW_BYTES = 40 * 1024
 const TOP_LEVEL = new Set(['version', 'environment', 'coding_environment', 'components', 'routers', 'flow', 'prompts', 'response_schemas', 'include'])
@@ -59,6 +64,14 @@ const checkFlow = (text) => {
     return { errors: [...errors, `YAML: ${e.message}`], flow: null }
   }
   if (!flow || typeof flow !== 'object') return { errors: [...errors, 'flow is not a YAML mapping'], flow: null }
+
+  // GitLab stores the pasted text as yaml_definition next to the parsed fields, then validates both.
+  if (!gitlabSchema({ ...flow, yaml_definition: text })) {
+    for (const e of gitlabSchema.errors.filter((x) => x.keyword !== 'if')) {
+      const extra = e.params.additionalProperty ? ` (${e.params.additionalProperty})` : ''
+      errors.push(`GitLab schema: ${e.instancePath || '/'} ${e.message}${extra}`)
+    }
+  }
 
   for (const field of REJECTED_TOP_LEVEL) if (field in flow) errors.push(`top-level field "${field}" is rejected in custom flows`)
   for (const field of Object.keys(flow)) if (!TOP_LEVEL.has(field) && !REJECTED_TOP_LEVEL.includes(field)) errors.push(`unknown top-level field "${field}"`)

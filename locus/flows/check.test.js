@@ -42,6 +42,10 @@ test('a minimal ambient flow passes', () => {
   assert.deepEqual(errorsOf(minimal), [])
 })
 
+test('GitLab\'s own flow schema is applied: max_cycles on an AgentComponent is rejected (seen in the AI Catalog, 16 Oct)', () => {
+  expectError(minimal.replace('    toolset:', '    max_cycles: 20\n    toolset:'), /GitLab schema: \/components\/0 must NOT have additional properties \(max_cycles\)/)
+})
+
 test('top-level name, description and product_group are rejected (custom flows)', () => {
   for (const field of ['name', 'description', 'product_group']) {
     expectError(`${field}: "x"\n${minimal}`, new RegExp(`top-level field "${field}"`))

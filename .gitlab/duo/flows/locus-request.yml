@@ -17,7 +17,8 @@
 # Routing: custom flows reject response schemas, so the routers match the answer text. intake answers with the MR URL
 # (the later steps need it): "asked" and "exists" end the flow, anything else goes to fixer_1, which checks that the
 # answer is this request's MR. After intake, any unexpected answer ends the flow.
-# Budget: a flow stops after 600 graph steps (2 per agent cycle); the max_cycles below add up to 220.
+# Budget: custom flows cannot set max_cycles (GitLab rejects it, 16 Oct (k)), so each step runs under the platform
+# default; a flow stops after 600 graph steps. How many cycles one attempt costs is open (Gate 5 run).
 version: "v1"
 environment: ambient
 coding_environment: none
@@ -32,7 +33,6 @@ components:
         as: "project_id"
       - from: "context:session_url"
         as: "session_url"
-    max_cycles: 25
     toolset:
       - "get_issue"
       - "list_issue_notes"
@@ -63,7 +63,6 @@ components:
         literal: true
       - from: "context:session_url"
         as: "session_url"
-    max_cycles: 60
     toolset:
       - "get_merge_request"
       - "get_pipeline_failing_jobs"
@@ -88,7 +87,6 @@ components:
         literal: true
       - from: "context:session_url"
         as: "session_url"
-    max_cycles: 60
     toolset:
       - "get_merge_request"
       - "get_pipeline_failing_jobs"
@@ -114,7 +112,6 @@ components:
         literal: true
       - from: "context:session_url"
         as: "session_url"
-    max_cycles: 60
     toolset:
       - "get_merge_request"
       - "get_pipeline_failing_jobs"
@@ -137,7 +134,6 @@ components:
         as: "merge_request"
       - from: "context:session_url"
         as: "session_url"
-    max_cycles: 15
     toolset:
       - "get_merge_request"
       - "get_pipeline_failing_jobs"

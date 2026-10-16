@@ -4,6 +4,33 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (k): the AI Catalog rejects max_cycles; check.js now applies GitLab's own flow schema (Ashfaq)
+
+No change to `docs/contracts.md`. **No flow has run in our account yet** (H3).
+
+- **Seen in our account (16 Oct):** creating `locus-probe` in the test bed's AI Catalog failed with "Latest version
+  definition object property at `/components/0/max_cycles` is a disallowed additional property. Versions is
+  invalid". `check.js` had passed it: the docs we read don't say custom flows reject `max_cycles`.
+- **The validator GitLab uses** is
+  [`app/validators/json_schemas/ai_catalog/flow_v2.json`](https://gitlab.com/gitlab-org/gitlab/-/blob/827a2fb14adfc4317d876855e2a46c6937b6c943/app/validators/json_schemas/ai_catalog/flow_v2.json)
+  in gitlab-org/gitlab (last changed 29 Sep 2026, commit `827a2fb1`; MIT, as the repository's
+  [LICENSE](https://gitlab.com/gitlab-org/gitlab/-/blob/master/LICENSE) puts everything outside `ee/`, `jh/` and
+  `doc/` under MIT). An `AgentComponent` may have only `name`, `type`, `prompt_id`, `prompt_version`, `inputs`,
+  `toolset`, `description`, `subagents`, `max_delegations`, `model_size_preference`, `model_tags`, `ui_log_events`
+  and `ui_role_as`. `yaml_definition` is required, but GitLab fills it with the pasted text itself.
+
+**Decisions:**
+1. **`max_cycles` is removed from all three flows.** In ai-assist v1,
+   [`agent_node.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/agent_platform/v1/components/agent/nodes/agent_node.py)
+   treats a missing `max_cycles` as no cycle limit for that step, so only the flow's overall graph-step limit applies
+   (from the source, not yet seen in a run). `locus-request` still makes at most 3 attempts: that comes from its
+   routes and from which steps hold `create_commit` (16 Oct (h) item 1), not from cycles. The "220 cycles" of 16 Oct
+   (h) item 3 no longer applies.
+2. **`check.js` validates every flow against a copy of that schema** (`locus/flows/gitlab-flow-schema.json`, pinned at
+   `827a2fb1`), with `yaml_definition` set to the YAML text as GitLab does, on top of its own checks. A test pins
+   that `max_cycles` is rejected. To refresh the copy, download the file again and say so here.
+3. Ashfaq pastes the fixed `locus-probe.yml` again (16 Oct (g) steps).
+
 ## 16 Oct 2026 (j): pipeline 2953818513, still no flow run, and agentSessions from commit trailers (Ashfaq)
 
 No change to `docs/contracts.md`. **No flow has run in our account yet** (H3).
