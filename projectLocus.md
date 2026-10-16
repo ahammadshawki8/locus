@@ -54,23 +54,144 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 | Area | State |
 |---|---|
 | Onboarding | Shawki, Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) onboarded to the GitLab hackathon group. Shawki asked on Discord (16 Oct) for Ashfaq and Nourin to be added to the Showcase project. 16 Oct: Ashfaq reports the team now has group access for the hackathon |
-| GitLab project | Each participant has a public Showcase, `gitlab-ai-hackathon/transcend-october-2026/<user id>/showcase`. Shawki's (`.../43384339/showcase`) is the team project: foundational flows enabled (Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection); code not imported; Ashfaq has no access yet. Test bed: Ashfaq's (`.../43396940/showcase`), branch `feat/gate2-render` pushed 16 Oct; first pipeline ran: render, touchcheck, upstream-test, SAST, secret detection pass; guard-scope fails closed until `main` shares our history (`docs/decisions.md` 16 Oct (f)). Already enabled there: Developer (with a trigger), Code Review, Fix CI/CD and the SAST flows. GraphQL says Ashfaq may create flows and triggers there (16 Oct (g)), unconfirmed until he does |
-| Credits | 15 Oct: Duo Chat showed "No credits remain for this billing period". 16 Oct: Ashfaq reports the credits are there now. Not yet used by a flow run in our account (H3). The triggers doc says triggered flows bill the flow's service account through the namespace's credit pool, not the person; Gate 5 records what our account shows (`docs/decisions.md` 16 Oct (g)) |
+| GitLab project | Each participant has a public Showcase, `gitlab-ai-hackathon/transcend-october-2026/<user id>/showcase`. Shawki's (`.../43384339/showcase`) is the team project: foundational flows enabled (Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection); code not imported; Ashfaq has no access yet. Test bed: Ashfaq's (`.../43396940/showcase`), branch `feat/gate2-render` pushed 16 Oct; first pipeline ran: render, touchcheck, upstream-test, SAST, secret detection pass; guard-scope fails closed until `main` shares our history (`docs/decisions.md` 16 Oct (f)). Already enabled there: Developer (with a trigger), Code Review, Fix CI/CD and the SAST flows. 16 Oct: Ashfaq created and enabled the custom flow `locus-probe` there (service account `ai-locus-probe-gitlab-ai-hackathon`) and **it ran** from his mention on issue #2 (session 9598935, 16 Oct (l)) |
+| Credits | 15 Oct: Duo Chat showed "No credits remain for this billing period". 16 Oct: Ashfaq reports the credits are there now. First used by a flow run on 16 Oct (`locus-probe`, session 9598935); whose row it is on is not yet read from the Credits dashboard (H3). The triggers doc says triggered flows bill the flow's service account through the namespace's credit pool, not the person; Gate 5 records what our account shows (`docs/decisions.md` 16 Oct (g)) |
 | Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
 | Prints | Calibration piece printed and judged good. Prototype plates A, B and C sent to print on 16 Oct (`tools/prints/`). About 500 tk budget |
-| Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. Product code is on Ashfaq's fork `ashfaqstu/locus`, branch `feat/gate2-render` (JSCAD import, `locus/`), not merged yet ([PR 1](https://github.com/ahammadshawki8/locus/pull/1) into the working repo's `main`, opened 16 Oct, waiting for Shawki; merge commit only, 16 Oct (i)): it follows contracts v1, reproduces prints A, B and C (CI test), and `touchcheck` measures TL-1 to TL-5 with report, overlay and `LOCUS_REPORT` line (A fails, B and C pass). All four guards built with CI jobs (Gate 8 locally). `locus bundle` + `bundle` CI job build `out/bundle/graph-<iid>-v<n>/` + zip, with `manifest.json` from the render, touchcheck and guard output only (contracts §3, §5; `docs/decisions.md` 16 Oct (c)). Gate 5b code: `library-impact` (MR), `library-recheck` (main + nightly) and `bisect-regression` jobs re-check every shipped graph from its release tag and name the first bad commit with `git bisect`; `guard-revert` checks a `revert/<sha>` branch is the exact inverse (16 Oct (d)). Flows (16 Oct (g)): `locus-ops.yml` (triage, impact reviewer, regression detective; release guard routes to end until Gate 5c) and the test-bed probe `locus-probe.yml` are real flow registry v1 YAML, checked by `locus/flows/check.js` against the documented schema, GitLab's own flow JSON schema (since the AI Catalog rejected `max_cycles`, 16 Oct (k)) and the live GitLab.com tool list; **neither has run**. guard-scope now also reads the committer (`create_commit` lets the model set the author). `locus-request.yml` (16 Oct (h)) is now real flow YAML too: `intake > fixer_1 > fixer_2 > fixer_3 > refuse` with no route back, so at most 3 attempts by construction; each fixer step polls the MR pipeline and accepts only the `LOCUS_REPORT` of its own attempt; write tools, pinned labels and the remedies list are test-pinned; **not run**. Every `locus-request` commit ends with a `Locus-Session: <session URL>` trailer, and `bundle` fills `agentSessions` from the agent commits' trailers (16 Oct (j)); whether `create_commit` keeps the trailer is not yet seen. 215 tests, including a seeded regression found by bisect, its inverse passing guard-revert and near-inverses blocked. Not built: release guard, Service Desk. On GitLab: the CI jobs ran (16 Oct (f); pipeline 2953759450 for `84e654a7` all green, 212 of 212, 16 Oct (i); pipeline 2953818513 for `4cb3bda8` all green, 212 of 212, 16 Oct (j)); no flow has run; neither `locus-probe` nor `locus-request` is created in the test bed (checked again 16 Oct (j)) |
+| Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. Product code is on Ashfaq's fork `ashfaqstu/locus`, branch `feat/gate2-render` (JSCAD import, `locus/`), not merged yet ([PR 1](https://github.com/ahammadshawki8/locus/pull/1) into the working repo's `main`, opened 16 Oct, waiting for Shawki; merge commit only, 16 Oct (i)): it follows contracts v1, reproduces prints A, B and C (CI test), and `touchcheck` measures TL-1 to TL-5 with report, overlay and `LOCUS_REPORT` line (A fails, B and C pass). All four guards built with CI jobs (Gate 8 locally). `locus bundle` + `bundle` CI job build `out/bundle/graph-<iid>-v<n>/` + zip, with `manifest.json` from the render, touchcheck and guard output only (contracts §3, §5; `docs/decisions.md` 16 Oct (c)). Gate 5b code: `library-impact` (MR), `library-recheck` (main + nightly) and `bisect-regression` jobs re-check every shipped graph from its release tag and name the first bad commit with `git bisect`; `guard-revert` checks a `revert/<sha>` branch is the exact inverse (16 Oct (d)). Flows (16 Oct (g)): `locus-ops.yml` (triage, impact reviewer, regression detective; release guard routes to end until Gate 5c) and the test-bed probe `locus-probe.yml` are real flow registry v1 YAML, checked by `locus/flows/check.js` against the documented schema, GitLab's own flow JSON schema (since the AI Catalog rejected `max_cycles`, 16 Oct (k)) and the live GitLab.com tool list; `locus-probe` **ran on 16 Oct** (16 Oct (l)): it read a job log's `LOCUS_REPORT`, committed and deleted a file with `create_commit`, and the `Locus-Session` trailer survived; `locus-ops` has not run. Agent commits carry the flow's **display name** as author and committer, so `agents.json` now matches `^locus-request# Locus: GitLab Transcend Blueprint (v3: simple to show, hard to beat)
+
+**Locus: tactile maths graphs, made and shipped by an agent.**
+
+| | |
+|---|---|
+| **Competition** | Life After Code: GitLab Transcend Hackathon |
+| **Path** | B: Bring Your Own (upstream: [JSCAD / OpenJSCAD.org](https://github.com/jscad/OpenJSCAD.org), MIT) |
+| **Targets** | Path B **Best Hands-off Agent** ($5k) + **Most Stages Covered** ($5k). Also eligible for Most Creative (= highest Innovation score); you can win only one special prize. |
+| **Bonus** | Google Cloud deployment (up to +0.2; max final 5.2) |
+| **Fallback** | Path B Best Supervised Agent: the same build with one approval gate switched on |
+| **Deadline** | 27 Oct 2026, 13:00 UTC. **Internal: 27 Oct 10:00 UTC.** |
+| **Status** | See the status board in S.3. |
+| **Team** | **Ashfaq** leads the core build (13-21 Oct) → **Shawki** hosts, completes, finalises and submits (parallel hosting track from 13 Oct, lead from 21 Oct). **Nourin** joined on 16 Oct (role to be decided). Built with **Claude Code**. See Part IV. |
+
+---
+
+# PART S: START HERE (read this first, every session)
+
+This file is the project's central document and its memory. Anyone, in any session, after any handover, must be able to continue from here alone. Read Part S in full. Then read `docs/contracts.md` and the newest entries in `docs/decisions.md`. Read the rest of this file as your task needs it.
+
+## S.1 How to resume
+
+1. `git pull`. Then check your identity: `git config user.name` and `git config user.email` must be your own account (rule H1).
+2. Read S.2 (hard rules), S.3 (status board) and S.4 (project flow).
+3. Read `docs/contracts.md` (fixed interfaces) and the newest entries in `docs/decisions.md` (what changed and why).
+4. Run `git log --oneline -15` to see recent work.
+5. Pick the next task from S.3 or from your column in Part IV.
+6. At the end of the session, follow S.6.
+
+## S.2 Hard rules (no exceptions)
+
+| # | Rule |
+|---|---|
+| H1 | **Git identity.** Commit and push only as **`ahammadshawki8 <ahammadshawki8@users.noreply.github.com>`** or as **Ashfaq's own account**. Never list Claude, Anthropic, `srotdev`, or any other AI tool or account as author, committer, co-author or contributor. No `Co-Authored-By` lines and no "Generated with ..." lines in commits, merge requests, pull requests, issues or release notes. |
+| H2 | **No emojis and no long dashes, anywhere in the project:** code, comments, docs, commit messages, issues, MR text, the site, video captions and Devpost text. "Long dashes" means the em dash (U+2014) and the en dash (U+2013); also avoid the minus sign (U+2212). Use a hyphen, colon, comma, "to" or "-" instead. Braille cells (U+2800 block) are allowed only where they show braille. |
+| H3 | **Truth rule.** A planned stage is not a completed stage. Never claim a graphic is understandable by touch because it passed automated rules. Never claim a GitLab capability works until it has run in our account. Never fake a failure, a pass or an agent action. |
+| H4 | **Simplicity rule.** If a judge can't explain Locus in one sentence after watching the video once with the sound off, the video has failed. Every feature either appears in the one story or stays in the README. |
+| H5 | **Contracts are law.** `docs/contracts.md` v1 is final. Change it only through a dated entry in `docs/decisions.md` that both Ashfaq and Shawki agree to. |
+| H6 | **Role boundary.** Claude Code is how we build Locus; GitLab Duo runs every agent inside Locus. Never use Claude Code to make in-product fixes during a recorded or demo run. |
+| H7 | **Agents stay in scope.** Never edit `locus/touchcheck/rules` to make a request pass. Each agent writes only its allowed paths (`docs/contracts.md` §7), enforced by `guard-scope`. |
+| H8 | **No secrets** in code, prompts, commits or logs. Use protected, masked CI variables only. Write variable names in docs, never values. |
+| H9 | **Prints.** The only physical prints are the 4 prototype plates from 15 and 16 Oct (calibration, A, B, C; `tools/prints/README.md`). There will be no more printing. Video captions call them "prototype prints". |
+| H10 | **Sources.** Every external fact in the docs links to its source. |
+| H11 | **Record and push.** Every decision gets a dated entry in `docs/decisions.md`. Every session ends with the S.3 board updated, committed and pushed. |
+| H12 | **Freeze.** Nothing in the repo, video or Devpost form changes after 27 Oct 2026, 13:00 UTC. |
+
+These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them automatically. Keep both lists identical.
+
+## S.3 Status board (update at the end of every session)
+
+**Last updated: 16 Oct 2026 (Ashfaq).**
+
+| Area | State |
+|---|---|
+| Onboarding | Shawki, Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) onboarded to the GitLab hackathon group. Shawki asked on Discord (16 Oct) for Ashfaq and Nourin to be added to the Showcase project. 16 Oct: Ashfaq reports the team now has group access for the hackathon |
+| GitLab project | Each participant has a public Showcase, `gitlab-ai-hackathon/transcend-october-2026/<user id>/showcase`. Shawki's (`.../43384339/showcase`) is the team project: foundational flows enabled (Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection); code not imported; Ashfaq has no access yet. Test bed: Ashfaq's (`.../43396940/showcase`), branch `feat/gate2-render` pushed 16 Oct; first pipeline ran: render, touchcheck, upstream-test, SAST, secret detection pass; guard-scope fails closed until `main` shares our history (`docs/decisions.md` 16 Oct (f)). Already enabled there: Developer (with a trigger), Code Review, Fix CI/CD and the SAST flows. 16 Oct: Ashfaq created and enabled the custom flow `locus-probe` there (service account `ai-locus-probe-gitlab-ai-hackathon`) and **it ran** from his mention on issue #2 (session 9598935, 16 Oct (l)) |
+| Credits | 15 Oct: Duo Chat showed "No credits remain for this billing period". 16 Oct: Ashfaq reports the credits are there now. First used by a flow run on 16 Oct (`locus-probe`, session 9598935); whose row it is on is not yet read from the Credits dashboard (H3). The triggers doc says triggered flows bill the flow's service account through the namespace's credit pool, not the person; Gate 5 records what our account shows (`docs/decisions.md` 16 Oct (g)) |
+| Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
+| Prints | Calibration piece printed and judged good. Prototype plates A, B and C sent to print on 16 Oct (`tools/prints/`). About 500 tk budget |
+| Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. Product code is on Ashfaq's fork `ashfaqstu/locus`, branch `feat/gate2-render` (JSCAD import, `locus/`), not merged yet ([PR 1](https://github.com/ahammadshawki8/locus/pull/1) into the working repo's `main`, opened 16 Oct, waiting for Shawki; merge commit only, 16 Oct (i)): it follows contracts v1, reproduces prints A, B and C (CI test), and `touchcheck` measures TL-1 to TL-5 with report, overlay and `LOCUS_REPORT` line (A fails, B and C pass). All four guards built with CI jobs (Gate 8 locally). `locus bundle` + `bundle` CI job build `out/bundle/graph-<iid>-v<n>/` + zip, with `manifest.json` from the render, touchcheck and guard output only (contracts §3, §5; `docs/decisions.md` 16 Oct (c)). Gate 5b code: `library-impact` (MR), `library-recheck` (main + nightly) and `bisect-regression` jobs re-check every shipped graph from its release tag and name the first bad commit with `git bisect`; `guard-revert` checks a `revert/<sha>` branch is the exact inverse (16 Oct (d)). Flows (16 Oct (g)): `locus-ops.yml` (triage, impact reviewer, regression detective; release guard routes to end until Gate 5c) and the test-bed probe `locus-probe.yml` are real flow registry v1 YAML, checked by `locus/flows/check.js` against the documented schema, GitLab's own flow JSON schema (since the AI Catalog rejected `max_cycles`, 16 Oct (k)) and the live GitLab.com tool list;  / `^locus-ops# Locus: GitLab Transcend Blueprint (v3: simple to show, hard to beat)
+
+**Locus: tactile maths graphs, made and shipped by an agent.**
+
+| | |
+|---|---|
+| **Competition** | Life After Code: GitLab Transcend Hackathon |
+| **Path** | B: Bring Your Own (upstream: [JSCAD / OpenJSCAD.org](https://github.com/jscad/OpenJSCAD.org), MIT) |
+| **Targets** | Path B **Best Hands-off Agent** ($5k) + **Most Stages Covered** ($5k). Also eligible for Most Creative (= highest Innovation score); you can win only one special prize. |
+| **Bonus** | Google Cloud deployment (up to +0.2; max final 5.2) |
+| **Fallback** | Path B Best Supervised Agent: the same build with one approval gate switched on |
+| **Deadline** | 27 Oct 2026, 13:00 UTC. **Internal: 27 Oct 10:00 UTC.** |
+| **Status** | See the status board in S.3. |
+| **Team** | **Ashfaq** leads the core build (13-21 Oct) → **Shawki** hosts, completes, finalises and submits (parallel hosting track from 13 Oct, lead from 21 Oct). **Nourin** joined on 16 Oct (role to be decided). Built with **Claude Code**. See Part IV. |
+
+---
+
+# PART S: START HERE (read this first, every session)
+
+This file is the project's central document and its memory. Anyone, in any session, after any handover, must be able to continue from here alone. Read Part S in full. Then read `docs/contracts.md` and the newest entries in `docs/decisions.md`. Read the rest of this file as your task needs it.
+
+## S.1 How to resume
+
+1. `git pull`. Then check your identity: `git config user.name` and `git config user.email` must be your own account (rule H1).
+2. Read S.2 (hard rules), S.3 (status board) and S.4 (project flow).
+3. Read `docs/contracts.md` (fixed interfaces) and the newest entries in `docs/decisions.md` (what changed and why).
+4. Run `git log --oneline -15` to see recent work.
+5. Pick the next task from S.3 or from your column in Part IV.
+6. At the end of the session, follow S.6.
+
+## S.2 Hard rules (no exceptions)
+
+| # | Rule |
+|---|---|
+| H1 | **Git identity.** Commit and push only as **`ahammadshawki8 <ahammadshawki8@users.noreply.github.com>`** or as **Ashfaq's own account**. Never list Claude, Anthropic, `srotdev`, or any other AI tool or account as author, committer, co-author or contributor. No `Co-Authored-By` lines and no "Generated with ..." lines in commits, merge requests, pull requests, issues or release notes. |
+| H2 | **No emojis and no long dashes, anywhere in the project:** code, comments, docs, commit messages, issues, MR text, the site, video captions and Devpost text. "Long dashes" means the em dash (U+2014) and the en dash (U+2013); also avoid the minus sign (U+2212). Use a hyphen, colon, comma, "to" or "-" instead. Braille cells (U+2800 block) are allowed only where they show braille. |
+| H3 | **Truth rule.** A planned stage is not a completed stage. Never claim a graphic is understandable by touch because it passed automated rules. Never claim a GitLab capability works until it has run in our account. Never fake a failure, a pass or an agent action. |
+| H4 | **Simplicity rule.** If a judge can't explain Locus in one sentence after watching the video once with the sound off, the video has failed. Every feature either appears in the one story or stays in the README. |
+| H5 | **Contracts are law.** `docs/contracts.md` v1 is final. Change it only through a dated entry in `docs/decisions.md` that both Ashfaq and Shawki agree to. |
+| H6 | **Role boundary.** Claude Code is how we build Locus; GitLab Duo runs every agent inside Locus. Never use Claude Code to make in-product fixes during a recorded or demo run. |
+| H7 | **Agents stay in scope.** Never edit `locus/touchcheck/rules` to make a request pass. Each agent writes only its allowed paths (`docs/contracts.md` §7), enforced by `guard-scope`. |
+| H8 | **No secrets** in code, prompts, commits or logs. Use protected, masked CI variables only. Write variable names in docs, never values. |
+| H9 | **Prints.** The only physical prints are the 4 prototype plates from 15 and 16 Oct (calibration, A, B, C; `tools/prints/README.md`). There will be no more printing. Video captions call them "prototype prints". |
+| H10 | **Sources.** Every external fact in the docs links to its source. |
+| H11 | **Record and push.** Every decision gets a dated entry in `docs/decisions.md`. Every session ends with the S.3 board updated, committed and pushed. |
+| H12 | **Freeze.** Nothing in the repo, video or Devpost form changes after 27 Oct 2026, 13:00 UTC. |
+
+These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them automatically. Keep both lists identical.
+
+## S.3 Status board (update at the end of every session)
+
+**Last updated: 16 Oct 2026 (Ashfaq).**
+
+| Area | State |
+|---|---|
+| Onboarding | Shawki, Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) onboarded to the GitLab hackathon group. Shawki asked on Discord (16 Oct) for Ashfaq and Nourin to be added to the Showcase project. 16 Oct: Ashfaq reports the team now has group access for the hackathon |
+| GitLab project | Each participant has a public Showcase, `gitlab-ai-hackathon/transcend-october-2026/<user id>/showcase`. Shawki's (`.../43384339/showcase`) is the team project: foundational flows enabled (Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection); code not imported; Ashfaq has no access yet. Test bed: Ashfaq's (`.../43396940/showcase`), branch `feat/gate2-render` pushed 16 Oct; first pipeline ran: render, touchcheck, upstream-test, SAST, secret detection pass; guard-scope fails closed until `main` shares our history (`docs/decisions.md` 16 Oct (f)). Already enabled there: Developer (with a trigger), Code Review, Fix CI/CD and the SAST flows. 16 Oct: Ashfaq created and enabled the custom flow `locus-probe` there (service account `ai-locus-probe-gitlab-ai-hackathon`) and **it ran** from his mention on issue #2 (session 9598935, 16 Oct (l)) |
+| Credits | 15 Oct: Duo Chat showed "No credits remain for this billing period". 16 Oct: Ashfaq reports the credits are there now. First used by a flow run on 16 Oct (`locus-probe`, session 9598935); whose row it is on is not yet read from the Credits dashboard (H3). The triggers doc says triggered flows bill the flow's service account through the namespace's credit pool, not the person; Gate 5 records what our account shows (`docs/decisions.md` 16 Oct (g)) |
+| Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
+| Prints | Calibration piece printed and judged good. Prototype plates A, B and C sent to print on 16 Oct (`tools/prints/`). About 500 tk budget |
+| Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. Product code is on Ashfaq's fork `ashfaqstu/locus`, branch `feat/gate2-render` (JSCAD import, `locus/`), not merged yet ([PR 1](https://github.com/ahammadshawki8/locus/pull/1) into the working repo's `main`, opened 16 Oct, waiting for Shawki; merge commit only, 16 Oct (i)): it follows contracts v1, reproduces prints A, B and C (CI test), and `touchcheck` measures TL-1 to TL-5 with report, overlay and `LOCUS_REPORT` line (A fails, B and C pass). All four guards built with CI jobs (Gate 8 locally). `locus bundle` + `bundle` CI job build `out/bundle/graph-<iid>-v<n>/` + zip, with `manifest.json` from the render, touchcheck and guard output only (contracts §3, §5; `docs/decisions.md` 16 Oct (c)). Gate 5b code: `library-impact` (MR), `library-recheck` (main + nightly) and `bisect-regression` jobs re-check every shipped graph from its release tag and name the first bad commit with `git bisect`; `guard-revert` checks a `revert/<sha>` branch is the exact inverse (16 Oct (d)). Flows (16 Oct (g)): `locus-ops.yml` (triage, impact reviewer, regression detective; release guard routes to end until Gate 5c) and the test-bed probe `locus-probe.yml` are real flow registry v1 YAML, checked by `locus/flows/check.js` against the documented schema, GitLab's own flow JSON schema (since the AI Catalog rejected `max_cycles`, 16 Oct (k)) and the live GitLab.com tool list; , and a service account matching no flow is blocked on agent branches. `locus-request.yml` (16 Oct (h)) is now real flow YAML too: `intake > fixer_1 > fixer_2 > fixer_3 > refuse` with no route back, so at most 3 attempts by construction; each fixer step polls the MR pipeline and accepts only the `LOCUS_REPORT` of its own attempt; write tools, pinned labels and the remedies list are test-pinned; **not run**. Every `locus-request` commit ends with a `Locus-Session: <session URL>` trailer, and `bundle` fills `agentSessions` from the agent commits' trailers (16 Oct (j); the probe showed the trailer survives). 218 tests, including a seeded regression found by bisect, its inverse passing guard-revert and near-inverses blocked. Not built: release guard, Service Desk. On GitLab: the CI jobs ran (16 Oct (f); pipeline 2953759450 for `84e654a7` all green, 212 of 212, 16 Oct (i); pipeline 2953818513 for `4cb3bda8` all green, 212 of 212, 16 Oct (j)); the first flow run was `locus-probe` (16 Oct (l)); `locus-request` and `locus-ops` are not created yet |
 | Hosting | Google Cloud not set up yet (Shawki, Gate 6b, 17 Oct) |
 
 **Next:**
 0. Ashfaq + Shawki: give the Showcase `main` our history (push the working repo's `main` over the organisers' README, or import into Shawki's project and add Ashfaq), so MRs and guard-scope work on GitLab (16 Oct (f)).
-1. Ashfaq: test Duo first: create and run `locus-probe` in the test bed (steps in `docs/decisions.md` 16 Oct (g)) and record session, note, commit author vs committer, the `Locus-Session` trailer (16 Oct (j)), delete, credits. Then Gate 5 run: `locus-request.yml` is written (16 Oct (h)); it needs a default branch with our code (item 0, or the test bed's default branch set to `feat/gate2-render` for the run), then a person files an issue and assigns it, and one session runs spec, red, fix, green (steps in 16 Oct (h)).
+1. Ashfaq: `locus-probe` ran (16 Oct (l)); still read the GitLab Credits dashboard for its row. Then Gate 5 run (create the flow with display name exactly `locus-request`): `locus-request.yml` is written (16 Oct (h)); it needs a default branch with our code (item 0, or the test bed's default branch set to `feat/gate2-render` for the run), then a person files an issue and assigns it, and one session runs spec, red, fix, green (steps in 16 Oct (h)).
 2. Shawki: Google Cloud + Cloud Run staging and production skeleton (Gate 6b, 17 Oct).
 3. Shawki: generate `fixtures/bundle-sample/graph-0-v1/` from print B (contracts D9). It can now come from the real code: render, touchcheck, the three guards, then `npm run locus -- bundle fixtures/touchcheck/good-print-b` (`docs/decisions.md` 16 Oct (c)). Also: plan §9 says `graph-<iid>.zip`, contracts §3 says `graph-<iid>-v<n>.zip`; the code follows the contract.
 4. Record the calibration touch results in `docs/decisions.md` (which gap felt like two lines; 0.5 or 0.8 mm braille dots).
 5. Decide Nourin's role.
 6. Shawki: review and merge [PR 1](https://github.com/ahammadshawki8/locus/pull/1) (`feat/gate2-render` into the working repo, **merge commit only**, 16 Oct (i)). Then Ashfaq: get it into the GitLab Showcase project once code import is allowed, so `render`, `touchcheck`, the guards and `locus-test` run in CI.
-8. Ashfaq: Gate 5b run: `locus-ops.yml` is written and schema-checked but not run (16 Oct (g)). Running it needs item 0 and one released graph tag, then a person's MR with a seeded regression (impact reviewer), merged anyway (detective). Gate 5 must also record the real commit author of a flow's `create_commit` (`locus/guards/agents.json`), whether `create_commit` can delete a file (an inverse of an added file), and whether the `Locus-Session` trailer survives `create_commit`, so the bundle manifest's `agentSessions` is filled (16 Oct (j)).
+8. Ashfaq: Gate 5b run: `locus-ops.yml` is written and schema-checked but not run (16 Oct (g)). Running it needs item 0 and one released graph tag, then a person's MR with a seeded regression (impact reviewer), merged anyway (detective). Create it with display name exactly `locus-ops` (agents.json, 16 Oct (l)). Author, delete and trailer were answered by the probe.
 9. Both: should `library-impact` also run on MRs changing `locus/touchcheck/**` and `profiles/**` (contracts §6 change, `docs/decisions.md` 16 Oct (d))?
+11. Shawki: agree the contracts §7 wording proposal in 16 Oct (l) item 4 (author and committer carry the flow's display name).
 10. Both: should each failing TL-2 / TL-3 result in `touchcheck-report.json` name the label it means (contracts §4 change)? The fixer now works it out from `at` and the plate geometry (16 Oct (h)).
 7. Shawki: answer the key-mode question in `docs/decisions.md` (16 Oct): with single-letter labels, is `key-mode` still a useful fix for TL-2 and TL-3?
 

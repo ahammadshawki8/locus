@@ -21,14 +21,14 @@ test('listCommits reads the committer as well as the author', () => {
   run(['commit', '-q', '-m', 'agent commit with a person as author'], {
     GIT_AUTHOR_NAME: 'Mohammad Ashfaqul Hasan',
     GIT_AUTHOR_EMAIL: 'ashfaq@example.org',
-    GIT_COMMITTER_NAME: 'ai-locus-ops-transcend',
-    GIT_COMMITTER_EMAIL: 'service-account-2@noreply.gitlab.example'
+    GIT_COMMITTER_NAME: 'locus-ops',
+    GIT_COMMITTER_EMAIL: 'service_account_group_121124982_bbbb2222@noreply.gitlab.com'
   })
 
   const [c] = listCommits(base, 'HEAD', dir)
   assert.strictEqual(c.authorName, 'Mohammad Ashfaqul Hasan')
-  assert.strictEqual(c.committerName, 'ai-locus-ops-transcend')
-  assert.strictEqual(c.committerEmail, 'service-account-2@noreply.gitlab.example')
+  assert.strictEqual(c.committerName, 'locus-ops')
+  assert.strictEqual(c.committerEmail, 'service_account_group_121124982_bbbb2222@noreply.gitlab.com')
   assert.strictEqual(agentOf(c), 'locus-ops')
   assert.deepStrictEqual(c.paths, [{ status: 'A', path: 'a.txt' }])
   fs.rmSync(dir, { recursive: true, force: true })

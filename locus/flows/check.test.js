@@ -278,3 +278,12 @@ test('every locus-request commit message ends with its session URL as a Locus-Se
     assert.match(prompt, /a blank line, then the line "Locus-Session: " followed by the session URL given below/, name)
   }
 })
+
+// get_repository_file remembers every (project, ref, path) that returned 404 in a session and refuses to fetch it again
+// (ai-assist repository_files.py, gitlab-org/gitlab#604564). Intake expects a 404 for requests/n/spec.json at graph/n,
+// so the fixer reads the files at the commit sha instead: another cache key, and the exact commit it checks.
+test('the fixer reads the request files at the commit sha, never at the graph/n ref intake probed', () => {
+  const prompt = request().prompts.find((p) => p.prompt_id === 'fixer_prompt').prompt_template.system.replace(/\s+/g, ' ')
+  assert.match(prompt, /B3\. Call get_repository_file for requests\/n\/layout\.json and requests\/n\/spec\.json with ref = sha from A/)
+  assert.doesNotMatch(prompt, /get_repository_file[^.]*ref "graph\/n"/)
+})

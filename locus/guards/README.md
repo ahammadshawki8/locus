@@ -11,10 +11,12 @@ Each exits 0 (pass), 1 (blocked) or 2 (could not check: fails closed), and write
 | `guard-revert` | `locus guard revert [--base <sha>] [--branch revert/<sha>]` | On `revert/<sha>`: anything but one plain commit that is the exact inverse of `<sha>` (a commit on the default branch): the same paths `<sha>` changed, none other; each back to its mode and content before `<sha>`; none changed again since `<sha>` (then no exact inverse exists, even a clean `git revert` is blocked, and a person must revert it) |
 
 **Agent identity** (`agents.json`): a commit belongs to a flow when its author or committer name, or the local part of
-either email, matches `ai-<flow>-`. That is how the docs name each flow's service account. The committer counts because
-Duo's `create_commit` lets the model set `author_name` and `author_email`, while the committer of an API commit is the
-account that called the API. **Gate 5 must confirm the real author and committer of a `create_commit` commit** (the
-`locus-probe` flow records both) and update the patterns if needed.
+either email, matches the flow's display name (`locus-request`, `locus-ops`). Seen on 16 Oct (`docs/decisions.md` 16 Oct
+(l)): a flow's `create_commit` records the display name it was given in the AI Catalog as author and committer, with the
+email `service_account_group_<group id>_<hash>@noreply.gitlab.com`; the service account's username never appears. So
+the flows must be created with exactly those names. The committer counts because Duo's `create_commit` lets the model
+set `author_name` and `author_email`. A service account commit (email local part `service_account_...`) that matches
+no flow is blocked on `graph/`, `revert/` and `rollback/` branches, so a flow created under another name fails closed.
 
 **Base commit:** `--base`, else the MR diff base (`CI_MERGE_REQUEST_DIFF_BASE_SHA`), else the commit before a push
 (`CI_COMMIT_BEFORE_SHA`), else where HEAD left the default branch. guard-revert skips the commit before a push: its

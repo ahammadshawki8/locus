@@ -16,7 +16,7 @@ const { version: generatorVersion } = require('../package.json')
 const spec = { ...JSON.parse(fs.readFileSync(path.join(prints, 'spec.json'), 'utf8')), requestId: 12 }
 const json = (o) => JSON.stringify(o, null, 2) + '\n'
 
-const AGENT = { GIT_AUTHOR_NAME: 'ai-locus-request-transcend', GIT_AUTHOR_EMAIL: 'ai-locus-request-transcend@noreply.example' }
+const AGENT = { GIT_AUTHOR_NAME: 'locus-request', GIT_AUTHOR_EMAIL: 'service_account_group_121124982_aaaa1111@noreply.gitlab.com' }
 const PERSON = { GIT_AUTHOR_NAME: 'A Person', GIT_AUTHOR_EMAIL: 'person@example.org' }
 // Each flow session ends its commit messages with a Locus-Session trailer; the bundle reads them from git.
 const PROJECT = 'https://gitlab.example/group/showcase'

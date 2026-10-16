@@ -4,6 +4,61 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (l): first flow run in our account: locus-probe (Ashfaq ran it), and what it changed
+
+No change to `docs/contracts.md` (one wording proposal for Shawki below). **This is the first Duo flow that has run in
+our account.** It is the probe, not a Locus agent: `locus-request` and `locus-ops` have still not run (H3).
+
+**The run** (test bed, project 87669530):
+- 11:58 UTC Ashfaq created `locus-probe` in the AI Catalog (item 1018412, private), after the 16 Oct (k) fix. At
+  11:59 he enabled it in the test bed: GitLab added the service account **`ai-locus-probe-gitlab-ai-hackathon`**
+  (display name `locus-probe`, Developer) and an auto-created trigger owned by it ("Auto-created triggers for
+  locus-probe", event types 0, 1, 2 in GraphQL).
+- 12:03 Ashfaq opened issue #2 "Duo probe" and commented `@ai-locus-probe-gitlab-ai-hackathon job: <job 17230294125
+  URL>`. One second later the account replied that the flow started:
+  [session 9598935](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/automate/agent-sessions/9598935),
+  "triggered by @Ashfaq909". It completed at 12:05:15, about 85 s in all.
+- Its note on #2, checked against git (`git fetch gitlab probe/2`):
+  1. `get_issue` ok.
+  2. `get_job_logs` ok: it found the `LOCUS_REPORT` line in job 17230294125 and copied its start unchanged (D8 works
+     as designed: the agent reads the report from the log).
+  3. `create_commit` ok: commit `14cecd9c` on `probe/2` (from `11950b57`). **Author and committer are both
+     `locus-probe <service_account_group_121124982_d83db293da385ebdbcb742d7d7c8b0d9@noreply.gitlab.com>`.** The
+     message kept its three lines, and `git log --format=%(trailers:key=Locus-Session,valueonly)` reads the session
+     URL from it.
+  4. `create_commit` with a `delete` action ok: commit `0c0e9c02` removes `probe/2.txt`.
+  5. Its first `get_commit` call with the ref `probe/2` returned 404; it retried with `probe%2F2` and got the commit.
+     The ai-assist
+     [`commit.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/tools/commit.py)
+     puts `commit_sha` in the URL path, while
+     [`repository_files.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/tools/repository_files.py)
+     sends `ref` as a query parameter, so `get_repository_file` with `graph/n` is fine. Our flows pass `get_commit`
+     only commit SHAs.
+- **Credits:** open until Ashfaq reads the GitLab Credits dashboard (whose row the run is on).
+
+**Decisions:**
+1. **`agents.json` matches the flow's display name, not `ai-<flow>-`.** The service account's username never appears in
+   git; the display name given in the AI Catalog does. Patterns are now `^locus-request$` and `^locus-ops$` (author or
+   committer name, or email local part). Before this fix, guard-scope would have counted every agent commit as a
+   person's and skipped it. **The flows must be created with exactly the display names `locus-request` and
+   `locus-ops`.**
+2. **Fail closed:** a commit whose author or committer email local part starts with `service_account_` but matches no
+   Locus flow is blocked on `graph/`, `revert/` and `rollback/` branches (a flow created under another name, or a
+   foundational Duo flow). Elsewhere it is not guard-scope's business. Tests use the real identity shape.
+3. **The fixer reads `layout.json` and `spec.json` at the commit SHA, not at `graph/n`.** `get_repository_file`
+   remembers every (project, ref, path) that returned 404 in a session and refuses to fetch it again
+   (gitlab-org/gitlab#604564, in `repository_files.py`), and intake checks `requests/n/spec.json` at `graph/n`
+   expecting a 404. Whether that memory is shared between components of one flow isn't documented; reading at the
+   SHA avoids the question and is the exact commit the fixer checks. Test-pinned.
+4. **Proposal for Shawki (contracts §7 wording, H5):** "Each flow has its own service account (`ai-<flow>-<group>`), so
+   guard-scope checks the commit author" could read "... so guard-scope checks the commit author and committer, which
+   carry the flow's display name". The rule itself is unchanged; not edited until Shawki agrees.
+5. `probe/2` is deleted from the test bed after this record (16 Oct (g) step 3); commits, session and note are recorded
+   above. 218 tests pass.
+
+**Still open from the probe questions:** credits (above). Answered: a person's mention starts a custom flow; the agent
+reads job logs; author and committer; delete works; the trailer survives.
+
 ## 16 Oct 2026 (k): the AI Catalog rejects max_cycles; check.js now applies GitLab's own flow schema (Ashfaq)
 
 No change to `docs/contracts.md`. **No flow has run in our account yet** (H3).

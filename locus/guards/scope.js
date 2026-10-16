@@ -12,6 +12,7 @@
 const agents = require('./agents.json')
 
 const flowPatterns = Object.entries(agents.flows).map(([flow, { authorPattern }]) => [flow, new RegExp(authorPattern)])
+const serviceAccount = new RegExp(agents.serviceAccountEmail)
 
 /**
  * Which flow made a commit, from its author or committer; null for a person. Duo's create_commit lets the model set
@@ -23,6 +24,10 @@ const agentOf = ({ authorName = '', authorEmail = '', committerName = '', commit
   const hit = flowPatterns.find(([, re]) => ids.some((id) => re.test(id)))
   return hit ? hit[0] : null
 }
+
+/** true when the author or committer is a GitLab service account (any Duo flow), by the local part of its email. */
+const isServiceAccount = ({ authorEmail = '', committerEmail = '' }) =>
+  [authorEmail, committerEmail].some((e) => serviceAccount.test(e.split('@')[0]))
 
 const INTAKE_FILES = ['spec.json', 'request.lock.json', 'layout.json']
 
@@ -42,6 +47,13 @@ const checkScope = ({ branch, commits, pathsOf = () => [] }) => {
 
   commits.forEach((c, index) => {
     const flow = agentOf(c)
+    if (!flow && (graph || revert || rollback) && isServiceAccount(c)) {
+      // Fail closed: a flow under another display name must not pass as a person on an agent branch.
+      agentCommits++
+      const name = c.committerName || c.authorName
+      violations.push({ sha: c.sha, flow: null, reason: `service account "${name}" is not a Locus flow (agents.json): no commits on ${branch}` })
+      return
+    }
     if (!flow) {
       personCommits++
       return
@@ -75,4 +87,4 @@ const checkScope = ({ branch, commits, pathsOf = () => [] }) => {
   return { pass: violations.length === 0, violations, agentCommits, personCommits }
 }
 
-module.exports = { checkScope, agentOf }
+module.exports = { checkScope, agentOf, isServiceAccount }

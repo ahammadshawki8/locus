@@ -16,7 +16,7 @@ const spec = { ...JSON.parse(fs.readFileSync(path.join(prints, 'spec.json'), 'ut
 const json = (o) => JSON.stringify(o, null, 2) + '\n'
 
 const PERSON = { GIT_AUTHOR_NAME: 'A Person', GIT_AUTHOR_EMAIL: 'person@example.org' }
-const OPS = { GIT_AUTHOR_NAME: 'ai-locus-ops-transcend', GIT_AUTHOR_EMAIL: 'ai-locus-ops-transcend@noreply.example' }
+const OPS = { GIT_AUTHOR_NAME: 'locus-ops', GIT_AUTHOR_EMAIL: 'service_account_group_121124982_bbbb2222@noreply.gitlab.com' }
 // The throwaway repo is not the pipeline's repo: drop GitLab's CI_* variables (branch, base, commit, pipeline) and
 // RELEASE_MODE, which the runner sets for the real checkout.
 const HOST_ENV = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('CI_') && k !== 'RELEASE_MODE'))

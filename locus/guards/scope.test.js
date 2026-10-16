@@ -3,8 +3,11 @@ const assert = require('node:assert')
 
 const { checkScope, agentOf } = require('./scope')
 
-const REQUEST = { authorName: 'ai-locus-request-transcend', authorEmail: 'service-account-1@noreply.gitlab.example' }
-const OPS = { authorName: 'ai-locus-ops-transcend', authorEmail: 'service-account-2@noreply.gitlab.example' }
+// What a flow's create_commit really records (locus-probe, 16 Oct (l)): the flow's display name as author and committer,
+// and its service account's noreply email.
+const SA = (hash) => `service_account_group_121124982_${hash}@noreply.gitlab.com`
+const REQUEST = { authorName: 'locus-request', authorEmail: SA('aaaa1111'), committerName: 'locus-request', committerEmail: SA('aaaa1111') }
+const OPS = { authorName: 'locus-ops', authorEmail: SA('bbbb2222'), committerName: 'locus-ops', committerEmail: SA('bbbb2222') }
 const PERSON = { authorName: 'Mohammad Ashfaqul Hasan', authorEmail: 'ashfaq@example.org' }
 let n = 0
 const commit = (who, ...paths) => ({ sha: `c${++n}`, merge: false, ...who, paths: paths.map((p) => (typeof p === 'string' ? { status: 'M', path: p } : p)) })
@@ -13,21 +16,23 @@ const violationsOf = (result) => result.violations.map((v) => v.reason)
 
 test('a commit is an agent\'s when its author name or email local part matches the flow pattern', () => {
   assert.strictEqual(agentOf(REQUEST), 'locus-request')
-  assert.strictEqual(agentOf({ authorName: 'Bot', authorEmail: 'ai-locus-ops-transcend@example.org' }), 'locus-ops')
+  assert.strictEqual(agentOf({ authorName: 'Bot', authorEmail: 'locus-ops@example.org' }), 'locus-ops')
+  // The service account's username (ai-<flow>-<group>) never appears in git; only the display name does.
+  assert.strictEqual(agentOf({ authorName: 'locus-probe', authorEmail: SA('d83db293') }), null)
   assert.strictEqual(agentOf(PERSON), null)
 })
 
 // create_commit takes optional author_name and author_email, so a model can write a person's name as the author. The
 // committer of an API commit is the account that called the API, which the model cannot set.
 test('a commit is an agent\'s when its committer matches, even if the author is a person\'s name', () => {
-  const spoofed = { ...PERSON, committerName: 'ai-locus-ops-transcend', committerEmail: 'service-account-2@noreply.gitlab.example' }
+  const spoofed = { ...PERSON, committerName: 'locus-ops', committerEmail: SA('bbbb2222') }
   assert.strictEqual(agentOf(spoofed), 'locus-ops')
-  assert.strictEqual(agentOf({ ...PERSON, committerName: 'Shawki', committerEmail: 'ai-locus-request-x@example.org' }), 'locus-request')
+  assert.strictEqual(agentOf({ ...PERSON, committerName: 'Shawki', committerEmail: 'locus-request@example.org' }), 'locus-request')
   assert.strictEqual(agentOf({ ...PERSON, committerName: PERSON.authorName, committerEmail: PERSON.authorEmail }), null)
 })
 
 test('an agent commit under a person\'s author name is still held to the agent\'s paths', () => {
-  const spoofed = { ...PERSON, committerName: 'ai-locus-request-transcend', committerEmail: 'service-account-1@noreply.gitlab.example' }
+  const spoofed = { ...PERSON, committerName: 'locus-request', committerEmail: SA('aaaa1111') }
   const result = checkScope({
     branch: 'graph/12',
     commits: [
@@ -118,4 +123,19 @@ test('people\'s commits are not checked here (CODEOWNERS and protected branches 
   assert.strictEqual(result.pass, true)
   assert.strictEqual(result.personCommits, 1)
   assert.strictEqual(result.agentCommits, 0)
+})
+
+// Fail closed: a flow created under another display name (or any other Duo flow) commits as a service account that
+// matches no Locus flow. On an agent branch that is blocked, not counted as a person.
+test('a GitLab service account that is not a Locus flow may not commit on graph/, revert/ or rollback/ branches', () => {
+  const other = { authorName: 'Locus Request', authorEmail: SA('cccc3333'), committerName: 'Locus Request', committerEmail: SA('cccc3333') }
+  for (const branch of ['graph/12', 'revert/abc1234', 'rollback/3']) {
+    const result = checkScope({ branch, commits: [commit(other, 'requests/12/layout.json')] })
+    assert.strictEqual(result.pass, false, branch)
+    assert.match(violationsOf(result)[0], /service account "Locus Request" is not a Locus flow/, branch)
+  }
+  // Elsewhere (a person's branch a foundational Duo flow helped with) it is not guard-scope's business.
+  const elsewhere = checkScope({ branch: 'feat/x', commits: [commit(other, 'README.md')] })
+  assert.strictEqual(elsewhere.pass, true)
+  assert.strictEqual(elsewhere.personCommits, 1)
 })

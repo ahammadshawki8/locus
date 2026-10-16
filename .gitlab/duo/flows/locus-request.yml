@@ -253,7 +253,8 @@ prompts:
            B1. READ sha from A, expecting attempt {{attempt}} - 1. It should be FAIL; if it is not, answer exactly:
                stuck.
            B2. If a failing result has an empty allowedFixes list, answer exactly: refuse
-           B3. Call get_repository_file for requests/n/layout.json and requests/n/spec.json with ref "graph/n".
+           B3. Call get_repository_file for requests/n/layout.json and requests/n/spec.json with ref = sha from A
+               (the commit B1 read), not the branch name.
            B4. Choose the new layout (see below). Fix every failing result of the report in this one attempt, and
                change as little as possible.
            B5. Call create_commit ONCE with branch "graph/n" and one "update" action for "requests/n/layout.json"
