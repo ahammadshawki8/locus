@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://locus.local/schema/layout.schema.json",
+  "title": "Locus layout",
+  "description": "requests/<iid>/layout.json. The only file the fixer agent may edit. See docs/contracts.md §1. The profile's default is tools/prints/layout-A.json (D4).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["xScaleMm", "yScaleMm", "labelMode", "labelOffsets", "defaultLabelOffset", "showGrid"],
+  "properties": {
+    "xScaleMm": { "description": "Millimetres per x unit.", "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+    "yScaleMm": { "description": "Millimetres per y unit.", "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+    "labelMode": { "enum": ["inline", "key"] },
+    "labelOffsets": {
+      "description": "Per-point label offsets [dxMm, dyMm] from the point to the centre of its label, keyed by point id (e.g. \"vertex\", \"turning-point-1\").",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/offset" }
+    },
+    "defaultLabelOffset": { "description": "Offset [dxMm, dyMm] for points without an entry in labelOffsets.", "$ref": "#/$defs/offset" },
+    "showGrid": { "type": "boolean" }
+  },
+  "$defs": {
+    "offset": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number", "minimum": -50, "maximum": 50 }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "fixture": true,
+  "seeded": "TL-1",
+  "fails": [
+    "TL-1",
+    "TL-2"
+  ],
+  "why": "Print B with the grid back on: grid line y = 3 runs along the curve at the vertex (and grid lines come within 6.4 mm of labels)"
+}

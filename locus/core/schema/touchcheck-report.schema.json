@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://locus.local/schema/touchcheck-report.schema.json",
+  "title": "Locus touchcheck report",
+  "description": "touchcheck-report.json, also printed on one line to the job log after `LOCUS_REPORT `. See docs/contracts.md §4. A passing rule has one result { rule, pass: true }; a failing rule has one result per place it fails. `at` is in plate millimetres, origin bottom-left, and is left out when the problem has no place on the plate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["requestId", "attempt", "profileId", "pass", "results"],
+  "properties": {
+    "requestId": { "type": "integer", "minimum": 0 },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "profileId": { "type": "string" },
+    "pass": { "type": "boolean" },
+    "results": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "pass"],
+        "properties": {
+          "rule": { "enum": ["TL-1", "TL-2", "TL-3", "TL-4", "TL-5"] },
+          "pass": { "type": "boolean" },
+          "message": { "type": "string" },
+          "measuredMm": { "type": "number" },
+          "requiredMm": { "type": "number" },
+          "at": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+          "allowedFixes": { "type": "array", "items": { "type": "string" } }
+        },
+        "if": { "properties": { "pass": { "const": false } } },
+        "then": { "properties": { "message": true, "allowedFixes": true }, "required": ["message", "allowedFixes"] }
+      }
+    }
+  }
+}

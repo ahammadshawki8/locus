@@ -1,0 +1,8 @@
+{
+  "fixture": true,
+  "seeded": "TL-2",
+  "fails": [
+    "TL-2"
+  ],
+  "why": "Label b back at the default offset, on top of the curve"
+}

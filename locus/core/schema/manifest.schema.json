@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://locus.local/schema/manifest.schema.json",
+  "title": "Locus bundle manifest",
+  "description": "manifest.json in out/bundle/graph-<iid>-v<n>/. Generated only from real job outputs, never hand-written. See docs/contracts.md §5. Cross-field checks (artifactId and brailleId match requestIssue) live in core/validate.js.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifactId", "brailleId", "requestIssue", "sourceCommit", "pipelineId", "generatorVersion", "profile", "hashes",
+               "touchcheck", "guards", "agentSessions", "releaseMode", "releaseTag", "limitations"],
+  "properties": {
+    "artifactId": { "description": "graph-<iid>-v<n>; also the release tag, package and page name (D5).", "type": "string", "pattern": "^graph-[0-9]+-v[1-9][0-9]*$" },
+    "brailleId": { "description": "G + issue number, embossed in braille in the plate's corner.", "type": "string", "pattern": "^G[0-9]+$" },
+    "requestIssue": { "type": "integer", "minimum": 0 },
+    "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "pipelineId": { "type": "integer", "minimum": 0 },
+    "generatorVersion": { "type": "string" },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": { "id": { "type": "string" }, "version": { "type": "integer", "minimum": 1 } }
+    },
+    "hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["graph.stl", "graph.svg", "description.txt"],
+      "properties": {
+        "graph.stl": { "$ref": "#/$defs/sha256" },
+        "graph.svg": { "$ref": "#/$defs/sha256" },
+        "description.txt": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "touchcheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pass", "attempts"],
+      "properties": { "pass": { "type": "boolean" }, "attempts": { "type": "integer", "minimum": 1 } }
+    },
+    "guards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "maths", "description"],
+      "properties": { "scope": { "type": "boolean" }, "maths": { "type": "boolean" }, "description": { "type": "boolean" } }
+    },
+    "agentSessions": { "type": "array", "items": { "type": "string" } },
+    "releaseMode": { "enum": ["hands-off", "supervised"] },
+    "releaseTag": { "description": "null in the bundle; filled in by the release job.", "type": ["string", "null"] },
+    "limitations": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}
