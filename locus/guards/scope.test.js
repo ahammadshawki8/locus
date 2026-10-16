@@ -17,6 +17,29 @@ test('a commit is an agent\'s when its author name or email local part matches t
   assert.strictEqual(agentOf(PERSON), null)
 })
 
+// create_commit takes optional author_name and author_email, so a model can write a person's name as the author. The
+// committer of an API commit is the account that called the API, which the model cannot set.
+test('a commit is an agent\'s when its committer matches, even if the author is a person\'s name', () => {
+  const spoofed = { ...PERSON, committerName: 'ai-locus-ops-transcend', committerEmail: 'service-account-2@noreply.gitlab.example' }
+  assert.strictEqual(agentOf(spoofed), 'locus-ops')
+  assert.strictEqual(agentOf({ ...PERSON, committerName: 'Shawki', committerEmail: 'ai-locus-request-x@example.org' }), 'locus-request')
+  assert.strictEqual(agentOf({ ...PERSON, committerName: PERSON.authorName, committerEmail: PERSON.authorEmail }), null)
+})
+
+test('an agent commit under a person\'s author name is still held to the agent\'s paths', () => {
+  const spoofed = { ...PERSON, committerName: 'ai-locus-request-transcend', committerEmail: 'service-account-1@noreply.gitlab.example' }
+  const result = checkScope({
+    branch: 'graph/12',
+    commits: [
+      commit(REQUEST, add('requests/12/spec.json'), add('requests/12/request.lock.json'), add('requests/12/layout.json')),
+      commit(spoofed, 'locus/touchcheck/rules/tl1.js')
+    ]
+  })
+  assert.strictEqual(result.pass, false)
+  assert.strictEqual(result.agentCommits, 2)
+  assert.strictEqual(result.personCommits, 0)
+})
+
 test('intake: the first commit on graph/<iid> writes spec, lock and layout; the fixer then changes layout only', () => {
   const result = checkScope({
     branch: 'graph/12',

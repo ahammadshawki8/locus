@@ -10,9 +10,11 @@ Each exits 0 (pass), 1 (blocked) or 2 (could not check: fails closed), and write
 | `guard-description` | `locus guard description requests/<iid> --out out/<iid>` | Any number in `description.txt` that is not a coefficient, power, domain end, marked point value or the braille ID; a rounded number without "about" |
 | `guard-revert` | `locus guard revert [--base <sha>] [--branch revert/<sha>]` | On `revert/<sha>`: anything but one plain commit that is the exact inverse of `<sha>` (a commit on the default branch): the same paths `<sha>` changed, none other; each back to its mode and content before `<sha>`; none changed again since `<sha>` (then no exact inverse exists, even a clean `git revert` is blocked, and a person must revert it) |
 
-**Agent identity** (`agents.json`): a commit belongs to a flow when its author name, or the local part of its email,
-matches `ai-<flow>-`. That is how the docs name each flow's service account; **Gate 5 must confirm the real author of a
-`create_commit` commit** and update the patterns if needed.
+**Agent identity** (`agents.json`): a commit belongs to a flow when its author or committer name, or the local part of
+either email, matches `ai-<flow>-`. That is how the docs name each flow's service account. The committer counts because
+Duo's `create_commit` lets the model set `author_name` and `author_email`, while the committer of an API commit is the
+account that called the API. **Gate 5 must confirm the real author and committer of a `create_commit` commit** (the
+`locus-probe` flow records both) and update the patterns if needed.
 
 **Base commit:** `--base`, else the MR diff base (`CI_MERGE_REQUEST_DIFF_BASE_SHA`), else the commit before a push
 (`CI_COMMIT_BEFORE_SHA`), else where HEAD left the default branch. guard-revert skips the commit before a push: its

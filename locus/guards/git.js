@@ -15,21 +15,23 @@ const changedPaths = (sha, cwd) => {
 }
 
 /**
- * Commits in base..head, oldest first, with author and changed paths. Merge commits are listed but flagged.
+ * Commits in base..head, oldest first, with author, committer and changed paths. Merge commits are listed but flagged.
  * `paths` is read on first use: guard-scope needs it only for agent commits, and a branch can carry thousands of
  * people's commits (the JSCAD import: about 2,100), each costing two git calls.
  */
 const listCommits = (base, head, cwd) => {
-  const out = git(['log', '--reverse', '--format=%H%x00%P%x00%an%x00%ae', `${base}..${head}`], cwd)
+  const out = git(['log', '--reverse', '--format=%H%x00%P%x00%an%x00%ae%x00%cn%x00%ce', `${base}..${head}`], cwd)
   if (!out) return []
   return out.split('\n').map((line) => {
-    const [sha, parents, authorName, authorEmail] = line.split('\0')
+    const [sha, parents, authorName, authorEmail, committerName, committerEmail] = line.split('\0')
     let paths
     return {
       sha,
       merge: parents.split(' ').length > 1,
       authorName,
       authorEmail,
+      committerName,
+      committerEmail,
       get paths () { return paths || (paths = changedPaths(sha, cwd)) }
     }
   })
