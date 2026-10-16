@@ -17,25 +17,64 @@ const watertightTriangles = (geom) => {
   for (let pass = 0; pass < MAX_EXTRA_PASSES; pass++) {
     let left = openEdges(tris)
     if (!left.length) break
-    // Two copies of one point can fall either side of a rounding step and get two ids. Weld them first.
-    tris = weldOpenVertices(tris, left, V)
+    // Two copies of one point can fall either side of a rounding step and get two ids. Weld them first, with a
+    // tolerance that grows each pass: the union can leave a cluster of copies a few micrometres apart.
+    tris = weldOpenVertices(tris, left, V, WELD_MM[Math.min(pass, WELD_MM.length - 1)])
     left = openEdges(tris)
     if (!left.length) break
     tris = closeTJunctions(tris, left, V, id)
   }
+  tris = fillSliverHoles(tris, openEdges(tris), V)
   return { V, tris, openBefore: open.length, openAfter: openEdges(tris).length }
 }
 
-const WELD_MM = 1e-3 // same tolerance as a T-junction
+const SLIVER_MM = 1e-2 // a hole narrower than 10 micrometres is rounding left by the union, not a missing part
 
-/** Give open-edge vertices closer than WELD_MM one id, and drop triangles that collapse. */
-const weldOpenVertices = (tris, open, V) => {
+/** Close each loop of open edges with at most 4 edges that is narrower than SLIVER_MM, by a fan in reverse order. */
+const fillSliverHoles = (tris, open, V) => {
+  const next = new Map(open)
+  const done = new Set()
+  const fill = []
+  for (const [start] of open) {
+    if (done.has(start)) continue
+    const loop = [start]
+    for (let v = next.get(start); v !== undefined && v !== start && loop.length <= 4; v = next.get(v)) loop.push(v)
+    loop.forEach((v) => done.add(v))
+    if (loop.length < 3 || loop.length > 4 || next.get(loop[loop.length - 1]) !== start) continue
+    const area = loop.slice(1, -1).reduce((sum, b, i) => {
+      const [A, B, C] = [V[loop[0]], V[b], V[loop[i + 2]]]
+      const u = [0, 1, 2].map((k) => B[k] - A[k])
+      const w = [0, 1, 2].map((k) => C[k] - A[k])
+      return sum + Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]) / 2
+    }, 0)
+    const longest = Math.max(...loop.map((a, i) => Math.hypot(...[0, 1, 2].map((k) => V[a][k] - V[loop[(i + 1) % loop.length]][k]))))
+    if (2 * area / longest >= SLIVER_MM) continue // width of the hole across its longest edge
+    const back = [...loop].reverse()
+    for (let i = 1; i + 1 < back.length; i++) fill.push([back[0], back[i], back[i + 1]])
+  }
+  return fill.length ? [...tris, ...fill] : tris
+}
+
+// Copies of one point this close are one point to any printer (layer and nozzle sizes are around 100 micrometres).
+const WELD_MM = [2e-3, 5e-3, 1e-2]
+
+/**
+ * Give every vertex within `tol` of an open-edge vertex, directly or through other such vertices, that vertex's id,
+ * and drop triangles that collapse. The near copies need not be on an open edge themselves: a centre fan can leave
+ * slivers between several copies of one point, where only one copy has an open edge.
+ */
+const weldOpenVertices = (tris, open, V, tol) => {
   const ids = [...new Set(open.flat())].sort((a, b) => a - b)
+  const used = [...new Set(tris.flat())]
+  const near = (a, b) => Math.hypot(...[0, 1, 2].map((k) => V[a][k] - V[b][k])) < tol
   const to = new Map()
-  for (let i = 0; i < ids.length; i++) {
-    if (to.has(ids[i])) continue
-    for (let j = i + 1; j < ids.length; j++) {
-      if (!to.has(ids[j]) && Math.hypot(...[0, 1, 2].map((k) => V[ids[i]][k] - V[ids[j]][k])) < WELD_MM) to.set(ids[j], ids[i])
+  for (const a of ids) {
+    if (to.has(a)) continue
+    const cluster = [a]
+    for (let i = 0; i < cluster.length; i++) {
+      for (const b of used) {
+        if (b !== a && !to.has(b) && near(cluster[i], b)) { to.set(b, a); cluster.push(b) }
+      }
     }
   }
   if (!to.size) return tris
@@ -139,4 +178,4 @@ const readBounds = (buffer) => {
   return { min, max }
 }
 
-module.exports = { toBinaryStl, watertightTriangles, readTriangleCount, countOpenEdges, readBounds }
+module.exports = { toBinaryStl, watertightTriangles, fillSliverHoles, readTriangleCount, countOpenEdges, readBounds }

@@ -44,3 +44,45 @@ test('a mesh where one point got two ids (print B with the grid on) is welded an
   const out = render(spec, { ...layoutB, showGrid: true })
   assert.strictEqual(watertightTriangles(out.solid).openAfter, 0)
 })
+
+// Requests a teacher could send (16 Oct (n)): the cubic for the second Gate 5 run left one open edge before the weld
+// also merged near copies that are not on an open edge themselves. Each must render a closed STL.
+const request = (coeffs, min, max, mark, requestId = 4) =>
+  ({ schemaVersion: 3, requestId, graph: { type: 'polynomial', coeffs, domain: { min, max } }, mark, labels: 'braille-grade1', profileId: 'fdm-handheld-v1' })
+
+test('ordinary requests that fit the plate render a closed STL, with and without the grid', () => {
+  const requests = [
+    request([0.5, 0, -1.5, 0], -2.2, 2.2, ['turning-points', 'x-intercepts']),
+    request([1, -3, 0, 2], -1.5, 3.2, ['turning-points', 'y-intercept'], 9),
+    request([0, -1, 0, 4], -2.5, 2.5, ['vertex', 'x-intercepts'], 9),
+    request([0, 2, 0, -1], -1.2, 1.2, ['vertex', 'x-intercepts'], 9)
+  ]
+  for (const r of requests) {
+    for (const showGrid of [true, false]) {
+      const out = render(r, { ...layoutA, showGrid })
+      assert.strictEqual(watertightTriangles(out.solid).openAfter, 0, `${JSON.stringify(r.graph.coeffs)} grid ${showGrid}`)
+    }
+  }
+})
+
+// A default layout can be wider than the plate (x from -3 to 3 at 16 mm per unit). TL-5 measures scene.json and fails
+// it, with reduce-scale as the fix; the render job must not crash first, or the fixer gets no report.
+test('a layout wider than the plate still renders: the STL is cut to the plate and closed, the scene keeps the overhang', () => {
+  const wide = request([0, 0, 1, 1], -3, 3, ['y-intercept', 'x-intercepts'], 9)
+  for (const showGrid of [true, false]) {
+    const out = render(wide, { ...layoutA, showGrid })
+    assert.strictEqual(watertightTriangles(out.solid).openAfter, 0, `grid ${showGrid}`)
+    const [[x0, y0], [x1, y1]] = out.bounds
+    assert.ok(x0 >= -1e-6 && y0 >= -1e-6 && x1 <= 100 + 1e-6 && y1 <= 100 + 1e-6, JSON.stringify(out.bounds))
+    const right = Math.max(...out.scene.lines.flatMap((l) => l.points.map(([x]) => x)))
+    assert.ok(right > 100, 'the scene still says where the curve really goes, so TL-5 can fail it')
+  }
+})
+
+// A line (degree 1) is sampled at 401 collinear points; the union could not fuse the long collinear outline.
+test('straight lines render a closed STL', () => {
+  for (const [coeffs, min, max] of [[[0, 0, 1, 1], -2, 2], [[0, 0, 0.5, 1], -2, 3], [[0, 0, -1, 2], -1, 3]]) {
+    const out = render(request(coeffs, min, max, ['y-intercept'], 9), layoutA)
+    assert.strictEqual(watertightTriangles(out.solid).openAfter, 0, JSON.stringify(coeffs))
+  }
+})

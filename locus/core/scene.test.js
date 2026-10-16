@@ -71,3 +71,16 @@ test('a requested mark outside the domain is carried as missing for TL-4', () =>
   const scene = buildScene({ ...spec, graph: { ...spec.graph, domain: { min: 1, max: 4.5 } } }, layoutA, profile)
   assert.deepStrictEqual(scene.missing.map((m) => m.mark), ['y-intercept'])
 })
+
+// A curve wholly below the x-axis (16 Oct (n)): the vertical grid lines used to run from the x-axis up to the top of
+// the y-axis, which there is the x-axis itself, so they had no length and render threw.
+test('with the curve below the x-axis, every grid line has length and runs from the bottom of the y-axis to the x-axis', () => {
+  const below = { schemaVersion: 3, requestId: 12, graph: { type: 'polynomial', coeffs: [0, 0, -0.25, -0.5], domain: { min: 0, max: 4 } }, mark: ['y-intercept'], labels: 'braille-grade1', profileId: 'fdm-handheld-v1' }
+  const scene = buildScene(below, { ...require('../../tools/prints/layout-A.json'), showGrid: true }, loadProfile('fdm-handheld-v1'))
+  const xAxis = scene.lines.find((l) => l.id === 'x-axis').points[0][1]
+  const yAxisBottom = Math.min(...scene.lines.find((l) => l.id === 'y-axis').points.map(([, y]) => y))
+  const gridX = scene.lines.filter((l) => /^grid-x-/.test(l.id))
+  assert.ok(gridX.length > 0)
+  for (const l of scene.lines) assert.ok(Math.hypot(l.points[1][0] - l.points[0][0], l.points[1][1] - l.points[0][1]) > 0, l.id)
+  for (const l of gridX) assert.deepStrictEqual(l.points.map(([, y]) => y), [yAxisBottom, xAxis], l.id)
+})

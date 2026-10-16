@@ -3,7 +3,7 @@ const path = require('path')
 const { measurements } = require('@jscad/modeling')
 
 const { buildScene } = require('./scene')
-const { toSolid } = require('./geometry')
+const { clipToPlate, toSolid } = require('./geometry')
 const { toBinaryStl } = require('./stl')
 const { toSvg } = require('./svg')
 const { describe } = require('./describe')
@@ -16,7 +16,7 @@ const { loadProfile } = require('./profiles')
  */
 const render = (spec, layout, profile = loadProfile(spec.profileId), options = {}) => {
   const scene = buildScene(spec, layout, profile, options)
-  const solid = toSolid(scene)
+  const solid = clipToPlate(toSolid(scene), scene.plate)
   return {
     scene,
     solid,

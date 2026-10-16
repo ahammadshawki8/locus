@@ -8,7 +8,8 @@
 //   the highest;
 // - a tick (every whole unit, not 0) is left out when it would sit on a point mark or closer to the curve than the
 //   minimum line gap;
-// - grid lines (when shown) run at every whole unit except 0, across the axes' extent;
+// - grid lines (when shown) run at every whole unit except 0, across the axes' extent (vertical ones from the x-axis
+//   up, or down when the whole curve is below it);
 // - an orientation triangle sits in the top-left corner.
 const { evaluate } = require('./polynomial')
 const { computeMarks } = require('./marks')
@@ -92,7 +93,9 @@ const buildScene = (spec, layout, profile, { brailleIdNumber = spec.requestId } 
 
   if (layout.showGrid) {
     for (let y = Math.ceil(ys0); y <= Math.floor(ys1); y++) if (y !== 0) lines.push(line(`grid-y-${y}`, 'grid', [[xAxisL, P([0, y])[1]], [xAxisR, P([0, y])[1]]]))
-    for (let x = Math.ceil(X0); x <= Math.floor(X1); x++) if (x !== 0) lines.push(line(`grid-x-${x}`, 'grid', [[P([x, 0])[0], oy], [P([x, 0])[0], yAxisT]]))
+    // Vertical grid lines rise from the x-axis; when the whole curve is below it, they hang from it instead.
+    const [gridX0, gridX1] = yAxisT > oy ? [oy, yAxisT] : [yAxisB, oy]
+    for (let x = Math.ceil(X0); x <= Math.floor(X1); x++) if (x !== 0) lines.push(line(`grid-x-${x}`, 'grid', [[P([x, 0])[0], gridX0], [P([x, 0])[0], gridX1]]))
   }
 
   lines.push(line('curve', 'curve', curveMm))

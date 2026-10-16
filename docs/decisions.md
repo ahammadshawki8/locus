@@ -4,6 +4,49 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (n): render crashed on many ordinary requests; the STL repair is now robust (Ashfaq)
+
+No change to `docs/contracts.md`. Found while preparing the second Gate 5 run, before filing it: the planned request (a
+cubic, y = 0.5x^3 - 1.5x on -2.2 to 2.2, issue number 4) made `render` throw "mesh still has 1 unpaired edges", so the
+agent would have met a red `render` job instead of a touch-check report. A sweep of 20 everyday requests (default
+layout, grid on and off) then failed 7 times, including every straight line (y = x + 1: over 500 open edges) and every
+layout wider than the plate. Even the braille ID number could flip the result.
+
+**Causes and fixes** (`locus/core/stl.js`, `locus/core/geometry.js`, `locus/core/render.js`):
+1. **Copies of one point a few micrometres apart.** The weld only merged open-edge vertices with each other; a centre
+   fan can leave slivers between several copies where only one is on an open edge. It now welds every vertex within
+   the tolerance of an open-edge vertex, directly or through other such vertices, with a tolerance that grows each
+   pass (2, 5, 10 micrometres; printers work in about 100).
+2. **Straight lines.** A degree-1 curve is 401 collinear samples, and the union cannot fuse that long collinear
+   outline. A path straight from end to end (within 10 nm) is now built from its two ends; every other path keeps
+   every sample. A first version that dropped any nearly straight sample changed print C (the middle of a cubic is
+   nearly straight), so it was narrowed (contracts D3).
+3. **Holes a few micrometres wide.** A loop of at most 4 open edges narrower than 10 micrometres across its longest edge
+   is closed with reversed triangles. A real missing face stays open, and render still fails on it (test).
+4. **Layouts wider than the plate.** TL-5 measures `scene.json` and fails them with `reduce-scale`, but render crashed
+   first, so the fixer got no report. When the solid sticks out, the STL is now cut to the plate footprint; the scene
+   keeps the true positions, so TL-5 still fails (checked: y = x + 1 on -3 to 3 renders, then TL-5 fails 10 times
+   with `reduce-scale`). Such a graph is never bundled, because the bundle needs touchcheck to pass.
+5. **Zero-length grid lines** (`locus/core/scene.js`). Vertical grid lines rose from the x-axis to the top of the
+   y-axis; when the whole curve is below the x-axis those are the same height, so the lines had no length and JSCAD
+   threw "the given points must define a closed geometry". They now hang from the x-axis down to the bottom of the
+   y-axis in that case; a curve above the axis gets exactly the old grid.
+6. Tried and dropped: merging vertices on a 10 micrometre grid from the start (changed prints A, B and C and opened
+   most meshes).
+
+**Checks:** prints A, B and C are byte-identical (`core/prints.test.js`). New tests: four everyday requests with and
+without the grid (the cubic among them), the over-wide line, three straight lines, the sliver filler, and a curve below
+the x-axis with the grid. A seeded random sweep through `render` (degree 1 to 3, coefficients from -2 to 3 in nice
+steps, domains of 2 to 5 units, default layout, grid on and off; scratch script, not in the repo): **7 of 240 renders
+still fail (2.9%)**, all "mesh still has N unpaired edges". Seen causes: marks or braille cells that overlap (two
+points 2 mm apart, so their 3 mm domes and labels intersect) and very steep cubics. The planned second request (the
+cubic, issue 4) now renders, and its attempt 1 fails TL-1 and TL-2, both with allowed fixes. 223 tests pass. This
+changes `locus/core/**`, a `library-impact` path; no graph has shipped yet, so there is nothing to re-check.
+
+**Known limit (H3):** about 3 in 100 requests still make `render` fail. In a flow run that shows up as a failed
+`render` job, which the fixer reports as BROKEN (a note asking a person to look), not as a pass or a refusal. A more
+robust mesh step (for example a manifold library instead of repairing the JSCAD union) is S.3 Next item 12.
+
 ## 16 Oct 2026 (m): Gate 5 run: locus-request took a real request from issue to a passing bundle (Ashfaq ran it)
 
 No change to `docs/contracts.md`. **First run of a Locus agent flow in our account** (test bed, project 87669530). Every
