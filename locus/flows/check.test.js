@@ -103,6 +103,14 @@ prompts:`)
   expectError(minimal.replace('  - from: "reader"\n    to: "end"\n', '  - from: "end"\n    to: "end"\n'), /"reader" has no router/)
 })
 
+test('a literal input needs "as", and then feeds that placeholder', () => {
+  const text = minimal.replace('      - from: "context:project_id"\n        as: "project_id"',
+    '      - from: "context:project_id"\n        as: "project_id"\n      - from: "2"\n        as: "attempt"\n        literal: true')
+    .replace('{{goal}}', '{{goal}} attempt {{attempt}}')
+  assert.deepEqual(errorsOf(text), [])
+  expectError(text.replace('        as: "attempt"\n', ''), /literal input "2" needs "as"/)
+})
+
 test('a conditional router lists its routes', () => {
   const text = minimal.replace('  - from: "reader"\n    to: "end"',
     '  - from: "reader"\n    condition:\n      input: "context:reader.final_answer"\n      routes:\n        "yes": "end"\n        "default_route": "abort"')
@@ -139,8 +147,8 @@ test('every committed flow that is not a design draft passes the check', () => {
   }
 })
 
-test('locus-ops and locus-probe are real flow YAML, not design drafts', () => {
-  for (const name of ['locus-ops.yml', 'locus-probe.yml']) {
+test('locus-request, locus-ops and locus-probe are real flow YAML, not design drafts', () => {
+  for (const name of ['locus-request.yml', 'locus-ops.yml', 'locus-probe.yml']) {
     assert.equal(isDraft(fs.readFileSync(path.join(flowsDir, name), 'utf8')), false, name)
   }
 })
@@ -174,6 +182,84 @@ test('the regression detective pins its MR options so the model cannot change th
   const detective = flow.components.find((c) => c.name === 'regression_detective')
   const mr = detective.toolset.find((t) => typeof t === 'object' && t.create_merge_request)
   assert.deepEqual(mr.create_merge_request, { labels: 'regression', remove_source_branch: true, squash: false })
+})
+
+// locus-request: intake, then the fixer, in one session (docs/contracts.md D7, section 7).
+
+const request = () => checkFlow(fs.readFileSync(path.join(flowsDir, 'locus-request.yml'), 'utf8')).flow
+const component = (flow, name) => flow.components.find((c) => c.name === name)
+const options = (c, tool) => (c.toolset.find((t) => typeof t === 'object' && t[tool]) || {})[tool]
+const routesOf = (flow, name) => {
+  const r = flow.routers.find((x) => x.from === name)
+  return r.condition ? r.condition.routes : { always: r.to }
+}
+
+test('locus-request agents can only write what docs/contracts.md section 7 allows', () => {
+  const flow = request()
+  const writes = Object.fromEntries(flow.components.map((c) => [c.name, writeTools(toolNames(c))]))
+  assert.deepEqual(writes, {
+    intake: ['create_commit', 'create_issue_note', 'create_merge_request', 'update_issue'], // requests/<iid>/**, first commit
+    fixer_1: ['create_issue_note'], // checks attempt 1 (the intake commit); writes nothing
+    fixer_2: ['create_commit', 'create_issue_note'], // requests/<iid>/layout.json
+    fixer_3: ['create_commit', 'create_issue_note'], // requests/<iid>/layout.json
+    refuse: ['create_issue_note', 'update_issue'] // label cannot-make-readable
+  })
+})
+
+test('locus-request makes at most 3 attempts: no route goes back, and only fixer_2 and fixer_3 commit after intake', () => {
+  const flow = request()
+  assert.equal(flow.flow.entry_point, 'intake')
+  assert.deepEqual(routesOf(flow, 'intake'), { asked: 'end', exists: 'end', default_route: 'fixer_1' })
+  assert.deepEqual(routesOf(flow, 'fixer_1'), { pass: 'end', fail: 'fixer_2', refuse: 'refuse', default_route: 'end' })
+  assert.deepEqual(routesOf(flow, 'fixer_2'), { pass: 'end', fail: 'fixer_3', refuse: 'refuse', default_route: 'end' })
+  assert.deepEqual(routesOf(flow, 'fixer_3'), { pass: 'end', fail: 'refuse', refuse: 'refuse', default_route: 'end' })
+  assert.deepEqual(routesOf(flow, 'refuse'), { always: 'end' })
+
+  // No cycle: every path through the flow visits each component at most once, so there is no fourth commit.
+  const next = (n) => Object.values(routesOf(flow, n)).filter((t) => t !== 'end' && t !== 'abort')
+  const walk = (n, seen) => {
+    assert.ok(!seen.includes(n), `cycle through ${[...seen, n].join(' > ')}`)
+    for (const t of next(n)) walk(t, [...seen, n])
+  }
+  walk('intake', [])
+  const committers = flow.components.filter((c) => toolNames(c).includes('create_commit')).map((c) => c.name)
+  assert.deepEqual(committers, ['intake', 'fixer_2', 'fixer_3'])
+})
+
+test('each fixer step is told which attempt it checks, as a literal input', () => {
+  const flow = request()
+  for (const [name, attempt] of [['fixer_1', '1'], ['fixer_2', '2'], ['fixer_3', '3']]) {
+    const input = component(flow, name).inputs.find((i) => i.as === 'attempt')
+    assert.deepEqual(input, { from: attempt, as: 'attempt', literal: true }, name)
+    assert.equal(component(flow, name).prompt_id, 'fixer_prompt', name)
+  }
+})
+
+test('locus-request pins its labels and MR options so the model cannot change them', () => {
+  const flow = request()
+  assert.deepEqual(options(component(flow, 'intake'), 'update_issue'), { add_labels: 'needs-info' })
+  assert.deepEqual(options(component(flow, 'refuse'), 'update_issue'), { add_labels: 'cannot-make-readable' })
+  // squash false keeps one commit per attempt, which guard-scope and the attempt count read.
+  assert.deepEqual(options(component(flow, 'intake'), 'create_merge_request'), { remove_source_branch: true, squash: false })
+})
+
+test('intake writes attempt 1 with exactly the default layout, print A (docs/contracts.md D4)', () => {
+  const prompt = request().prompts.find((p) => p.prompt_id === 'intake_prompt').prompt_template.system
+  const written = prompt.match(/"requests\/n\/layout\.json": exactly the profile's default layout: (\{[\s\S]*?\})\.\n/)
+  assert.ok(written, 'the intake prompt spells out layout.json')
+  assert.deepEqual(JSON.parse(written[1].replace(/\s+/g, ' ')), require('../../tools/prints/layout-A.json'))
+})
+
+test('the fixer prompt names exactly the allowed fixes of locus/touchcheck/remedies.json, and refuses when there is none', () => {
+  const remedies = require('../touchcheck/remedies.json')
+  const prompt = request().prompts.find((p) => p.prompt_id === 'fixer_prompt').prompt_template.system
+  const listed = new Set([...prompt.matchAll(/^\s*- ([a-z-]+): changes ([A-Za-z, ]+?)\./gm)].map((m) => `${m[1]}: ${m[2]}`))
+  const expected = new Set()
+  for (const fixes of Object.values(remedies.rules)) for (const f of fixes) expected.add(`${f.id}: ${f.edits.join(', ')}`)
+  assert.deepEqual([...listed].sort(), [...expected].sort())
+  for (const [rule, fixes] of Object.entries(remedies.rules)) {
+    if (!fixes.length) assert.match(prompt, new RegExp(`${rule} has no allowed fix`), rule)
+  }
 })
 
 const toolNames = (component) => (component.toolset || []).map((t) => (typeof t === 'string' ? t : Object.keys(t)[0]))

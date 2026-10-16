@@ -4,6 +4,94 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (h): locus-request in flow syntax: intake, then the fixer, at most 3 attempts (Gate 5, Ashfaq)
+
+No change to `docs/contracts.md`. **No flow has run in our account yet** (H3).
+
+**Pipeline 2953715382** (test bed, push of `878a5846`, the 16 Oct (g) commit): all 9 jobs passed; `locus-test` 205 of
+205 on the runner (job 17222097118). `requests/` still holds only its README, so touchcheck, guard-maths and `bundle`
+each logged "0 request(s) checked".
+
+**locus-probe has not been run yet.** Checked read-only on 16 Oct: the test bed (project 87669530) has no `locus-probe`
+catalog item (GraphQL `aiCatalogConfiguredItems` lists only the six foundational flows from 16 Oct (g)), no probe issue
+and no `probe/*` branch. So nothing is recorded from a run, and `locus/guards/agents.json` keeps the `ai-<flow>-`
+patterns until the probe shows the real author and committer. The test bed `main` still holds only the organisers'
+README.
+
+**Sources read on 16 Oct** (ai-assist `main` at `8ef3f48f`, 15 Oct): [flow registry v1](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/docs/flow_registry/v1.md);
+[`routers/router.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/agent_platform/v1/routers/router.py)
+(a route matches the answer text exactly, else `default_route`);
+[`state/base.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/agent_platform/v1/state/base.py)
+and [`components/base.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/agent_platform/v1/components/base.py)
+(any component takes `literal: true` inputs, which need `as`);
+[`flows/base.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/agent_platform/v1/flows/base.py)
+(every v1 flow gets `context:session_url` = project URL + `/-/automate/agent-sessions/<id>`); the tools
+[`pipeline.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/tools/pipeline.py)
+(`get_pipeline_failing_jobs`: failed jobs with ids, or `pipeline_status` when none failed),
+[`merge_request.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/tools/merge_request.py)
+(`get_merge_request` returns the raw MR, with `sha` and `head_pipeline`),
+[`issue.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/tools/issue.py)
+(`update_issue` takes `add_labels`) and
+[`notify_me_when.py`](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/tools/notify_me_when.py)
+(a timer tool exists, but it is in neither the web UI list nor the live list, so it is not used).
+
+**Decisions** (`.gitlab/duo/flows/locus-request.yml`, no longer a design draft):
+1. **Shape: `intake > fixer_1 > fixer_2 > fixer_3 > refuse`, with no route back.** intake commits attempt 1 (print A's
+   layout) and opens the MR; `fixer_1` only waits for that pipeline; `fixer_2` and `fixer_3` each commit one
+   `layout.json` change and wait for its pipeline. Only intake, `fixer_2` and `fixer_3` hold `create_commit`, so a
+   fourth attempt can't happen, whatever the model answers. A loop (`fixer` routing to itself) would leave the cap to
+   the model, and what happens when an agent component runs a second time (its history, its answer) isn't documented.
+   `check.test.js` pins the routes, that there is no cycle, and who can commit.
+2. **Which attempt.** Each fixer step gets its attempt number as a literal input, and accepts only a `LOCUS_REPORT`
+   whose `attempt` (counted by CI from the history of `layout.json`) is that number, so it never acts on an older
+   pipeline. It also waits until the MR's `head_pipeline.sha` is the commit it is checking.
+3. **Waiting for the pipeline.** No usable tool waits, so the fixer polls: `get_merge_request` until the pipeline for
+   its commit exists, then `get_pipeline_failing_jobs` on that pipeline. A failed `touchcheck` job means FAIL (read its
+   `LOCUS_REPORT` line); `pipeline_status` success means PASS; failed without touchcheck means BROKEN (a note, then
+   stop). A pass is only visible as a fully green pipeline (no tool lists a pipeline's passed jobs), which is also what
+   `auto-merge` needs. On the test bed, pipeline 2953715382 had touchcheck done 74 s after it started and the whole
+   pipeline in 156 s. `max_cycles` add up to 220 agent cycles, under the 600 graph-step limit (2 per cycle). **Open:**
+   how many cycles and credits one attempt really costs (Gate 5 run).
+4. **Passing the MR on.** The router needs one exact word, so intake answers with the MR URL: `asked` and `exists` end
+   the flow and anything else goes to `fixer_1`, which checks that it is an open MR from `graph/<n>`. This is the
+   only router whose `default_route` continues; every later router ends on an unexpected answer.
+5. **Write tools** (test-pinned, contracts §7): intake `create_commit`, `create_merge_request`, `update_issue`,
+   `create_issue_note`; `fixer_1` notes only; `fixer_2` and `fixer_3` `create_commit` and notes; `refuse`
+   `update_issue` and notes. Pinned options: intake `update_issue` adds `needs-info`, refuse adds
+   `cannot-make-readable`; the MR has `remove_source_branch: true` and `squash: false` (one commit per attempt, which
+   guard-scope and the attempt count read). guard-scope still checks every path.
+6. **What the fixer is told.** The allowed fixes in its prompt must equal `locus/touchcheck/remedies.json` (test), TL-4
+   means refuse, and the plate geometry comes from `locus/core/scene.js`. The prompt gives **no worked answer** (not
+   print B's layout), so a pass on the demo request is the agent's own fix (H3).
+7. **Intake** writes all three files in one `create_commit`, keys in the order `checkLock` compares, and the
+   default layout must equal `tools/prints/layout-A.json` (test, D4). An ambiguous or out-of-scope request gets one
+   question and `needs-info`. A request that already has `graph/<n>` gets a note and ends (`exists`).
+8. **Session links.** Every note ends with the session URL (`context:session_url`). That is how a session URL can
+   reach the bundle manifest's `agentSessions` later (16 Oct (g) open point); the bundle job doesn't read it yet.
+9. `check.js` now rejects a literal input without `as`. 212 tests pass.
+
+**Known gaps (not built):**
+- `needs-info` is only ever added. After the teacher answers and a person re-assigns the issue, a person removes it.
+- A stopped session doesn't resume: re-assigning runs intake, which finds `graph/<n>` and ends. A person carries on.
+- What the **Work item created** trigger passes as the goal isn't in the docs we read; intake accepts a number, an
+  issue URL or "Issue IID: <n>".
+- A TL-2 or TL-3 result gives `at` but not which label failed, so the fixer works it out from the geometry. Naming the
+  label in each result would change contracts §4: a proposal for Shawki, not done (H5).
+- The prompts use `{{attempt}}` in the system text; if a system placeholder isn't filled in, the user message
+  still carries the attempt.
+
+**How Ashfaq runs it** (Claude Code never starts a flow, H6), after the probe:
+1. It needs a default branch with our code, since intake branches `graph/<n>` from it and the pipeline comes from
+   `.gitlab-ci.yml`: S.3 Next item 0, or (test bed only, Ashfaq's call) set the test bed's default branch to
+   `feat/gate2-render` for the run and back afterwards.
+2. Test bed > **AI > Flows > New flow**: `locus-request`, Private, paste the YAML, **Create flow**, **Enable** with
+   triggers **Assign** (and **Work item created** if the UI offers it). Note the service account name.
+3. Open an issue, for example: "Please make a tactile graph of the ball's path y = -0.5x^2 + 2x + 1 from x = -0.5 to
+   4.5. Mark the peak, the launch height and where it lands." Assign it to the service account.
+4. Record: session URL; intake's note and MR; each attempt's commit (`%an <%ae> | %cn <%ce>`), pipeline and
+   `LOCUS_REPORT` attempt; the final note (pass or refusal); the guard results; the Credits dashboard row. Then update
+   `agents.json` if the names differ.
+
 ## 16 Oct 2026 (g): the locus-ops flow, a probe flow to test Duo first, and guard-scope reads the committer (Ashfaq)
 
 No change to `docs/contracts.md`. **No flow has run in our account yet** (H3): everything below is checked against the

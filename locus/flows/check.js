@@ -98,6 +98,10 @@ const checkFlow = (text) => {
     names.add(name)
     if (!COMPONENT_TYPES.has(c.type)) errors.push(`component "${name}": unknown type "${c.type}"`)
     for (const s of c.subagents || []) subagents.add(s && s.name)
+    // A literal input's value is its `from` text; ai-assist rejects one without `as` (state/base.py).
+    for (const input of c.inputs || []) {
+      if (input && input.literal === true && !input.as) errors.push(`component "${name}": literal input "${input.from}" needs "as"`)
+    }
 
     if (c.type === 'AgentComponent' || c.type === 'OneOffComponent') {
       for (const field of ['response_schema_id', 'response_schema_version']) {
