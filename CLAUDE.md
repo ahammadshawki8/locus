@@ -39,7 +39,7 @@ npm install && npm test && npm run test:tsd           # upstream JSCAD tests (wh
 4. `locus/guards`: `guard-scope`, `guard-maths`, `guard-description`, `guard-revert`. Deterministic, run in CI.
 5. `profiles/<id>.json`: printer profiles (contracts §2). `locus/site`: graph library + `build-info.json`. `locus/cli`: local entry point.
 6. `requests/<iid>/{spec.json,request.lock.json,layout.json}`: one folder per teacher request, written by agents.
-7. `.gitlab/duo/flows/`: the two Duo flows, `locus-request` (intake, fixer) and `locus-ops` (impact reviewer, regression detective, release guard).
+7. `.gitlab/duo/flows/`: the two Duo flows, `locus-request` (intake, fixer) and `locus-ops` (impact reviewer, regression detective, release guard), plus the test-bed probe `locus-probe`; `locus/flows/check.js` checks their schema.
 8. `.gitlab-ci.yml`: the pipeline is the quality gate. `release` needs touchcheck, all guards, security and bundle; `promote-production` needs `validate-staging`.
 9. `deploy/gcp/`: Cloud Run config + `production-revision` (GitOps rollback pointer).
 10. Interfaces between parts are fixed in [docs/contracts.md](docs/contracts.md) (H5).

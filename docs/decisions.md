@@ -4,6 +4,102 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (g): the locus-ops flow, a probe flow to test Duo first, and guard-scope reads the committer (Ashfaq)
+
+No change to `docs/contracts.md`. **No flow has run in our account yet** (H3): everything below is checked against the
+docs, the ai-assist source and read-only queries, not against a run.
+
+**Sources read on 16 Oct:** [flow registry v1](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/docs/flow_registry/v1.md),
+[custom flow YAML schema](https://docs.gitlab.com/user/duo_agent_platform/flows/custom_flows_schema/),
+[custom flows](https://docs.gitlab.com/user/duo_agent_platform/flows/custom/),
+[triggers](https://docs.gitlab.com/user/duo_agent_platform/triggers/),
+[agent tools](https://docs.gitlab.com/user/duo_agent_platform/agents/tools/),
+[AI Catalog size limits](https://docs.gitlab.com/user/duo_agent_platform/ai_catalog/#configuration-size-limits),
+and the [create_commit source](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/duo_workflow_service/tools/commit.py).
+
+**What the docs say that shapes the flows:**
+- A custom flow is flow registry v1 YAML with restrictions: `environment: ambient` only; top-level `name`,
+  `description` and `product_group` are rejected; no `response_schema_id` on `AgentComponent` (so no structured
+  output); no `model` in prompts; no `params.stop`. The YAML may be at most 40 KiB. Our old drafts used none of this
+  syntax.
+- What a flow receives as its goal depends on the trigger: **Pipeline events** pass the full pipeline webhook payload; **Assign** passes the
+  issue or MR number; **Mention** passes `Input: <comment>` and `Context: {Issue IID: <n>}`.
+- Creating or enabling a flow, and adding a trigger, need Maintainer or Owner. REST shows Ashfaq at access level 30
+  (Developer) on the test bed (project 87669530), but GraphQL `userPermissions` there shows `adminAiCatalogItem`,
+  `createAiCatalogItemConsumer` and `manageAiFlowTriggers` as true (probably the hackathon's Developer + AI role).
+  Unconfirmed until Ashfaq creates a flow.
+- Already enabled on the test bed (GraphQL `aiCatalogConfiguredItems`): six agents and the foundational flows
+  Developer (with an active trigger), Code Review, Fix CI/CD Pipeline, Convert to GitLab CI/CD, Resolve SAST
+  Vulnerability and SAST False Positive Detection.
+- Triggered flows bill the flow's service account, through the namespace's Monthly Commitment Pool or On-Demand
+  credits, not the person who triggered them (triggers doc). Contracts §10 keeps "credits for triggered flows" open
+  until a run shows it.
+- `create_commit` takes `create`, `update`, `delete` and `move` actions, so the inverse of an added file is a delete
+  on paper (Gate 5 open point; the probe tests it). It also takes optional `author_name` and `author_email`.
+
+**Decisions:**
+1. **Tool list = docs and the live GitLab.com list.** `locus/flows/tools.json` holds the docs' web UI list (88), its IDE-only
+   list (11) and the live `aiCatalogBuiltInTools` GraphQL list (100, read as Ashfaq909). A flow may only name a tool in
+   both the web UI list and the live list. `run_command`, `read_file` and `edit_file` are IDE only, so no Locus flow
+   uses them, and the flows use `coding_environment: none` (API only, no clone).
+2. **`locus/flows/check.js`** checks every `.gitlab/duo/flows/*.yml` that is not marked `# DESIGN DRAFT` against those
+   rules, plus: component names, prompts defined inline, every `{{placeholder}}` fed by an input, router targets,
+   every component reachable and routed, 40 KiB, and H2. `check.test.js` runs it in `locus-test`, and also pins what
+   each `locus-ops` agent can write to contracts §7. `locus-request.yml` is still a design draft (Gate 5) and is
+   skipped.
+3. **`locus-ops` routing:** `triage` answers one word (`impact`, `regression`, `release`, `none`) and a conditional router
+   on `context:triage.final_answer` sends it on. Any other answer goes to `end` (`default_route`), so only triage is spent. Not
+   supervisor mode: the route is fixed by the payload, and a router costs fewer cycles than delegation. `release` goes to
+   `end` until Shawki adds the release guard (Gate 5c). An Assign event routes to the detective only for an open issue
+   labelled `regression`.
+4. **Impact reviewer:** reads `LOCUS_IMPACT` from the `library-impact` job log and posts one MR note. Its only write tool is
+   `create_merge_request_note` (contracts §7: MR notes only). If the report can't be read, it says so instead of
+   guessing numbers.
+5. **Regression detective:** reads `LOCUS_BISECT` from the `bisect-regression` job log and acts only on a commit S that bisect named.
+   It writes the exact inverse on `revert/<S>` with one `create_commit` only if S is not a merge and renamed no file,
+   the default branch still holds S's version of every path, and every file came back whole. Then it opens the MR (labels, branch removal and
+   squash pinned by tool options, so the model can't change them). Otherwise, or when the commit says the change is
+   intended, it files one re-layout issue per graph (`locus-request` + `regression`, D6). It explains once: a comment on
+   an assigned issue, or one `regression` issue for a pipeline event. guard-revert stays the check that the inverse is
+   exact.
+6. **Log lines:** GitLab job logs put a timestamp and stream marker before every line (job 17217175501:
+   `2026-10-15T22:23:08.315163Z 01O LOCUS_REPORT {...}`, one 3,228-character line). So the prompts say the line
+   *contains* `LOCUS_...` and tell the agent to join parts of a split line.
+7. **guard-scope also reads the committer.** Because `create_commit` lets the model set the author, an agent commit could
+   carry a person's name and skip guard-scope. A commit is now the flow's when its author **or committer** (name or email
+   local part) matches `agents.json`; the committer of an API commit is the account that called the API. This is
+   stricter than contracts §7 ("checks the commit author"), not different. Shawki: say if you read it otherwise.
+8. **`yaml` 2.9.1** is a dev dependency of `locus/` (exact pin, 11 Sep 2026). 2.6.1 was tried first and has
+   [GHSA-48c2-rrv3-qjmp](https://github.com/advisories/GHSA-48c2-rrv3-qjmp). This changes `locus/package*.json`, a
+   `library-impact` path.
+9. **Freeze:** with `JUDGING_FREEZE=true`, library-recheck only logs, so no failed pipeline starts `locus-ops`. Also turn
+   its trigger off (the custom flow's Trigger conditions toggle).
+
+**Test Duo first: `locus-probe`** (`.gitlab/duo/flows/locus-probe.yml`). It's a one-off probe for the test bed only: not a Locus agent,
+not in the video, never enabled in the team project. Started by a person's mention on an issue, it: reads the issue;
+reads a job log and copies the `LOCUS_REPORT` text (D8); commits `probe/<iid>.txt` on `probe/<iid>` with
+`create_commit`, then reads the commit's author and committer; deletes the file in a second commit; and posts one
+note with each tool's result. Its writes are outside contracts §7 on purpose, on a throwaway branch, which is then deleted. Its
+service account (`ai-locus-probe-...`) matches no `agents.json` pattern, so guard-scope counts its commits as a
+person's. That's expected for the probe and is not evidence about the real flows.
+
+**How Ashfaq runs it** (Claude Code never starts a flow, H6):
+1. Test bed > **AI > Flows > New flow**: display name `locus-probe`, visibility Private, Flow; paste
+   `.gitlab/duo/flows/locus-probe.yml`; **Create flow**. Then **Enable** in the same project with trigger **Mention**.
+   Note the service account name it shows.
+2. Open an issue (for example "Duo probe") and comment: `@<service account> job:
+   https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/jobs/17217175501`
+   (pipeline 2952980743's touchcheck job, which has a `LOCUS_REPORT` line).
+3. Record here: whether the session started and finished, the session URL, the note, `git fetch gitlab probe/<iid>` +
+   `git log --format='%an <%ae> | %cn <%ce>' gitlab/probe/<iid>` (author vs committer), whether the delete commit
+   exists, and the Credits dashboard row (service account with an "Automated flow" badge, or Ashfaq). Then delete
+   `probe/<iid>`.
+
+**Running `locus-ops` end to end needs more than the YAML:** library-impact and library-recheck only fail when a
+**shipped** graph (a `graph-<iid>-v<n>` tag) breaks, and the test bed has no tags and a `main` without our history.
+Gate 5b therefore waits for S.3 Next item 0 and one released graph. Then: a person's MR with a seeded generator
+regression (impact reviewer), merged anyway (recheck, bisect, detective).
+
 ## 16 Oct 2026 (f): first pipeline on GitLab, in Ashfaq's Showcase as a test bed (Ashfaq)
 
 - **Projects.** Each participant has their own public Showcase:
