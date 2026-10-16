@@ -4,6 +4,24 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (i): pipeline 2953759450, still no flow run, and the PR into the working repo (Ashfaq)
+
+No change to `docs/contracts.md`. **No flow has run in our account yet** (H3).
+
+- **Pipeline 2953759450** (test bed, push of `84e654a7`, the 16 Oct (h) commit): all 9 jobs passed in 155 s;
+  `locus-test` 212 of 212 on the runner (job 17222358023). `requests/` still holds only its README, so touchcheck,
+  guard-maths and `bundle` checked 0 requests.
+- **locus-probe and locus-request have not been run.** Ashfaq confirmed on 16 Oct. Checked read-only the same day: the
+  test bed (project 87669530) lists only the six foundational flows in `aiCatalogConfiguredItems`, its only issue is
+  the organisers' welcome issue, it has no MRs, its branches are `main` and `feat/gate2-render`, and its default
+  branch is `main`. So `locus/guards/agents.json` and the flows stay as they are; all three flows pass `check.js`.
+- **Decision (Ashfaq): S.3 Next item 6.** Opened
+  [ahammadshawki8/locus PR 1](https://github.com/ahammadshawki8/locus/pull/1) from `ashfaqstu:feat/gate2-render` into
+  the working repo's `main` (GitHub reports it mergeable). It changes that `main` only when Shawki merges it. It must
+  be merged with a merge commit, not squash or rebase, so the JSCAD history from 14 Oct stays (about 2,100 commits, 18
+  of them ours when it was opened; later pushes to the branch join it). The PR asks Shawki to look at the guard-scope committer rule (16 Oct (g) item 7) and S.3 Next items 9
+  and 10.
+
 ## 16 Oct 2026 (h): locus-request in flow syntax: intake, then the fixer, at most 3 attempts (Gate 5, Ashfaq)
 
 No change to `docs/contracts.md`. **No flow has run in our account yet** (H3).
