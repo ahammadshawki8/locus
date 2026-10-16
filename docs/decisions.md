@@ -43,6 +43,12 @@ points 2 mm apart, so their 3 mm domes and labels intersect) and very steep cubi
 cubic, issue 4) now renders, and its attempt 1 fails TL-1 and TL-2, both with allowed fixes. 223 tests pass. This
 changes `locus/core/**`, a `library-impact` path; no graph has shipped yet, so there is nothing to re-check.
 
+Pipeline 2955547838 (test bed, push of `cc643e1f` to `feat/gate2-render`): all 9 jobs passed, `locus-test` 223 of
+223. The test bed `main` still has the old renderer (`3e0af8ea`), and intake branches from `main`, so the second run
+waits until Ashfaq approves bringing `main` up to this commit. Checked read-only the same day: Service Desk is already
+enabled on the test bed (GraphQL `serviceDeskEnabled: true`, with an incoming address), so the second run can come in
+by email (Gate 6) and be assigned (the Gate 5 Service Desk trigger).
+
 **Known limit (H3):** about 3 in 100 requests still make `render` fail. In a flow run that shows up as a failed
 `render` job, which the fixer reports as BROKEN (a note asking a person to look), not as a pass or a refusal. A more
 robust mesh step (for example a manifold library instead of repairing the JSCAD union) is S.3 Next item 12.
