@@ -4,6 +4,58 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (m): Gate 5 run: locus-request took a real request from issue to a passing bundle (Ashfaq ran it)
+
+No change to `docs/contracts.md`. **First run of a Locus agent flow in our account** (test bed, project 87669530). Every
+step below was read from GitLab and git after it happened; Claude Code started nothing and changed nothing in the run
+(H6).
+
+**Before the run:**
+- **Test bed `main` now holds our code** (Ashfaq's go-ahead, 16 Oct). Ashfaq is a Developer there, so the default
+  branch setting is not available to him (GraphQL `adminProject: false`), but `main` allows Developers to push (no
+  force push). Merge commit `3e0af8ea` (Ashfaq, signed off) joins the template README commit `5c808212` with
+  `feat/gate2-render` at `829915e1` using `-s ours --allow-unrelated-histories`, so its tree is exactly our branch and
+  the push was a fast-forward. Pipeline 2955199583 on `main`: all 12 jobs passed (upstream-test on Node 20 and 22,
+  library-recheck, guards), `bisect-regression` skipped. The team project and the GitHub working repo are untouched;
+  S.3 Next item 0 still needs Shawki.
+- 12:42 UTC Ashfaq created `locus-request` (display name exactly `locus-request`, private) and enabled it: service
+  account **`ai-locus-request-gitlab-ai-hackathon`**, auto-created trigger (event types 0, 1, 2).
+- **Credits:** Ashfaq looked at the GitLab Credits page and found nothing listed for the probe run. Whether that is a
+  delay or a view a Developer doesn't get is unknown; contracts §10 stays open.
+
+**The run** (issue #3, MR !1, [session 9601992](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/automate/agent-sessions/9601992)):
+1. 12:53 Ashfaq filed #3 "Tactile graph: ball path" with the projectile request (16 Oct (h) step 3 text) and at
+   12:54:07 assigned it to the service account. The session started in under a second, "triggered by @Ashfaq909"
+   (the **Assign** trigger works).
+2. **Intake** (12:55): commit `8690280c` on `graph/3` with `spec.json` (coeffs [0, -0.5, 2, 1], domain -0.5 to 4.5,
+   marks vertex, y-intercept, x-intercept+), the lock (same graph and marks) and `layout.json` equal as JSON to
+   `tools/prints/layout-A.json` (D4); the message ends with the `Locus-Session` trailer. It opened MR !1 (`graph/3`
+   into `main`) and posted a plain-words note: peak (2, 3), launch height 1, landing at about 4.45.
+3. **Attempt 1 pipelines** (push 2955218116 and MR 2955218960; the push pipeline ran because the MR did not exist yet):
+   touchcheck **failed** (TL-1, TL-2, TL-5; `LOCUS_REPORT` with `requestId` 3, `attempt` 1), everything else passed.
+   guard-scope: "1 commit(s) on graph/3 since 3e0af8ea: 1 by agents, 0 by people": the 16 Oct (l) display-name match
+   works on a real agent commit.
+4. **Fixer** (`fixer_1` read attempt 1, then `fixer_2`): commit `4dbdf419`, `layout.json` only: `showGrid` false
+   (TL-1) and its own label offsets: vertex [0, 12], y-intercept [-11.5, 7], x-intercept+ [3.3, 14] (TL-2, TL-5);
+   `yScaleMm` stayed 8. It is not print B's layout (B: `yScaleMm` 16, other offsets); the prompt never gave B (16 Oct
+   (h) item 6). The message names the rule each change fixes and ends with the trailer.
+5. **Attempt 2 MR pipeline 2955233864: all 7 jobs passed.** touchcheck `LOCUS_REPORT` `requestId` 3, `attempt` 2,
+   `pass` true; guard-scope 2 commits, 2 by agents, passed; guard-maths and guard-description (11 numbers) passed.
+   The fixer posted the pass note on #3 and the session completed (about 7 min from assignment). MR !1 is open and
+   mergeable; nobody has merged it.
+6. **`bundle`** built `graph-3-v1` (braille ID G3): "touchcheck passed after 2 attempt(s)", "agent sessions: 1 (from
+   2 agent commit(s))". Its `manifest.json` holds `agentSessions: [<session 9601992 URL>]`, `pipelineId` 2955233864,
+   `sourceCommit` `4dbdf419`: the trailer route of 16 Oct (j) works.
+
+**What this proves and what it doesn't (H3):** a person's one action (assign) started one Duo session that wrote the
+request, failed the touch check on the default layout, changed only the layout by itself and passed every CI gate, with
+guard-scope holding the agent to its paths. It does not prove a learner can read the plate (automated checks only), it
+used 2 of 3 attempts so the refusal path has not run, and nothing after the MR (merge, release, deploy, reply) exists
+yet. Cycles and credits per attempt are still unmeasured.
+
+**Next in the flow (S.4 steps 6 to 8):** `auto-merge` (not built), then `publish-package`, `release`,
+`deploy-staging`, `reply-teacher` (Shawki). MR !1 stays open as the first real input for those jobs.
+
 ## 16 Oct 2026 (l): first flow run in our account: locus-probe (Ashfaq ran it), and what it changed
 
 No change to `docs/contracts.md` (one wording proposal for Shawki below). **This is the first Duo flow that has run in
