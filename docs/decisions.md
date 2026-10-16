@@ -4,6 +4,19 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026: GitLab's answers to our follow-up questions (Discord)
+
+| Question | GitLab's answer | What we do |
+|---|---|---|
+| Teammates added to the project? | `ashfaq909` and `nourin.richi.2026` are **not** in the hackathon group and have no workspace yet | Each confirms they submitted the form at [contributors.gitlab.com/transcend-hackathon](https://contributors.gitlab.com/transcend-hackathon), or submits it now. If they already did, they send GitLab the time they submitted. Until Ashfaq is provisioned, the Gate 5 test runs in Shawki's account, with Ashfaq pairing on a screen share |
+| "No credits remain" in Duo Chat | Set the Transcend group as the **default GitLab Duo group** at [gitlab.com/-/profile/preferences](https://gitlab.com/-/profile/preferences) | Shawki sets it now; each teammate does the same once provisioned |
+| Credits for triggered flows | They run as the flow's service account and are billed at **namespace level**, separate from personal credits. GitLab can't confirm the pool size | Gate 5 is the first test of whether triggered flows run at all. Keep the number of runs low (no polling loops, early exit in `locus-ops`). If triggered runs fail for credits, test whether starting the flow from Agentic Chat (slash command) runs on personal credits, and ask GitLab before relying on it |
+| `run_command` / `edit_file` / `read_file` in CI flows | **Available.** Use `create_commit` to commit through the API | D8 becomes: the fixer runs `touchcheck` itself with `run_command`, edits `layout.json` with `edit_file`, and commits each attempt with `create_commit`. The `LOCUS_REPORT` log line stays as the audit record and fallback |
+| Can a flow merge? | Yes, through the merge request API; there's no dedicated merge tool | **Keep D7:** the deterministic `auto-merge` CI job merges, because only a fully green pipeline should decide. Agent merging is a fallback only |
+| Secret FP Detection, Breaking Change Resolution | Both in the AI Catalog; enable them from **AI > Flows** | Shawki enables both now (T2.9) |
+
+---
+
 ## 15 Oct 2026 (b): pipeline checked against the Duo Agent Platform docs → pipeline v2 (PROPOSED, agree tonight)
 
 Sources read on 15 Oct:

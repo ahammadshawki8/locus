@@ -53,22 +53,24 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 
 | Area | State |
 |---|---|
-| Onboarding | Shawki, Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) onboarded to the GitLab hackathon group. Shawki asked on Discord (16 Oct) for Ashfaq and Nourin to be added to the Showcase project |
+| Onboarding | Shawki is provisioned. **Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) are NOT provisioned** (GitLab, 16 Oct): each must confirm or resubmit the form, or send GitLab the time they submitted. GitLab adds them to Showcase once provisioned |
 | GitLab project | `Transcend October 2026 / ahammadshawki8 / Showcase` exists (role: Developer+). Foundational flows enabled: Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection. Code not imported yet |
-| Credits | **Blocker:** Duo Chat showed "No credits remain for this billing period" on 15 Oct. Asked on Discord |
+| Credits | Fix from GitLab: set the Transcend group as the default Duo group at gitlab.com/-/profile/preferences, then retry. Triggered flows bill a namespace pool of unknown size |
 | Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
 | Prints | Calibration piece printed and judged good. Prototype plates A, B and C sent to print on 16 Oct (`tools/prints/`). About 500 tk budget |
 | Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. No product code yet |
 | Hosting | Google Cloud not set up yet (Shawki, Gate 6b, 17 Oct) |
 
 **Next:**
-1. Ashfaq: Gate 5 (16 Oct): a person files an issue, then one `locus-request` session runs spec → red → fix → green. Record which tools work in the flow and whose credits are used.
-2. Shawki: Google Cloud + Cloud Run staging and production skeleton (Gate 6b, 17 Oct).
-3. Shawki: generate `fixtures/bundle-sample/graph-0-v1/` from print B (contracts D9).
-4. Record the calibration touch results in `docs/decisions.md` (which gap felt like two lines; 0.5 or 0.8 mm braille dots).
-5. Decide Nourin's role.
+1. Gate 5 (16 Oct): a person files an issue, then one `locus-request` session runs spec → red → fix → green. Runs in Shawki's account (Ashfaq pairs on a screen share) until Ashfaq is provisioned. Record credit use and any tool that fails.
+2. Shawki: set the default Duo group; enable Secret False Positive Detection and Breaking Change Resolution (AI > Flows).
+3. Ashfaq and Nourin: fix the GitLab registration today.
+4. Shawki: Google Cloud + Cloud Run staging and production skeleton (Gate 6b, 17 Oct).
+5. Shawki: generate `fixtures/bundle-sample/graph-0-v1/` from print B (contracts D9).
+6. Record the calibration touch results in `docs/decisions.md` (which gap felt like two lines; 0.5 or 0.8 mm braille dots).
+7. Decide Nourin's role.
 
-**Waiting on GitLab (Discord):** credits; whether triggered flows use personal credits; which tools ambient flows get; whether flows can merge; Secret FP Detection and Breaking Change Resolution.
+**Answered by GitLab (16 Oct, `docs/decisions.md`):** CI flows get `run_command`, `edit_file` and `read_file`; flows can merge through the API (we keep the `auto-merge` CI job); the extra foundational flows are available. **Still unknown:** the size of the namespace credit pool for triggered flows.
 
 ## S.4 Project flow, end to end (pipeline v2)
 
