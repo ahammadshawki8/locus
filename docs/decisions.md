@@ -4,6 +4,103 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (o): Gate 5 run 2 through Service Desk: which address works, a mention instead of assign, and a GitLab outage (Ashfaq ran it)
+
+No change to `docs/contracts.md`. Everything below was read from GitLab, git and the executor job logs after it
+happened; Claude Code started no flow and changed nothing in a run (H6).
+
+**Before the run:**
+- `projectLocus.md` was repaired (`5616ac7f`): since `829915e1` it held two extra copies of its header and Part S
+  inside the S.3 Code row (a string replace whose replacement contained "$`"). Every edit since `11950b57` was kept.
+- **Test bed `main` now has the render fixes of 16 Oct (n)** (Ashfaq's go-ahead): merge commit `820fd236` (parents
+  `5616ac7f` and the old `main` `3e0af8ea`, tree exactly `feat/gate2-render`), pushed as a fast-forward. Pipeline
+  2955873544 on `main`: all 11 jobs that ran passed, `bisect-regression` skipped; `upstream-test` did not run because it
+  runs only when `packages/**` or the root package files change. 223 tests pass locally; `check.js` passes.
+
+**Service Desk (Gate 6), seen in our account:**
+1. Ashfaq emailed the request (y = 0.5x^3 - 1.5x on -2.2 to 2.2, turning points and x-crossings) from his own mail
+   account to the address GraphQL gives as `serviceDeskAddress`, `contact-project+<project slug>-<id>-issue-@incoming.gitlab.com`,
+   at 15:03 and again at 15:19 UTC. **Neither created a ticket**, and neither brought a thank-you email or a
+   rejection. The two causes in the
+   [Service Desk troubleshooting docs](https://gitlab.com/gitlab-org/gitlab/-/blob/master/doc/user/project/service_desk/_index.md)
+   (ignored `Auto-Submitted` / `X-Autoreply` headers; DKIM failures after forwarding) do not fit a message typed and
+   sent directly.
+2. The same email sent at 15:47 UTC to the project's address on the main incoming mailbox,
+   `incoming+<project slug>-<id>-issue-@incoming.gitlab.com` (the form shown in
+   [configure.md](https://gitlab.com/gitlab-org/gitlab/-/blob/master/doc/user/project/service_desk/configure.md)),
+   **created ticket #4** at 15:47:38 and Ashfaq received the Support Bot's thank-you email. So in our account
+   **only the `incoming+` address works**; why the `contact-project+` alias drops mail is not known.
+3. Service Desk creates a work item of type **Ticket**, confidential, author `support-bot`. REST `issues/4` returns
+   it (`issue_type: ticket`), so `get_issue` can address it.
+4. **A flow's service account cannot be assigned to a ticket:** the sidebar answered "Cannot assign
+   @ai-locus-request-gitlab-ai-hackathon to #4", although the account is a Developer and the same assignment worked on
+   issue #3. The message comes from GitLab's `IssueSetAssignees` mutation, which drops assignees for whom
+   `can?(:read_issue, project)` is false
+   ([set_assignees.rb](https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/graphql/mutations/issues/set_assignees.rb)).
+   Why that is false for this account here is not proven (service accounts are checked through composite identity).
+5. **A mention on the ticket starts the flow.** Ashfaq's comment `@ai-locus-request-gitlab-ai-hackathon please make
+   this graph.` started a session within 25 s; the goal is the discussion plus `Context: {Issue IID: 4}`, which
+   intake accepts. So the Service Desk path in our account is **email to the `incoming+` address, then a person's
+   mention**, not assign (S.4 step 1 is updated).
+
+**Three sessions on #4, all cut off by a GitLab.com outage** ([status page](https://status.gitlab.com/) incident "503s on GitLab.com", investigating
+from 16:10 UTC; at 16:52 "we are seeing slowness with Duo requests and services", GitLab Duo "Degraded Performance"):
+- [Session 9613530](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/automate/agent-sessions/9613530)
+  (mention 15:59:55): executor job 17240788513 failed with `runner_system_failure`; the runner could not pull its
+  helper image (`registry.gitlab.com` answered 502). The agent never ran. Session "failed (dropped)" at 16:02:39.
+- [Session 9614767](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/automate/agent-sessions/9614767)
+  (mention 16:38:11): executor job 17241691854 got HTTP 503 from `wss://gitlab.com/api/v4/ai/duo_workflows/ws` on all
+  5 tries ("Workflow could not connect to the Workflow service"). The agent never ran.
+- [Session 9615472](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/automate/agent-sessions/9615472)
+  (mention 16:55:18, after the endpoint answered normally 10 times in a row): **intake worked on the confidential
+  ticket.** Commit `28ae30de` on `graph/4` (from `820fd236`; author and committer `locus-request` with a
+  `service_account_group_*` email; `Locus-Session` trailer) holds `spec.json` with coeffs [0.5, 0, -1.5, 0], domain
+  -2.2 to 2.2, marks turning-points and x-intercepts, the matching lock, and the default layout. It opened MR !2 and
+  posted the teacher note (turning points at x = -1 and 1, crossings at about -1.73, 0 and 1.73). Attempt 1 pipelines
+  2956349907 (push) and 2956350065 (MR): `render` passed (the 16 Oct (n) fix on a real request), guards passed,
+  touchcheck failed with `LOCUS_REPORT` `requestId` 4, `attempt` 1: 3 TL-1 and many TL-2 results, every one with
+  allowed fixes. While `fixer_1` was polling that pipeline, at 16:57:46 the connection to the Duo service closed
+  abnormally (WebSocket 1006); the 4 reconnects were refused with "GitLab Duo is already responding to this chat in
+  another tab or location" (1013), and the run stopped at 16:58:04. The fixer never acted.
+- The teacher note reached Ashfaq by email, but as an ordinary GitLab notification to his account ("You're receiving
+  this email because of your account on gitlab.com", sender `locus-request`), not as a Service Desk email from the
+  Support Bot. That shows a note reaches a participant; the reply to a requester **without** a GitLab account is not
+  shown yet (H3).
+
+A new mention on #4 cannot finish this request: intake finds `requests/4/spec.json` on `graph/4`, answers `exists`
+and ends (by design). **Decision (Ashfaq):** after GitLab Duo is operational again, file a fresh request by email to
+the `incoming+` address and mention the flow on the new ticket. #4 and MR !2 stay as the record of the dropped run;
+MR !2 is closed afterwards.
+
+**Gate 5 run 2, complete** (GitLab Duo back to Operational at 17:06:40 UTC on the status page):
+1. 17:10:12 ticket **#5** "Tactile graph: cubic" from an email to the `incoming+` address, sent from a different
+   address than #4 (a university account). 17:11:23 Ashfaq's mention; 17:11:24
+   [session 9616199](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/automate/agent-sessions/9616199)
+   started, "triggered by @Ashfaq909".
+2. **Intake** (17:12:51): commit `2005e098` on `graph/5` (from `820fd236`), the same spec, lock and default layout as
+   `28ae30de` on #4 with requestId 5, trailer included; MR !3 at 17:13:10; the teacher note at 17:13:26.
+3. **Attempt 1** pipelines 2956398931 (push) and 2956399718 (MR) failed on touchcheck, as expected.
+4. **Fixer:** commit `77afedf8`, `requests/5/layout.json` only: `showGrid` false (TL-1, hide-grid) and its own offsets
+   for all five labels (TL-2, move-label): turning-point-1 [0, 12], turning-point-2 [0, -12], x-intercept-1
+   [-4.5, 15], x-intercept-2 [11.5, 13.5], x-intercept-3 [4.5, -15]; scales unchanged. One sentence per change names
+   its rule; trailer included.
+5. **Attempt 2 MR pipeline 2956408478: all 7 jobs passed.** touchcheck `LOCUS_REPORT` `requestId` 5, `attempt` 2,
+   `pass` true; guard-scope "2 commit(s) on graph/5 since 820fd236: 2 by agents, 0 by people"; guard-maths passed;
+   guard-description 13 numbers, passed. `bundle` built `graph-5-v1` (braille ID G5), "touchcheck passed after 2
+   attempt(s)", manifest `agentSessions` = [session 9616199], `sourceCommit` `77afedf8`.
+6. 17:20:02 the pass note on #5 (what changed, the MR link, the "Automated checks measure spacing and size; they do not
+   certify that a learner can understand the graphic." line, the session); 17:20:05 session completed. About 8.5
+   min from mention to pass. The agent's notes have no emoji or long dash; the only emoji on the ticket is GitLab's own
+   "has started" message.
+7. **Not checked yet:** which emails reached the #5 requester's inbox (thank-you, and whether the two agent notes came
+   from the Support Bot), and whether that address has a GitLab account. Until Ashfaq reads that inbox, the Service
+   Desk reply to a requester is not shown (Gate 6 reply, H3). MR !2 is not closed yet.
+
+**What this proves and what it doesn't (H3):** Gate 5 has now run twice end to end (16 Oct (m) and this), and the
+second came in through Service Desk email and ran on a confidential ticket. It needed a person's mention, not an
+assign. It does not prove a learner can read the plate, the refusal path has still not run (both runs used 2 of 3
+attempts), and merge, release, deploy and the reply email after the MR do not exist yet. MR !3 stays open.
+
 ## 16 Oct 2026 (n): render crashed on many ordinary requests; the STL repair is now robust (Ashfaq)
 
 No change to `docs/contracts.md`. Found while preparing the second Gate 5 run, before filing it: the planned request (a
