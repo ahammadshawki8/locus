@@ -1,18 +1,20 @@
 // `locus bundle <requests/<iid>>`: the entry point of the `bundle` CI job (docs/contracts.md §3, §5, §6).
 //   locus bundle <requests/<iid>> [--out <render dir>] [--guards <dir>] [--bundle-dir <dir>] [--bundle-version <n>]
-//                [--release-mode hands-off|supervised] [--agent-session <url>]...
+//                [--release-mode hands-off|supervised]
 // Reads only what the jobs wrote: the render output (graph.stl, graph.svg, description.txt), touchcheck's report and
 // overlay, and out/guards/{scope,maths-<name>,description-<name>}.json. The commit is CI_COMMIT_SHA (else HEAD), the
 // pipeline CI_PIPELINE_ID (else 0: built outside a pipeline), the release mode RELEASE_MODE (else hands-off).
 // <n> is one more than the newest release tag graph-<iid>-v<n>; when the request folder is unchanged since that tag
-// there is nothing new to bundle.
+// there is nothing new to bundle. agentSessions are the Locus-Session trailers of the agent commits (guard-scope's
+// agents.json) that changed the request folder since that tag, checked against CI_PROJECT_URL when it is set.
 // Exit 0 = bundled (or nothing to bundle), 1 = refused (touchcheck or a guard failed), 2 = could not bundle (missing or
 // stale input), 64 = usage.
 const fs = require('fs')
 const path = require('path')
 
 const { git } = require('../guards/git')
-const { buildManifest, blockers, nextVersion, readmeText, sha256, writeBundle, artifactName, LIMITATIONS } = require('../core/bundle')
+const { agentOf } = require('../guards/scope')
+const { buildManifest, blockers, nextVersion, readmeText, sessionUrls, sha256, writeBundle, artifactName, LIMITATIONS } = require('../core/bundle')
 const { readBounds } = require('../core/stl')
 const { loadProfile } = require('../core/profiles')
 const { validateManifest, validateTouchcheckReport } = require('../core/validate')
@@ -24,11 +26,6 @@ const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'))
 const option = (args, name) => {
   const i = args.indexOf(name)
   return i >= 0 ? args.splice(i, 2)[1] : undefined
-}
-const options = (args, name) => {
-  const values = []
-  for (let v = option(args, name); v !== undefined; v = option(args, name)) values.push(v)
-  return values
 }
 
 const cannotBundle = (dir, why) => {
@@ -44,6 +41,22 @@ const tryGit = (args) => {
   }
 }
 
+/**
+ * The agent commits in `range` that changed `dir`, oldest first, each with its Locus-Session trailer values. Every
+ * locus-request commit message ends with that trailer (the flow's context:session_url), so the session that made a
+ * version is read from git, never typed in.
+ */
+const agentCommitsTouching = (range, dir) => {
+  const format = '%an%x00%ae%x00%cn%x00%ce%x00%(trailers:key=Locus-Session,valueonly,separator=%x1f)%x1e'
+  const out = git(['log', '--reverse', `--format=${format}`, range, '--', dir])
+  return out.split('\x1e').map((r) => r.replace(/^\n/, '')).filter(Boolean)
+    .map((record) => {
+      const [authorName, authorEmail, committerName, committerEmail, trailers = ''] = record.split('\0')
+      return { flow: agentOf({ authorName, authorEmail, committerName, committerEmail }), sessions: trailers.split('\x1f') }
+    })
+    .filter((c) => c.flow)
+}
+
 /** true when `dir` has the same content at `ref` and at `commit`. */
 const unchangedSince = (ref, commit, dir) => {
   try {
@@ -57,7 +70,7 @@ const unchangedSince = (ref, commit, dir) => {
 const runBundle = (args, env = process.env) => {
   const dir = args.shift()
   if (!dir) {
-    console.error('usage: locus bundle <requests/<iid>> [--out <render dir>] [--guards <dir>] [--bundle-dir <dir>] [--bundle-version <n>] [--release-mode hands-off|supervised] [--agent-session <url>]')
+    console.error('usage: locus bundle <requests/<iid>> [--out <render dir>] [--guards <dir>] [--bundle-dir <dir>] [--bundle-version <n>] [--release-mode hands-off|supervised]')
     return 64
   }
   const name = path.basename(path.resolve(dir))
@@ -66,7 +79,6 @@ const runBundle = (args, env = process.env) => {
   const bundleRoot = option(args, '--bundle-dir') || path.join('out', 'bundle')
   const versionArg = option(args, '--bundle-version')
   const releaseMode = option(args, '--release-mode') || env.RELEASE_MODE || 'hands-off'
-  const agentSessions = options(args, '--agent-session')
   if (!RELEASE_MODES.includes(releaseMode)) {
     console.error(`release mode must be ${RELEASE_MODES.join(' or ')}, not "${releaseMode}"`)
     return 64
@@ -114,16 +126,20 @@ const runBundle = (args, env = process.env) => {
   const pipelineId = env.CI_PIPELINE_ID ? Number(env.CI_PIPELINE_ID) : 0
   if (!Number.isInteger(pipelineId) || pipelineId < 0) return cannotBundle(dir, `CI_PIPELINE_ID "${env.CI_PIPELINE_ID}" is not a pipeline id`)
 
+  const tags = (tryGit(['tag', '-l', `graph-${spec.requestId}-v*`]) || '').split('\n').filter(Boolean)
+  const { latest, next } = nextVersion(spec.requestId, tags)
   let version = Number(versionArg)
   if (versionArg === undefined) {
-    const tags = (tryGit(['tag', '-l', `graph-${spec.requestId}-v*`]) || '').split('\n').filter(Boolean)
-    const { latest, next } = nextVersion(spec.requestId, tags)
     if (latest && unchangedSince(latest, sourceCommit, dir)) {
       console.log(`bundle ${dir}: unchanged since ${latest}; nothing to bundle`)
       return 0
     }
     version = next
   }
+  // The sessions that made this version: agent commits since the previous release (all of them for v1).
+  const since = latest && version >= next ? latest : null
+  const agentCommits = agentCommitsTouching(since ? `${since}..${sourceCommit}` : sourceCommit, dir)
+  const { urls: agentSessions, rejected } = sessionUrls(agentCommits.flatMap((c) => c.sessions), env.CI_PROJECT_URL)
   if (tryGit(['status', '--porcelain', '--', dir])) {
     console.log(`  warning: ${dir} has uncommitted changes; sourceCommit ${sourceCommit.slice(0, 8)} does not describe them`)
   }
@@ -151,6 +167,10 @@ const runBundle = (args, env = process.env) => {
 
   console.log(`bundle ${dir}: ${manifest.artifactId} (braille ID ${manifest.brailleId}) in ${written.dir} and ${written.zip}`)
   console.log(`  commit ${sourceCommit.slice(0, 8)}, pipeline ${pipelineId}, ${releaseMode}; touchcheck passed after ${report.attempt} attempt(s); guard-scope, guard-maths, guard-description passed`)
+  if (agentCommits.length) console.log(`  agent sessions: ${agentSessions.length} (from ${agentCommits.length} agent commit(s))`)
+  for (const value of rejected) console.log(`  warning: a Locus-Session trailer is not a session of this project: ${value}`)
+  const unlinked = agentCommits.filter((c) => !c.sessions.some((v) => agentSessions.includes(v.trim()))).length
+  if (unlinked) console.log(`  warning: ${unlinked} agent commit(s) ${since ? `since ${since}` : 'on this request'} have no Locus-Session trailer of this project`)
   console.log(`  ${LIMITATIONS}`)
   return 0
 }

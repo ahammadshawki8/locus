@@ -4,6 +4,42 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 16 Oct 2026 (j): pipeline 2953818513, still no flow run, and agentSessions from commit trailers (Ashfaq)
+
+No change to `docs/contracts.md`. **No flow has run in our account yet** (H3).
+
+- **Pipeline 2953818513** (test bed, push of `4cb3bda8`, the 16 Oct (i) commit): all 9 jobs passed in 158 s;
+  `locus-test` 212 of 212 on the runner (job 17222733573). guard-scope checked 1 commit since `84e654a7` (0 by
+  agents) and passed. `requests/` still holds only its README, so touchcheck and `bundle` checked 0 requests.
+- **PR 1** is open and mergeable, with no review or comment yet (checked 16 Oct).
+- **No flow run to record.** Checked read-only on 16 Oct: the test bed still lists only the six foundational flows in
+  `aiCatalogConfiguredItems`, its only issue is the welcome issue, it has no MRs, its branches are `main` and
+  `feat/gate2-render`, and its default branch is `main`. So `locus/guards/agents.json` stays as it is.
+
+**Decision (Ashfaq): how a flow's session URL reaches the manifest's `agentSessions`** (the open point of 16 Oct (c),
+(g) and (h) item 8).
+1. **Every `locus-request` commit message ends with a trailer**: a blank line, then `Locus-Session: <session URL>`,
+   where the URL is the flow's `context:session_url`. The intake, `fixer_2` and `fixer_3` prompts say so, and
+   `check.test.js` pins it.
+2. **The bundle job reads it from git**: `git log --format=%(trailers:key=Locus-Session,valueonly)` over the agent
+   commits (author or committer matches `agents.json`, as in guard-scope) that changed `requests/<iid>/` since the
+   previous release tag (every commit for v1). It keeps only URLs of the form
+   `<CI_PROJECT_URL>/-/automate/agent-sessions/<id>`, once each, in order, and logs anything else as a warning. A
+   person's commit with a trailer is ignored. An agent commit without one gives a warning, not a failure, and adds no
+   URL. `squash: false` on the MR (16 Oct (h) item 5) keeps these commits in `main`'s history, and the job already
+   has the full history (`GIT_DEPTH: 0`).
+3. **`--agent-session <url>` is removed** from `locus bundle`: a URL typed on the command line is not job output
+   (CLAUDE.md: never hand-write a manifest). This replaces the `agentSessions` row of 16 Oct (c).
+4. **Why not the issue notes** (which also end with the session URL): reading them needs an API token in the bundle
+   job (H8). Git history is already there.
+5. **`locus-probe` now tests it**: its step 3 commit message has the trailer, and it reports the message `get_commit`
+   returns. When Ashfaq runs it, also record
+   `git log --format='%an <%ae> | %cn <%ce> | %(trailers:key=Locus-Session,valueonly)' gitlab/probe/<iid>`.
+
+**Not yet seen (H3):** whether `create_commit` keeps a multi-line message as given, so that git reads the trailer,
+and whether the `agents.json` patterns match the real service account. Until a run shows both, a real request's
+`agentSessions` may still be empty; the bundle warns instead of guessing. 215 tests pass.
+
 ## 16 Oct 2026 (i): pipeline 2953759450, still no flow run, and the PR into the working repo (Ashfaq)
 
 No change to `docs/contracts.md`. **No flow has run in our account yet** (H3).

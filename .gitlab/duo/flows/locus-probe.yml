@@ -5,6 +5,7 @@
 #   3. Who is the author and committer of a create_commit commit (locus/guards/agents.json)?
 #   4. Can create_commit delete a file (the inverse of an added file, guard-revert)?
 #   5. Whose credits does the run use (Ashfaq reads the GitLab Credits dashboard afterwards)?
+#   6. Does a multi-line create_commit message keep its "Locus-Session:" trailer (bundle agentSessions, 16 Oct (j))?
 # How to run it: docs/decisions.md, 16 Oct 2026 (g). A person (Ashfaq) starts it; Claude Code never does (H6).
 # Schema: flow registry v1 + custom flow restrictions (locus/flows/check.js). Checked by locus/flows/check.test.js.
 version: "v1"
@@ -19,6 +20,8 @@ components:
         as: "goal"
       - from: "context:project_id"
         as: "project_id"
+      - from: "context:session_url"
+        as: "session_url"
     max_cycles: 20
     toolset:
       - "get_issue"
@@ -47,10 +50,11 @@ prompts:
           Find the first line that contains "LOCUS_REPORT " (GitLab puts a timestamp and a marker such as "01O"
           before it) and copy the text from "LOCUS_REPORT " on, unchanged, cut to its first 300 characters.
           If there is no such line, say so. If the log was truncated, say so.
-        Step 3. Call create_commit with branch "probe/n", start_branch "feat/gate2-render", commit message
-          "Probe n: create a file", and one action: create "probe/n.txt" with the content "probe n" and a newline.
+        Step 3. Call create_commit with branch "probe/n", start_branch "feat/gate2-render", a commit message of
+          three lines: "Probe n: create a file", an empty line, then "Locus-Session: " followed by the session URL
+          given below; and one action: create "probe/n.txt" with the content "probe n" and a newline.
           Do not set author_name or author_email. Then call get_commit for the new commit and note the
-          author_name, author_email, committer_name and committer_email exactly as returned.
+          author_name, author_email, committer_name, committer_email and message exactly as returned.
         Step 4. Call create_commit with branch "probe/n", commit message "Probe n: delete the file", and one
           action: delete "probe/n.txt". Do not set author_name or author_email. Note the result.
         Step 5. Call create_issue_note once on issue n with a short report in plain words: one numbered line
@@ -58,6 +62,7 @@ prompts:
           no long dashes and no emojis. End the note with "Posted by the locus-probe flow."
       user: |
         Project ID: {{project_id}}
+        Session URL: {{session_url}}
         {{goal}}
     params:
       timeout: 180

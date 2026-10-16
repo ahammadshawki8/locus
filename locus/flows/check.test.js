@@ -263,3 +263,14 @@ test('the fixer prompt names exactly the allowed fixes of locus/touchcheck/remed
 })
 
 const toolNames = (component) => (component.toolset || []).map((t) => (typeof t === 'string' ? t : Object.keys(t)[0]))
+
+test('every locus-request commit message ends with its session URL as a Locus-Session trailer (bundle agentSessions)', () => {
+  const flow = request()
+  const system = (id) => flow.prompts.find((p) => p.prompt_id === id).prompt_template.system
+  for (const name of ['intake', 'fixer_2', 'fixer_3']) {
+    const c = component(flow, name)
+    assert.ok(c.inputs.some((i) => i.from === 'context:session_url' && i.as === 'session_url'), name)
+    const prompt = system(c.prompt_id).replace(/\s+/g, ' ')
+    assert.match(prompt, /a blank line, then the line "Locus-Session: " followed by the session URL given below/, name)
+  }
+})

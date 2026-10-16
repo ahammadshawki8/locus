@@ -4,7 +4,7 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 
-const { BUNDLE_FILES, LIMITATIONS, artifactName, nextVersion, buildManifest, blockers, readmeText, sha256, writeBundle } = require('./bundle')
+const { BUNDLE_FILES, LIMITATIONS, artifactName, nextVersion, buildManifest, blockers, readmeText, sessionUrls, sha256, writeBundle } = require('./bundle')
 const { validateManifest } = require('./validate')
 const { loadProfile } = require('./profiles')
 
@@ -83,4 +83,24 @@ test('writeBundle writes the seven contract files and a zip with the same name',
   const zip = fs.readFileSync(written.zip)
   for (const f of BUNDLE_FILES) assert.ok(zip.includes(Buffer.from(`graph-12-v1/${f}`)), f)
   assert.throws(() => writeBundle(root, 'graph-12-v2', { 'graph.stl': Buffer.from('') }), /missing .*graph\.svg/)
+})
+
+test('sessionUrls keeps Duo session URLs of this project, once each, in order', () => {
+  const project = 'https://gitlab.com/group/sub/showcase'
+  const a = `${project}/-/automate/agent-sessions/101`
+  const b = `${project}/-/automate/agent-sessions/202`
+  assert.deepStrictEqual(sessionUrls([a, b, a], project), { urls: [a, b], rejected: [] })
+  // Outside a pipeline there is no project URL: any GitLab agent session URL shape is kept.
+  assert.deepStrictEqual(sessionUrls([` ${a} `], undefined), { urls: [a], rejected: [] })
+  const others = [
+    'https://gitlab.com/other/showcase/-/automate/agent-sessions/7', // another project
+    `${project}/-/automate/agent-sessions/`, // no id
+    `${project}/-/automate/agent-sessions/12x`,
+    `${project}/-/issues/3`,
+    `http://gitlab.com/group/sub/showcase/-/automate/agent-sessions/5`, // not https
+    `${a} and more`,
+    ''
+  ]
+  assert.deepStrictEqual(sessionUrls(others, project), { urls: [], rejected: others.filter(Boolean) })
+  assert.deepStrictEqual(sessionUrls([`${project}/-/automate/agent-sessions/9`], `${project}/`).urls, [`${project}/-/automate/agent-sessions/9`])
 })

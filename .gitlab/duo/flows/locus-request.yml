@@ -190,7 +190,8 @@ prompts:
            with "Session: " and the session URL given below; call update_issue for issue n (it adds the label
            needs-info; change nothing else); then answer exactly: asked
         5. Otherwise call create_commit ONCE with branch "graph/n", start_branch = default_branch, commit message
-           "Request #n: spec, lock and default layout (attempt 1)", and three "create" actions. Each file is JSON
+           "Request #n: spec, lock and default layout (attempt 1)", a blank line, then the line "Locus-Session: "
+           followed by the session URL given below (the release reads it), and three "create" actions. Each file is JSON
            with 2-space indentation and a final newline, with the keys in exactly this order:
            - "requests/n/spec.json": {"schemaVersion": 3, "requestId": n, "graph": {"type": "polynomial",
              "coeffs": [a, b, c, d], "domain": {"min": <min>, "max": <max>}}, "mark": [<marks>],
@@ -261,8 +262,9 @@ prompts:
                change as little as possible.
            B5. Call create_commit ONCE with branch "graph/n" and one "update" action for "requests/n/layout.json"
                with the whole new file (JSON, 2-space indentation, the same key order, a final newline). Commit
-               message: "Attempt {{attempt}}: " and one plain sentence per change, naming the rule it fixes. Do not
-               set start_branch, author_name or author_email. Note the new commit id; it is now S.
+               message: "Attempt {{attempt}}: " and one plain sentence per change, naming the rule it fixes; then
+               a blank line, then the line "Locus-Session: " followed by the session URL given below (the release
+               reads it). Do not set start_branch, author_name or author_email. Note the new commit id; it is now S.
 
         C. READ S, expecting attempt {{attempt}} (S is sha from A when {{attempt}} is 1, else your new commit).
 

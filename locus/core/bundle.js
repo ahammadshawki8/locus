@@ -28,6 +28,29 @@ const nextVersion = (iid, tags) => {
   return { latest: artifactName(iid, top), next: top + 1 }
 }
 
+// A Duo flow's session URL is the project URL + /-/automate/agent-sessions/<id> (context:session_url, every v1 flow).
+const SESSION_URL = /^(https:\/\/[^\s/]+(?:\/[^\s/]+)+)\/-\/automate\/agent-sessions\/[1-9][0-9]*$/
+
+/**
+ * The manifest's agentSessions from the Locus-Session trailers of the agent commits that made this version.
+ * @param {string[]} values the trailer values, oldest commit first
+ * @param {string} [projectUrl] CI_PROJECT_URL: when set, a session of another project is rejected
+ * @returns {{ urls: string[], rejected: string[] }} valid URLs once each, in order; everything else
+ */
+const sessionUrls = (values, projectUrl) => {
+  const project = projectUrl && projectUrl.replace(/\/+$/, '')
+  const urls = []
+  const rejected = []
+  for (const raw of values) {
+    const value = raw.trim()
+    if (!value) continue
+    const m = SESSION_URL.exec(value)
+    if (!m || (project && m[1] !== project)) rejected.push(value)
+    else if (!urls.includes(value)) urls.push(value)
+  }
+  return { urls, rejected }
+}
+
 /** Why this bundle must not be built: a graph that failed touchcheck or a guard is never released. */
 const blockers = ({ report, guards }) => [
   ...(report.pass ? [] : [`touchcheck failed (attempt ${report.attempt}): no bundle for a graph that fails TL-1 to TL-5`]),
@@ -105,4 +128,4 @@ const writeBundle = (root, artifactId, files, modified) => {
   return { dir, zip }
 }
 
-module.exports = { BUNDLE_FILES, LIMITATIONS, artifactName, nextVersion, buildManifest, blockers, readmeText, sha256, writeBundle }
+module.exports = { BUNDLE_FILES, LIMITATIONS, artifactName, nextVersion, buildManifest, blockers, readmeText, sessionUrls, sha256, writeBundle }
