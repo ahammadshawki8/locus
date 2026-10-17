@@ -4,6 +4,55 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 17 Oct 2026 (a): the refusal-path request, MR !2 closed, labels, and the flow's trigger comment (Ashfaq)
+
+No change to `docs/contracts.md`, the touch rules, the profile or `remedies.json` (H7).
+
+1. **Gate 6 reply:** Ashfaq read the #5 requester's inbox: the Support Bot sent the thank-you and both agent notes
+   (16 Oct (o) item 7, now filled in).
+2. **MR !2 closed** (Ashfaq's go-ahead, 17 Oct, 05:22 UTC) with a note pointing to #5 / MR !3; the branch `graph/4`
+   and the MR stay as the record of the dropped run.
+3. **Labels:** the test bed had no labels at all, so the refuse step's `update_issue` (pinned to
+   `cannot-make-readable`) would have depended on GitLab creating a label for the service account, which is not
+   shown. With Ashfaq's go-ahead, Claude Code created the project labels `cannot-make-readable` and `needs-info`
+   (contracts §7) through the API as Ashfaq909. This is project setup, not an agent action.
+4. **Trigger comment:** the header of `.gitlab/duo/flows/locus-request.yml` said "NOT RUN YET" and "assign" for
+   Service Desk. It now says what ran: assign on an issue (#3), a mention on a Service Desk ticket (#5, because GitLab
+   refuses to assign the service account to a ticket), and that "work item created" has not run. Comment only;
+   `check.js` passes. The AI Catalog copy changes only when Ashfaq pastes the file again. The §6b agent table in
+   `projectLocus.md` names the mention trigger too.
+5. **Refusal-path request (chosen, not run yet; H3):** y = (x - 1)^2 on x from -0.5 to 2.5, marking the vertex and the
+   y-intercept. The vertex (1, 0) lies on the x-axis, so the curve touches the axis without crossing it. TL-1 treats
+   a tangent touch as lines running together (14 Oct, "A tangent touch is not a real meeting"), and it fails with 0 mm
+   at the touch point. The fixer's allowed fixes for TL-1 are rescale-x, rescale-y and hide-grid; none of them
+   moves the x-axis away from a point that lies on it, and labels (move-label, key-mode) are not lines. So **no
+   allowed layout can pass**, and the fixer should use all 3 attempts and then refuse. Checked locally with this
+   code (`cc643e1f` renderer, scratch scripts, not in the repo), requestId 6 (the test bed's next issue number; the
+   braille ID can change whether render succeeds, 16 Oct (n)):
+   - The CI path on a `requests/6/` folder as intake writes it (default layout): render passes; touchcheck fails,
+     TL-1 once at (36, 20) mm, exactly the vertex, measured 0, required 3.2, allowed fixes rescale-x, rescale-y,
+     hide-grid; plus 11 TL-2 results (both labels near lines), all with allowed fixes.
+   - 286 layouts (x scale 1 to 28 mm, y scale 0.5 to 100 mm, grid on and off): **no layout passes**; every one that
+     renders fails TL-1 with 0 mm at the vertex. 88 crash render ("mesh still has N unpaired edges"), almost all at
+     extreme scales.
+   - The practical range (x scale 8 to 20, y scale 4 to 32, grid on and off; inline and key mode; typical label
+     offsets; 129 distinct layouts): no layout passes; render crashes in 2 (x 12, y 6, grid on; key mode at x 16,
+     y 8, grid off).
+     A range of -1 to 3 gave the same picture, so the request keeps -0.5 to 2.5.
+   - **Known risk:** if the fixer picks one of the about 2% of layouts that crash render, the run ends BROKEN (a
+     note asking a person to look), not refused. That would be recorded as it happens, not re-run until it refuses.
+   - Why this is an honest refusal: it is an ordinary lesson graph (a perfect square, the parabola resting on the
+     x-axis), the failure is measured, and Locus's rules have no fix for it. It does not show that a learner could or
+     could not read such a plate; it shows that Locus refuses, says why, and releases nothing when its checks cannot
+     pass.
+   - Rejected: a TL-4 request (a requested point not on the graph) would refuse at once, but intake requests a mark
+     only when its point lies inside the range, so an honest request does not reach TL-4. A graph too tall for the
+     plate is not a sure refusal: the layout schema allows any positive scale, so reduce-scale can always make it fit.
+   - Route (Ashfaq): an ordinary issue, assigned to the service account (the trigger proven on #3).
+6. **`HANDOVER.md` draft** started (due 20 Oct, §15.4): where things are, what ran, what has not, flows and triggers,
+   Service Desk, CI variable names, flaky parts.
+7. S.3 Next item 12 (robust mesh) not started this session.
+
 ## 16 Oct 2026 (o): Gate 5 run 2 through Service Desk: which address works, a mention instead of assign, and a GitLab outage (Ashfaq ran it)
 
 No change to `docs/contracts.md`. Everything below was read from GitLab, git and the executor job logs after it
@@ -92,9 +141,13 @@ MR !2 is closed afterwards.
    certify that a learner can understand the graphic." line, the session); 17:20:05 session completed. About 8.5
    min from mention to pass. The agent's notes have no emoji or long dash; the only emoji on the ticket is GitLab's own
    "has started" message.
-7. **Not checked yet:** which emails reached the #5 requester's inbox (thank-you, and whether the two agent notes came
-   from the Support Bot), and whether that address has a GitLab account. Until Ashfaq reads that inbox, the Service
-   Desk reply to a requester is not shown (Gate 6 reply, H3). MR !2 is not closed yet.
+7. **Requester inbox (checked by Ashfaq on 17 Oct, reported by him):** the inbox that sent ticket #5 (the university
+   address) received the Support Bot's thank-you email and **both agent notes** (the intake note and the pass note)
+   **from the Support Bot**, as Service Desk emails. Read from GitLab the same day: #5 is `issue_type: ticket`,
+   confidential, author `support-bot`, with a Service Desk reply-to address set. So **a Service Desk requester gets the
+   agent's notes by email** in our account (Gate 6 reply). Not shown yet: the contracts §8 summary note with a page
+   link and download, because release and deploy do not exist yet. MR !2 was closed on 17 Oct (Ashfaq's go-ahead; see
+   17 Oct (a)).
 
 **What this proves and what it doesn't (H3):** Gate 5 has now run twice end to end (16 Oct (m) and this), and the
 second came in through Service Desk email and ran on a confidential ticket. It needed a person's mention, not an

@@ -1,13 +1,16 @@
 # locus-request: the intake agent, then the layout fixer, in ONE flow session (Gate 5, Ashfaq).
-# NOT RUN YET (rule H3). It follows the documented schema (locus/flows/check.js, checked by locus/flows/check.test.js);
-# docs/decisions.md 16 Oct 2026 (h) says why it is built this way and what is not proven yet.
+# Ran end to end twice in the test bed (docs/decisions.md 16 Oct 2026 (m) and (o)); the refusal path has not run yet
+# (rule H3). It follows the documented schema (locus/flows/check.js, checked by locus/flows/check.test.js);
+# docs/decisions.md 16 Oct 2026 (h) says why it is built this way.
 # Design: pipeline v2 (docs/decisions.md 15 Oct 2026 (b); docs/contracts.md sections 1, 4 and 7, D4, D7, D8). This
 # repo file is the source of truth; paste it into the AI Catalog unchanged.
 #
 # Triggers (set in the GitLab UI when the flow is enabled; a person's action is required for every one):
-#   - Work item created: a teacher or coordinator files the request from the issue template (label locus-request).
-#   - Assign: a person assigns a Service Desk issue, or a needs-info issue the teacher has answered, to the flow's
-#     service account.
+#   - Assign: a person assigns a request issue, or a needs-info issue the teacher has answered, to the flow's service
+#     account (ran on issue #3, 16 Oct (m)).
+#   - Mention: for a Service Desk ticket, a person mentions the flow's service account in one comment on the ticket.
+#     GitLab refuses to assign a service account to a ticket (ran on ticket #5, 16 Oct (o)).
+#   - Work item created: a teacher or coordinator files the request from the issue template (not run yet).
 # Claude Code never starts this flow (H6).
 #
 # Shape: intake > fixer_1 > fixer_2 > fixer_3 > refuse, and no route goes back. intake commits attempt 1 (the
