@@ -63,7 +63,7 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 
 **Next:**
 0. Ashfaq + Shawki: give the Showcase `main` our history (push the working repo's `main` over the organisers' README, or import into Shawki's project and add Ashfaq), so MRs and guard-scope work on GitLab (16 Oct (f)).
-1. Ashfaq: Gate 5 ran twice (16 Oct (m), (o)); the second came in by Service Desk email (ticket #5) and was started by a mention. The **refusal path ran** (issue #6, 17 Oct (b)). Re-paste `locus-request.yml` into the AI Catalog (header comment updated 17 Oct, twice; comment only). Possible prompt change: the refusal note's "what you could change" examples should depend on the failing rule (17 Oct (b)). Ask GitLab on Discord why `contact-project+` drops mail and why a service account cannot be assigned to a ticket. Credits still unread.
+1. Ashfaq: Gate 5 ran twice (16 Oct (m), (o)); the second came in by Service Desk email (ticket #5) and was started by a mention. The **refusal path ran** (issue #6, 17 Oct (b)). Flow re-pasted at `caa3a884` and the two Service Desk questions asked on Discord (17 Oct (c)). Gate 4: practitioner booked, not yet spoken to. Possible prompt change: the refusal note's "what you could change" examples should depend on the failing rule (17 Oct (b)). Still open: Credits page; Gate 5b (needs items 0 and a release tag from Shawki's side); issue template; S.3 item 12.
 13. Ashfaq + Shawki: who builds `auto-merge` (S.4 step 6; contracts D7). It sits between Ashfaq's MR and Shawki's release jobs.
 14. Ashfaq: finish `HANDOVER.md` (draft 17 Oct) by 20 Oct (§15.4).
 2. Shawki: Google Cloud + Cloud Run staging and production skeleton (Gate 6b, 17 Oct).
@@ -78,7 +78,7 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 10. Both: should each failing TL-2 / TL-3 result in `touchcheck-report.json` name the label it means (contracts §4 change)? The fixer now works it out from `at` and the plate geometry (16 Oct (h)).
 7. Shawki: answer the key-mode question in `docs/decisions.md` (16 Oct): with single-letter labels, is `key-mode` still a useful fix for TL-2 and TL-3?
 
-**Waiting on GitLab (Discord):** whether triggered flows use personal credits; which tools ambient flows get; whether flows can merge; Secret FP Detection and Breaking Change Resolution; why Service Desk mail to the `contact-project+` address creates no ticket; why a flow's service account cannot be assigned to a Service Desk ticket (16 Oct (o)).
+**Waiting on GitLab (Discord):** whether triggered flows use personal credits; which tools ambient flows get; whether flows can merge; Secret FP Detection and Breaking Change Resolution; why Service Desk mail to the `contact-project+` address creates no ticket; why a flow's service account cannot be assigned to a Service Desk ticket (16 Oct (o); both asked 17 Oct).
 
 ## S.4 Project flow, end to end (pipeline v2)
 

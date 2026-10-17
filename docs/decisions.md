@@ -4,6 +4,18 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 17 Oct 2026 (c): flow re-pasted, Discord questions asked, practitioner booked (reported by Ashfaq)
+
+No change to `docs/contracts.md`. All three are Ashfaq's report; none can be read from git.
+1. Ashfaq pasted `.gitlab/duo/flows/locus-request.yml` at `caa3a884` into the AI Catalog entry `locus-request` and
+   saved it; it is still enabled with `ai-locus-request-gitlab-ai-hackathon` and its triggers. The change was the
+   header comment only, so no run is needed to check it.
+2. Ashfaq asked GitLab on Discord why Service Desk mail to the `contact-project+` address creates no ticket, and why
+   a flow's service account cannot be assigned to a Service Desk ticket (16 Oct (o)). No answer yet.
+3. **Gate 4:** a practitioner is booked; the conversation has not happened yet. Notes go in `docs/` afterwards,
+   with no personal data (§15.4); the open questions for them are in 14 Oct (TL-1 shallow crossings, braille table).
+   Not done: the Credits page after the 17 Oct run; the message to Shawki about S.3 Next items 0, 6 and 13.
+
 ## 17 Oct 2026 (b): the refusal path ran: 3 attempts, then cannot-make-readable, nothing released (Ashfaq ran it)
 
 No change to `docs/contracts.md`. Every step below was read from GitLab, the job logs and git after it happened;
