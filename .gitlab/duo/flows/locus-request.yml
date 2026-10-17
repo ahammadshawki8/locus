@@ -1,6 +1,7 @@
 # locus-request: the intake agent, then the layout fixer, in ONE flow session (Gate 5, Ashfaq).
-# Ran end to end twice in the test bed (docs/decisions.md 16 Oct 2026 (m) and (o)); the refusal path has not run yet
-# (rule H3). It follows the documented schema (locus/flows/check.js, checked by locus/flows/check.test.js);
+# Ran in the test bed: two passes (docs/decisions.md 16 Oct 2026 (m) and (o)) and one refusal after 3 attempts
+# (17 Oct 2026 (b)); the needs-info question has not run yet (rule H3). It follows the documented schema
+# (locus/flows/check.js, checked by locus/flows/check.test.js);
 # docs/decisions.md 16 Oct 2026 (h) says why it is built this way.
 # Design: pipeline v2 (docs/decisions.md 15 Oct 2026 (b); docs/contracts.md sections 1, 4 and 7, D4, D7, D8). This
 # repo file is the source of truth; paste it into the AI Catalog unchanged.

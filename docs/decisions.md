@@ -4,6 +4,56 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 17 Oct 2026 (b): the refusal path ran: 3 attempts, then cannot-make-readable, nothing released (Ashfaq ran it)
+
+No change to `docs/contracts.md`. Every step below was read from GitLab, the job logs and git after it happened;
+Claude Code started no flow and changed nothing in the run (H6). The request is the one chosen in 17 Oct (a) item 5.
+
+1. 05:55:31 UTC Ashfaq filed issue **#6** "Tactile graph: parabola touching the axis" ("Please make a tactile graph
+   of y = (x - 1)^2 for x from -0.5 to 2.5. Please mark the lowest point and where the curve crosses the y-axis.").
+   05:56:56 he assigned it to `ai-locus-request-gitlab-ai-hackathon`;
+   [session 9633187](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/automate/agent-sessions/9633187)
+   started at once, "triggered by @Ashfaq909". (Whether Ashfaq had re-pasted the flow after `6f26cd70` does not
+   matter here: that change was a comment.)
+2. **Intake** (05:57:46): commit `bfb7e92e` on `graph/6` from `820fd236`, author and committer `locus-request`
+   (service-account email), `Locus-Session` trailer; `spec.json` coeffs [0, 1, -2, 1], domain -0.5 to 2.5, marks
+   vertex and y-intercept (exactly the spec checked locally), the matching lock, the default layout, no other file.
+   MR !4 at 05:57:51; the teacher note at 05:57:55 read the request right ("the vertex, at x = 1, y = 0, where it
+   touches the x-axis").
+3. **Attempt 1** (MR pipeline 2957962126; push pipeline 2957962078 also ran): render passed, guards passed,
+   touchcheck failed at 05:58:59, `LOCUS_REPORT` `requestId` 6, `attempt` 1: TL-1 at (36, 20) mm, the vertex,
+   measured 0, required 3.2; 11 TL-2. Exactly the local result of 17 Oct (a).
+4. **Attempt 2** (commit `cdb170f5`, 06:00:47, layout.json only): `yScaleMm` 8 to 30 (TL-1), grid off (TL-1, TL-2),
+   vertex label [0, 16.5], y-intercept label [-11, -8] (TL-2); one sentence per change with its rule, trailer.
+   MR pipeline 2957964721: touchcheck failed at 06:02:03, `attempt` 2: TL-1 at (36, 20) 0 mm, and TL-5 (the
+   y-axis 3 mm past the top edge, at y scale 30). Every TL-2 was cleared.
+5. **Attempt 3** (commit `618f12d7`, 06:02:58, layout.json only): `yScaleMm` 30 to 26 (TL-5), `xScaleMm` 16 to 14
+   (TL-1). MR pipeline 2957967437: touchcheck failed at 06:04:11, `attempt` 3: **only TL-1, at (33, 20) mm, the
+   vertex, 0 mm**; TL-2 to TL-5 passed. A local render and touchcheck of `618f12d7`'s files gives the same result.
+   guard-scope: "3 commit(s) on graph/6 since 820fd236: 3 by agents, 0 by people".
+6. **Refuse:** 06:04:28 the agent added `cannot-make-readable` to #6 (the label created in 17 Oct (a) item 3);
+   06:04:34 the refusal note; 06:04:36 session completed. About 7.5 min from assign to refusal. The note says
+   nothing will be printed or released, names TL-1 with its plain message, where it is on the plate, 0 mm measured and
+   3.2 required, "after attempt 3, the last of 3 attempts checked", that TL-2 to TL-5 passed (true, see 5), and why:
+   the curve "only touches the x-axis at its lowest point ... no change to the layout can leave a clear gap"; it links
+   MR !4 and ends with the limitations line and the session. No emoji or long dash in the agent's text; the only
+   emoji on the issue is GitLab's own "has started" message.
+7. `bundle` was skipped in every pipeline; no release exists. MR !4 is open, not merged.
+
+**What the agent got wrong or loose (H3):** its "what you could change" list starts with the prompt's generic
+examples, "use a shorter x range, ask for fewer marked points", which would not help here (any range containing x = 1
+touches the axis, and the touch is in the curve, not in a mark). Its third suggestion, a parabola that crosses the
+axis or stays clear of it, is the one that works. The refuse prompt gives those examples, so the prompt is the cause;
+whether to make that list depend on the failing rule is a prompt change for later.
+
+**What this proves and what it doesn't:** the refusal path runs end to end in our account: a real request the touch
+rules cannot pass, three attempts by the agent alone (the third fixed everything except the impossible part), then the
+label, a plain explanation, and no bundle or release. It does not show that a learner could or could not read such a
+plate: the refusal comes from Locus's own rule that a tangent touch is lines running together (14 Oct). Routes in
+`locus-request` that have now run: intake to fixer_1, fail to fixer_2, a pass at fixer_2 (#3, #5), fail to fixer_3,
+and fixer_3 to refuse (#6). Not run yet: `asked` (needs-info), `exists`, a pass at attempt 1 or 3, an immediate
+refuse (a failing result with no allowed fix), and BROKEN.
+
 ## 17 Oct 2026 (a): the refusal-path request, MR !2 closed, labels, and the flow's trigger comment (Ashfaq)
 
 No change to `docs/contracts.md`, the touch rules, the profile or `remedies.json` (H7).
@@ -21,7 +71,7 @@ No change to `docs/contracts.md`, the touch rules, the profile or `remedies.json
    refuses to assign the service account to a ticket), and that "work item created" has not run. Comment only;
    `check.js` passes. The AI Catalog copy changes only when Ashfaq pastes the file again. The §6b agent table in
    `projectLocus.md` names the mention trigger too.
-5. **Refusal-path request (chosen, not run yet; H3):** y = (x - 1)^2 on x from -0.5 to 2.5, marking the vertex and the
+5. **Refusal-path request (chosen here; it ran the same day, 17 Oct (b)):** y = (x - 1)^2 on x from -0.5 to 2.5, marking the vertex and the
    y-intercept. The vertex (1, 0) lies on the x-axis, so the curve touches the axis without crossing it. TL-1 treats
    a tangent touch as lines running together (14 Oct, "A tangent touch is not a real meeting"), and it fails with 0 mm
    at the touch point. The fixer's allowed fixes for TL-1 are rescale-x, rescale-y and hide-grid; none of them

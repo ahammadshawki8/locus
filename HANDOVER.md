@@ -27,13 +27,17 @@ Each line links to the `docs/decisions.md` entry that holds the evidence.
     green, bundle `graph-3-v1` (16 Oct (m)).
   - Service Desk ticket #5, started by a **mention**, MR !3, session 9616199: same shape, bundle `graph-5-v1`, and the
     requester's inbox got the Support Bot thank-you and both agent notes (16 Oct (o) item 7).
+  - Issue #6, started by **assign**, MR !4, session 9633187: the **refusal path**. y = (x - 1)^2 touches the x-axis
+    at its vertex, which TL-1 can never pass; attempts 1 to 3 red, then label `cannot-make-readable` and a plain
+    refusal note, no bundle (17 Oct (b)). Use this request again whenever a refusal must be shown.
 - **guard-scope** reads the commit author: agent commits carry the flow's display name (`locus-request`), 16 Oct (l).
 - **agentSessions** in the manifest come from the `Locus-Session:` trailer on agent commits (16 Oct (j), (m)).
 - **locus-probe** (16 Oct (l)): a flow can read a job log, commit and delete a file.
 
 ## 3. What has not run yet
 
-- The refusal path (`cannot-make-readable`): both runs passed on attempt 2. See S.3 for the planned request.
+- In `locus-request`: the needs-info question, the `exists` answer, a pass on attempt 1 or 3, an immediate refusal
+  (a rule with no allowed fix) and the BROKEN note (17 Oct (b) lists the routes that ran).
 - `locus-ops` (impact reviewer, regression detective): written and schema-checked, never created in the AI Catalog.
 - Not built: `auto-merge`, `publish-package`, `release`, `deploy-staging`, `validate-staging`, `promote-production`,
   `post-deploy-smoke`, `reply-teacher`, the release guard, `license-check`. No graph has been merged or released, so
