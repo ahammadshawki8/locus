@@ -49,25 +49,25 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 
 ## S.3 Status board (update at the end of every session)
 
-**Last updated: 16 Oct 2026 (Shawki).**
+**Last updated: 19 Oct 2026 (Shawki).**
 
 | Area | State |
 |---|---|
-| Onboarding | Shawki is provisioned. **Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) are NOT provisioned** (GitLab, 16 Oct): each must confirm or resubmit the form, or send GitLab the time they submitted. GitLab adds them to Showcase once provisioned |
+| Onboarding | **Done (19 Oct).** Shawki, Ashfaq (`ashfaq909`) and Nourin (`nourin.richi.2026`) are all provisioned and together in one hackathon group. Each was first given a separate workspace; the team works in one shared project |
 | GitLab project | `Transcend October 2026 / ahammadshawki8 / Showcase` exists (role: Developer+). Foundational flows enabled: Code Review, Fix CI/CD Pipeline, Developer, Convert to CI/CD, Resolve SAST Vulnerability, SAST False Positive Detection. Code not imported yet |
-| Credits | Fix from GitLab: set the Transcend group as the default Duo group at gitlab.com/-/profile/preferences, then retry. Triggered flows bill a namespace pool of unknown size |
+| Credits | **Working (19 Oct):** Duo credits are available to the team. Triggered flows bill a namespace pool of unknown size, so Gate 5 must still record how much one session uses |
 | Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
-| Prints | Calibration piece printed and judged good. Prototype plates A, B and C sent to print on 16 Oct (`tools/prints/`). About 500 tk budget |
+| Prints | **All 4 prototype prints are done (19 Oct):** calibration piece (judged good) and plates A, B and C (`tools/prints/`). No more printing (H9). Touch results for A/B/C still to record |
 | Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. No product code yet |
 | Hosting | Google Cloud not set up yet (Shawki, Gate 6b, 17 Oct) |
 
 **Next:**
-1. Gate 5 (16 Oct): a person files an issue, then one `locus-request` session runs spec → red → fix → green. Runs in Shawki's account (Ashfaq pairs on a screen share) until Ashfaq is provisioned. Record credit use and any tool that fails.
-2. Shawki: set the default Duo group; enable Secret False Positive Detection and Breaking Change Resolution (AI > Flows).
-3. Ashfaq and Nourin: fix the GitLab registration today.
-4. Shawki: Google Cloud + Cloud Run staging and production skeleton (Gate 6b, 17 Oct).
+1. Gate 5 (overdue, planned 16 Oct): a person files an issue, then one `locus-request` session runs spec → red → fix → green in the shared project. Ashfaq can now run it in his own account. Record credit use and any tool that fails.
+2. Shawki: enable Secret False Positive Detection and Breaking Change Resolution (AI > Flows), if not done yet.
+3. Everyone: confirm the shared project path and each member's role (Developer + AI) and record it here; import the code.
+4. Shawki: Google Cloud + Cloud Run staging and production skeleton (Gate 6b, overdue, planned 17 Oct).
 5. Shawki: generate `fixtures/bundle-sample/graph-0-v1/` from print B (contracts D9).
-6. Record the calibration touch results in `docs/decisions.md` (which gap felt like two lines; 0.5 or 0.8 mm braille dots).
+6. Record the touch results in `docs/decisions.md`: calibration (which gap felt like two lines; 0.5 or 0.8 mm braille dots) and plates A/B/C (does A's merged curve and grid at the vertex feel like one line; does B feel clean; can the braille IDs 1, 2, 3 be read).
 7. Decide Nourin's role.
 
 **Answered by GitLab (16 Oct, `docs/decisions.md`):** CI flows get `run_command`, `edit_file` and `read_file`; flows can merge through the API (we keep the `auto-merge` CI job); the extra foundational flows are available. **Still unknown:** the size of the namespace credit pool for triggered flows.

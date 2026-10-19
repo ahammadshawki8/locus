@@ -4,6 +4,16 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 19 Oct 2026: team provisioned, Duo credits working, plates printed
+
+- All three members (Shawki, Ashfaq, Nourin) are now in one hackathon group, after each was first given a separate workspace on 16 Oct.
+- Duo credits now work for the team. The 16 Oct "No credits remain" problem is closed.
+- Consequence: Gate 5 no longer has to run in Shawki's account. Ashfaq runs it in the shared project with his own account.
+- Prototype plates A, B and C are printed, so all 4 prototype prints exist (H9). Their touch results go in a later entry.
+- Still unknown: the size of the namespace credit pool for triggered flows. Gate 5 records the use of one session.
+
+---
+
 ## 16 Oct 2026: GitLab's answers to our follow-up questions (Discord)
 
 | Question | GitLab's answer | What we do |
