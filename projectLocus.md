@@ -58,10 +58,17 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 | Credits | **Working (19 Oct):** Duo credits are available to the team. Triggered flows bill a namespace pool of unknown size, so Gate 5 must still record how much one session uses |
 | Design | Pipeline v2 (S.4) adopted after checking the Duo docs (`docs/decisions.md`, 15 Oct b). Contracts v1 final on 16 Oct; Ashfaq's blocker window closes 17 Oct, 18:00 GMT+6 |
 | Prints | **All 4 prototype prints are done (19 Oct):** calibration piece (judged good) and plates A, B and C (`tools/prints/`). No more printing (H9). Touch results for A/B/C still to record |
-| Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. No product code yet |
+| Code | Working repo: GitHub `ahammadshawki8/locus` (private). Contains the plan, docs, `tools/calibration/` and `tools/prints/`. **Ashfaq reports (19 Oct) that most of his assigned tasks are done**, but none of it is pushed yet, so it is unverified (H3). Handover to Shawki: **20 Oct morning** |
 | Hosting | Google Cloud not set up yet (Shawki, Gate 6b, 17 Oct) |
 
 **Next:**
+0. **Handover, 20 Oct morning (Ashfaq to Shawki).** Before the call, Ashfaq pushes all his work (own account, H1) and the code is imported into the shared GitLab project. On the call, Shawki checks each item by running it, not by reading it:
+   - Generator: rebuilds prints A, B and C from their spec and layout files and the CI test matches the STLs (D3).
+   - touchcheck: plate A fails TL-1, TL-2 and TL-5; plate B passes; the overlay and the `LOCUS_REPORT` line appear.
+   - Duo: has any `locus-request` session run (Gate 5)? Session link, credits used, failing tools. If not, run it together on the call.
+   - Which pipeline jobs exist and have run green in GitLab.
+   - `HANDOVER.md` (§15.4 list) and the open items in his column, each marked done, flaky or not started.
+   - Results go into this board and `docs/decisions.md` the same day.
 1. Gate 5 (overdue, planned 16 Oct): a person files an issue, then one `locus-request` session runs spec → red → fix → green in the shared project. Ashfaq can now run it in his own account. Record credit use and any tool that fails.
 2. Shawki: enable Secret False Positive Detection and Breaking Change Resolution (AI > Flows), if not done yet.
 3. Everyone: confirm the shared project path and each member's role (Developer + AI) and record it here; import the code.
