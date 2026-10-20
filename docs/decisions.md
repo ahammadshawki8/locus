@@ -4,6 +4,79 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (j): touch results of the four prototype prints (Shawki)
+
+**What this is:** one sighted team member (Shawki) feeling the prints, eyes open or closed as they chose; **not** a test
+with a blind or low-vision reader, and not a claim that learners can read the graphs (H3). Answers as given:
+
+| Piece | Question | Answer |
+|---|---|---|
+| Calibration, row A (line pairs, gaps 2.0 / 3.2 / 4.0 / 6.4 / 9.5 mm) | First gap that feels like two separate lines | **4.0 mm** (2.0 and 3.2 felt like one) |
+| Calibration, row B (widths 0.8 / 1.0 / 1.2 / 1.6 / 2.0 mm) | Thinnest line that is easy to follow | **1.2 mm** |
+| Calibration, braille LOCUS at 0.5 and 0.8 mm | Which height is clearer | **0.8 mm** |
+| Plate A (default layout, touchcheck fails) | Curve and grid merge into one ridge at the vertex | **Yes** |
+| Plate A | A label is hard to find or confusing | **Yes** |
+| Plate B (fixed layout, passes) | Trace the whole curve | **Yes** |
+| Plate B | Find the marked points and their labels | **Yes** |
+| Plate C (cubic, passes) | Feel both turning points | **Yes** |
+| All plates | Braille ID and orientation triangle can be felt | **Yes** |
+| All plates | Axes feel different from the curve | **Yes** |
+| All plates | Anything rough, sharp or broken | **No** |
+
+**What it means:**
+1. **Agrees with the design:** braille dots 0.8 mm high (profile `fdm-handheld-v1`), curve 1.2 mm wide, axes lower and
+   thinner than the curve, braille ID and triangle. Plate A fails by touch where touchcheck said it fails (TL-1 at the
+   vertex, TL-2 at a label); plates B and C, which pass touchcheck, also pass this check.
+2. **Against the TL-1 value:** two long parallel lines felt separate only from 4.0 mm, while TL-1 asks for 3.2 mm
+   (published guidance). Plate B, whose closest gap is 3.4 mm, still traced well: a curve passing near an axis over a
+   short stretch is easier than two long parallel lines.
+3. **Decision: keep 3.2 mm** until after judging. Raising it now would fail graph-2-v1 and graph-3-v1 on one sighted
+   person's check, three days before the freeze. The README states the finding as a limitation and names a stricter
+   TL-1 for long parallel lines as the next step. Calibration Gate 7b: results recorded.
+
+## 21 Oct 2026 (i): feature freeze; finish, polish, show (Shawki)
+
+Shawki's decision: no new features. The video (under 3 minutes, plain words, story first) is what wins; the README
+backs it with links. From now on only finishing, polishing for the camera, and the must-dos.
+1. **Not built, and stays unbuilt:** the release guard (Gate 5c). The README calls it planned, never done (H3).
+2. **Not run:** the regression detective (built and tested locally, never run on GitLab). The impact reviewer's real
+   run on MR !9 is the "an agent protects shipped graphs" evidence. MR !9 is closed, not merged.
+3. **Left to do:** touch results for the four prototype prints; camera polish of the graph page (no new behaviour);
+   tidy the team project; export session evidence to `docs/evidence/`; README; the video with a fresh run where
+   Nourin is the teacher (Shawki, when filming); `JUDGING_FREEZE` and all triggers off right after submitting.
+4. Tier 2 (T2.1 to T2.8) is dropped.
+
+## 21 Oct 2026 (h): Gate 5b, first half: the impact reviewer ran on a person's MR (Shawki)
+
+1. **The person's change:** Shawki, in GitLab's web editor, removed the tick-skipping guards in `locus/core/scene.js`
+   (`Simplify ticks: draw a tick at every unit`) on branch `simplify-ticks` and opened MR !9. Claude Code found the
+   seed with a local `locus recheck --impact` against the two real release tags and wrote the steps; it did not push
+   the change or start any flow (H6).
+2. **Pipelines:** MR pipeline 2969300647 failed at `library-impact` (`LOCUS_IMPACT`: graph-2-v1 TL-1 3 mm at (85.5,
+   24.4); graph-3-v1 TL-1 3.1 mm at (12, 30.1) and 0.8 mm at (16.4, 43.5); 3.2 mm needed), and at touchcheck and
+   locus-test. The branch pipeline 2969300111 failed too.
+3. **locus-ops started by itself** on both failed pipelines (trigger: pipeline events, failed): sessions 2969311709
+   (43 s, the branch pipeline: no MR, so triage ends) and 2969312152 (158 s). The second posted the impact review on
+   MR !9 as `locus-ops`: the two graphs and three failures with the numbers above, the cause read from the diff ("my
+   reading of the diff, not a measurement"), the developer's two choices (fix the MR, or merge and re-layout each
+   graph as v(n+1)), the job log link and the limitations line. Before anything was merged.
+4. Not yet run: the regression detective (merge anyway, library-recheck fails on main, bisect, revert MR).
+
+## 21 Oct 2026 (g): second request, hands-off from the email to the reply, session finished (Shawki)
+
+Read from GitLab and Shawki's inbox; nobody acted after the email (H3).
+1. Email (the cubic of print C, y = 0.5x^3 - 3x^2 + 4.5x + 2, x from -0.1 to 4, both turning points and the y-intercept)
+   to the "Email a new issue" address with the `/assign` line: issue #3.
+2. Session 9777991 (workload 2969233552, 20:09:54 to 20:19:49, success). Intake committed attempt 1 (`39a33344`) and
+   opened MR !8: pipeline 2969236015 **failed** at touchcheck in 88 s (locus-test no longer runs on graph MRs). The
+   fixer committed attempt 2 (`74130cd5`): pipeline 2969246084 **passed** (296 s: render took 178 s this time, against
+   47 s for attempt 1). auto-merge set the MR to merge; GitLab merged it at 20:19.
+3. The fixer's **pass note** arrived by email ("Your tactile graph is ready to print.", what changed and why, the
+   MR link, the limitations line, the session link). Its zip and STL links download signed out (HTTP 200).
+4. Main pipeline 2969261192 passed every job with no retry: release **`graph-3-v1`**, staging, validation, production,
+   smoke, reply-teacher; issue #3 closed. The site lists graph-2-v1 and graph-3-v1; both pages and STLs load.
+5. Open: render time varies (47 s to 178 s on the same request); if a demo session runs near its budget, look there.
+
 ## 21 Oct 2026 (f): the locus-request session on #2 timed out while waiting; graph MR pipelines made shorter (Shawki)
 
 1. **What GitLab shows:** session 9772083 "Session failed: Session did not report a final status before its pipeline
