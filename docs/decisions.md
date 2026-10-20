@@ -4,6 +4,20 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (o): spoken maths on the Request page; no second AI (Shawki)
+
+1. **Found by Shawki:** voice typing wrote words ("Y equals to oh point 5X square minus two X + 5... minus 0.524.5"),
+   so the drafted email had no function, no range and no points; and the draft did not refresh from voice input.
+2. **Fixed** (`locus/site/assets/hud.js`, `spokenMaths`): spoken maths becomes written maths (equals, minus, plus,
+   point, "oh", number words, square, cube, "to the power of"), and "-0.524.5" (a speech engine hearing "to" as "2"
+   between two decimals) is read as "-0.5 to 4.5". The same rules apply to typed words. Voice results now refresh the
+   draft directly. Checked on Shawki's exact sentence: Function y = 0.5x^2 - 2x + 5, x range from -0.5 to 4.5, points:
+   the lowest point and where the curve crosses the y-axis.
+3. **No Groq (or other) AI on the page:** Shawki offered a free Groq key. Not used: a static site cannot keep a key
+   secret (H8), a key-holding server would be a new public endpoint to protect five days before the freeze, and a
+   second AI vendor blurs the story that GitLab Duo is the agent that understands the teacher. The draft stays rule
+   based; the Duo intake agent reads the email and asks one question when it must.
+
 ## 21 Oct 2026 (n): Print again goes through Locus to the school's print shop (Shawki)
 
 Shawki's call: a teacher never types a print shop address; the school sets it once (`PRINT_ORDER_TO`).

@@ -94,6 +94,27 @@
     reprint.querySelector('[data-reprint-mail]').addEventListener('click', () => send(false))
   }
 
+  // Spoken maths to written maths, for voice typing and for a request written in words: "Y equals oh point 5X square
+  // minus two X plus 5" becomes "y = 0.5x^2 - 2x + 5". Deterministic rules, no AI: the GitLab Duo intake agent does the
+  // real reading of the email, and asks one question when something is unclear.
+  const NUMBER_WORDS = { zero: 0, oh: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 }
+  const spokenMaths = (text) => {
+    let t = ` ${text} `
+    t = t.replace(/\b(?:is equal to|is equals to|equals to|equal to|equals)\b/gi, '=')
+    t = t.replace(/\b(zero|oh|one|two|three|four|five|six|seven|eight|nine|ten)\b/gi, (w) => NUMBER_WORDS[w.toLowerCase()])
+    t = t.replace(/(\d*)\s*\bpoint\s*(\d+)/gi, (_, a, b) => `${a || '0'}.${b}`)
+    t = t.replace(/\bminus\s*/gi, '-').replace(/\bplus\b/gi, '+').replace(/\bnegative\s*/gi, '-')
+    t = t.replace(/\s*\bto the power of\s*(\d)/gi, '^$1')
+    t = t.replace(/\s*\b(?:squared|square)\b/gi, '^2').replace(/\s*\b(?:cubed|cube)\b/gi, '^3')
+    t = t.replace(/(\d)\s*([XY])\b/g, (_, d, c) => d + c.toLowerCase()).replace(/\b([XY])\b/g, (c) => c.toLowerCase())
+    t = t.replace(/(\d) x\b/g, '$1x') // "3 x" said as "three x" is the term 3x
+    // A speech engine can hear "to" as "2" between two decimals: "-0.524.5" was said as "-0.5 to 4.5".
+    t = t.replace(/(-?\d+\.\d)2(\d+(?:\.\d+)?)\b/g, '$1 to $2')
+    // A minus between two terms reads as a binary minus: "x^2 -2x" is "x^2 - 2x" (but "= -0.5" stays as it is).
+    t = t.replace(/([\dx])\s+-(?=[\dx])/g, '$1 - ')
+    return t.replace(/\s+/g, ' ').trim()
+  }
+
   // Voice typing (Request page): the browser's own speech recognition, shown only where the browser has it. It keeps
   // listening through pauses (browsers end a session after a few silent seconds) until the teacher presses stop, and
   // says in plain words why when it cannot listen at all.
@@ -132,9 +153,10 @@
           if (e.results[i].isFinal) finalText += e.results[i][0].transcript
           else interim += e.results[i][0].transcript
         }
-        if (finalText) base = `${base}${base && !/\s$/.test(base) ? ' ' : ''}${finalText.trim()}`
+        if (finalText) base = `${base}${base && !/\s$/.test(base) ? ' ' : ''}${spokenMaths(finalText.trim())}`
         note.value = interim ? `${base}${base ? ' ' : ''}${interim}` : base
         note.dispatchEvent(new Event('input', { bubbles: true }))
+        if (window.locusDraft) window.locusDraft()
         quickEnds = 0
       }
       rec.onerror = (e) => {
@@ -202,7 +224,7 @@
     // A light reading of the teacher's words, only to give the email a clear shape. The GitLab Duo intake agent does
     // the real understanding, and asks one question when something is missing.
     const read = (text) => {
-      const t = text.replace(/\s+/g, ' ').trim()
+      const t = spokenMaths(text.replace(/\s+/g, ' ').trim())
       const fn = /\by\s*=\s*[-+0-9.x^ ()*/]+/i.exec(t)
       const range = /x\s*(?:from|between|=)\s*(-?[\d.]+)\s*(?:to|and|\.\.|,)\s*(-?[\d.]+)/i.exec(t)
       const points = []
@@ -211,7 +233,8 @@
       if (/turning point/i.test(t)) points.push('the turning points')
       if (/y-?\s?axis|y-?\s?intercept/i.test(t)) points.push('where the curve crosses the y-axis')
       if (/x-?\s?axis|x-?\s?intercept|roots?|zeros?/i.test(t)) points.push('where the curve crosses the x-axis')
-      return { fn: fn && fn[0].trim().replace(/[ .,]+$/, ''), range: range && [range[1], range[2]], points }
+      const num = (v) => v.replace(/\.+$/, '') // "4.5." at the end of a sentence is 4.5
+      return { fn: fn && fn[0].trim().replace(/[ .,]+$/, ''), range: range && [num(range[1]), num(range[2])], points }
     }
     const draft = () => {
       const r = read($('note').value)
@@ -231,6 +254,8 @@
       return d
     }
     form.addEventListener('input', update)
+    form.addEventListener('change', update)
+    window.locusDraft = update // voice typing calls it directly after each result
     update()
     const send = (gmail) => {
       const to = $('to').value.trim()
