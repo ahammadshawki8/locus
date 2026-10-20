@@ -4,6 +4,42 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 20 Oct 2026 (d): email in, print files back by email: the pass note carries the download links (Ashfaq)
+
+No change to `docs/contracts.md`, the touch rules, the profile or `remedies.json`. Not run on GitLab yet (H3).
+Ashfaq's goal for the demo: a teacher sends one email and gets the print-ready files back by email. Everything up to
+a passing bundle already ran (#5, 16 Oct (o)); the missing part was getting the files to the requester.
+
+1. **The pass note now starts with the files** (`locus-request.yml` fixer step D, tested in `locus/flows/check.test.js`):
+   "Your tactile graph is ready to print.", a link to the whole bundle zip ("print at 100% scale"), a link to the STL
+   alone, "Checks passed: TL-1 to TL-5 (after k attempt(s))" and "Braille ID on the plate: G<n>"; then what changed,
+   the MR, the limitations line and the session. The intake note now says a download link follows when the checks pass.
+   Service Desk emails every note on a ticket to the requester (16 Oct (o) item 7), so the email carries the links.
+2. **The links** are the bundle job's artifacts, read through the API by the MR pipeline's ref:
+   `https://gitlab.com/api/v4/projects/<project id>/jobs/artifacts/refs%2Fmerge-requests%2F<MR iid>%2Fhead/raw/out/bundle/graph-<n>-v1.zip?job=bundle`
+   (and `.../graph-<n>-v1/graph.stl?job=bundle`). The agent builds them from the project id, the MR iid and the issue
+   number; it has no tool that lists a pipeline's jobs, so a job-id link is not possible. **Read without signing in
+   on 20 Oct:** graph-5 (MR !3) zip 200, 190429 bytes, holding the 7 contract files with manifest `graph-5-v1`; its STL
+   200, 832484 bytes; graph-3 (MR !1) zip 200, 169493 bytes, STL 200, 749584 bytes. The same URL by branch name
+   (`graph%2F5`) is 404, because a branch with an open MR runs MR pipelines only (`workflow:rules`). No new job and no
+   token (H8).
+3. **Limits (H3):** the version is always `v1` here, because `bundle` counts release tags and no release job exists;
+   once Shawki's release job makes tags, the reply should link the release instead (contracts §8, `reply-teacher`).
+   The bundle artifacts expire 30 days after their pipeline, so re-run the demo around 25 Oct (Part VII) to keep them
+   through judging. The MR is not merged, released or deployed: S.4 steps 6 to 8 stay Shawki's (and item 13).
+4. **Two ways in by email:**
+   - **Service Desk (ran, #5):** any address mails the project's `incoming+...-issue-@incoming.gitlab.com` address; a
+     ticket appears and one person comments `@ai-locus-request-gitlab-ai-hackathon please make this graph.` The notes,
+     with the links, come back from the Support Bot.
+   - **"Email a new issue" (not run yet):** a project member mails their personal address (Issues page, "Email a new
+     issue to this project"). GitLab's [docs](https://docs.gitlab.com/user/project/issues/create_issues/) say the issue
+     is created "with your user as the author" and "You can use Markdown and quick actions", so a body that ends with
+     `/assign @ai-locus-request-gitlab-ai-hackathon` would assign the bot by that person's own action, with no comment
+     needed. Not shown yet: that the quick action is applied and fires the assign trigger. The notes come back as
+     GitLab notification emails (as for #4, 16 Oct (o)). The address holds a personal token: never write it in the
+     repo, a commit or a log (H8).
+5. **Ashfaq must paste `locus-request.yml` into the AI Catalog again** (this and 20 Oct (b) item 3 together).
+
 ## 20 Oct 2026 (c): GitLab's answers to Shawki's Discord questions: team access, credits, CI tools, merging (reported by Ashfaq)
 
 No change to `docs/contracts.md` (H5). Shawki asked these on Discord; Ashfaq pasted the thread on 20 Oct. The message

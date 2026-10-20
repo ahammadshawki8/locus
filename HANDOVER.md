@@ -111,13 +111,20 @@ Local, from a fresh clone (Node 20 or later):
 2. `npm run locus -- examples/projectile.json`, then `npm run locus -- touchcheck examples/projectile.json`: read the
    `LOCUS_REPORT` line and open `out/projectile/overlay.svg`.
 
-On GitLab (needs Developer access to the project where `locus-request` is enabled; today only the test bed):
+On GitLab (needs Developer access to the project where `locus-request` is enabled; today only the test bed). This is
+the demo: one email in, the print files back by email (`docs/decisions.md` 20 Oct (d)).
 1. Email a request (one polynomial, its x range, the points to mark) from any mail account to the project's
    `incoming+...` address. A confidential ticket appears and the sender gets the Support Bot's thank-you.
+   Or, as a project member, mail your personal "Email a new issue" address (Issues page) with
+   `/assign @ai-locus-request-gitlab-ai-hackathon` as the last line of the body; then skip step 2 (not run yet).
+   That address holds a personal token: never paste it into the repo or a log (H8).
 2. On the ticket, comment `@ai-locus-request-gitlab-ai-hackathon please make this graph.` A session starts.
 3. Watch MR `graph/<iid>`: attempt 1 is the default layout; the fixer commits until touchcheck passes (at most 3), or
-   refuses with `cannot-make-readable`. Read the agent's notes on the ticket and in the sender's inbox.
-4. Never fix anything by hand during a run (H6). Record what happened in `docs/decisions.md`, read from GitLab.
+   refuses with `cannot-make-readable`.
+4. The pass note, emailed to the sender, starts "Your tactile graph is ready to print." with two links that work
+   without signing in: the whole bundle (zip) and the STL alone, plus the checks and the braille ID. Open both links
+   once from a signed-out browser.
+5. Never fix anything by hand during a run (H6). Record what happened in `docs/decisions.md`, read from GitLab.
 
 ## 10. Answers from GitLab so far
 
