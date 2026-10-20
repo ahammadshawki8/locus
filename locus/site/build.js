@@ -23,11 +23,6 @@ const JSCAD = 'https://github.com/jscad/OpenJSCAD.org'
 const PROJECT = 'https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase'
 const AGENT = 'ai-locus-request-gitlab-ai-hackathon_b127f8'
 const THREE_VERSION = '0.160.0'
-const TEAM = [
-  { name: 'Mohammad Ashfaqul Hasan', short: 'Ashfaq', gitlab: 'Ashfaq909' },
-  { name: 'Ahammad Shawki', short: 'Shawki', gitlab: 'ahammadshawki8' },
-  { name: 'Nourin Richi', short: 'Nourin', gitlab: 'nourin.richi.2026' }
-]
 
 const escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 
@@ -46,7 +41,10 @@ const kindOf = (equation) => (/x\^3/.test(equation || '') ? 'Cubic' : /x\^2/.tes
 const FONTS = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Silkscreen&display=swap'
 const FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23121212'/%3E%3Cg fill='%23ece9e1'%3E%3Ccircle cx='11' cy='8' r='3'/%3E%3Ccircle cx='21' cy='8' r='3'/%3E%3Ccircle cx='11' cy='16' r='3'/%3E%3C/g%3E%3Cg fill='%23ece9e1' opacity='.3'%3E%3Ccircle cx='21' cy='16' r='3'/%3E%3Ccircle cx='11' cy='24' r='3'/%3E%3Ccircle cx='21' cy='24' r='3'/%3E%3C/g%3E%3C/svg%3E"
 
-const NAV = [['/request/', 'Request'], ['/how-it-works/', 'How it works'], ['/setup/', 'Setup'], ['/print-orders/', 'Print orders'], ['/credits/', 'Credits']]
+const NAV = [['/about/', 'About'], ['/request/', 'Request'], ['/collections/', 'Collections'], ['/credits/', 'Credits']]
+const HOME_GRAPHS = 4
+// GitLab's tanuki mark, one colour, linking to the Locus project on GitLab.
+const GITLAB_MARK = '<svg viewBox="0 0 32 32" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M31.4 12.6l-.04-.1L27 1.17a1.13 1.13 0 0 0-.45-.54 1.17 1.17 0 0 0-1.33.07 1.16 1.16 0 0 0-.38.58l-2.94 9H10.07l-2.94-9a1.13 1.13 0 0 0-.39-.58 1.17 1.17 0 0 0-1.33-.07 1.15 1.15 0 0 0-.45.54L.64 12.5l-.04.1a8.09 8.09 0 0 0 2.68 9.34l.02.01.04.03 6.62 4.96 3.28 2.48 2 1.51a1.35 1.35 0 0 0 1.63 0l2-1.51 3.28-2.48 6.67-4.99.02-.02a8.1 8.1 0 0 0 2.68-9.34z"/></svg>'
 
 /** One page: the television (bezel and screen), the HUD, and the page's own content. */
 const page = ({ title, description, current, content, scene, loader, screen = '' }) => `<!doctype html>
@@ -73,14 +71,9 @@ ${content}
 <header class="hud top">
   <div class="group"><a href="/"${current === 'home' ? ' aria-current="page"' : ''}>Home</a><span class="dim hide-s" data-timecode aria-hidden="true">00:00:00</span></div>
   <a class="brand" href="/" aria-label="Locus, home"><span class="word">Locus</span><span class="year">Year 2026</span></a>
-  <nav aria-label="Site">${NAV.map(([href, label]) => `<a href="${href}"${current === href ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</nav>
+  <nav aria-label="Site">${NAV.map(([href, label]) => `<a href="${href}"${current === href ? ' aria-current="page"' : ''}>${label}</a>`).join('')}<a class="gitlab" href="${PROJECT}" aria-label="Locus on GitLab">${GITLAB_MARK}</a></nav>
 </header>
-<footer class="hud bottom">
-  <div class="group"><span class="dim" data-clock aria-hidden="true"></span></div>
-  <div class="group"><a class="hide-s" href="${PROJECT}">Source: GitLab</a><a href="/request/">Request a graph</a></div>
-</footer>
 ${loader ? `<div class="loader" role="status" aria-label="Loading the plates"><div class="row"><span>Loading</span><span data-count>0</span></div><div class="bar"><div class="fill"></div></div></div>` : ''}
-<div class="flash" aria-hidden="true"></div>
 </div>
 </div>
 </body>
@@ -143,7 +136,7 @@ const sceneData = (graphs) => JSON.stringify(graphs.map((g) => {
   }
 })).replace(/</g, '\\u003c')
 
-const indexPage = (graphs) => {
+const indexPage = (graphs, total = graphs.length) => {
   const newest = graphs[graphs.length - 1]
   const list = graphs.map((g) => `<li><a href="/graphs/${escape(g.manifest.artifactId)}/">${escape(g.manifest.brailleId)}: ${g.request ? equationHtml(g.request.equation) : escape(g.manifest.artifactId)}</a></li>`).join('')
   const content = graphs.length
@@ -159,6 +152,7 @@ const indexPage = (graphs) => {
   <span class="label" data-caption-label></span>
   <span class="title" data-caption-title></span>
   <span class="tags" data-caption-tags></span>
+  <a class="all" href="/collections/">${total > graphs.length ? `All ${total} graphs in the collection` : 'Open the collection'}</a>
 </div>
 </main>`
     : `<main id="content" class="page"><div class="inner"><h1>Locus</h1><p class="lead">No graph has been released yet.</p></div></main>`
@@ -241,74 +235,136 @@ for x from -0.5 to 4.5.
 Please mark the highest point and where the curve
 crosses the y-axis.`
 
-const howPage = () => page({
-  title: 'How Locus works',
-  description: 'How a teacher asks Locus for a tactile maths graph, and what happens next.',
-  current: '/how-it-works/',
-  content: `<main id="content" class="page"><div class="inner">
-<h1>How it works</h1>
-<p class="lead">A teacher writes one email. A GitLab Duo agent turns it into a raised-line plate, the pipeline checks it the way a fingertip reads, and the teacher gets a file ready to 3D print.</p>
+const textPage = ({ title, description, current, body }) => page({ title, description, current, content: `<main id="content" class="page"><div class="inner">\n${body}\n</div></main>` })
 
-<h2>From one email to a print</h2>
-<ol class="steps">
-  <li><span class="n">01</span><div><h3>Write the request</h3><p>Name one function, the x range, and the points the learner should find. Plain words are fine.</p></div></li>
-  <li><span class="n">02</span><div><h3>The agent draws it</h3><p>A GitLab Duo agent reads the email, writes the graph files and opens a merge request. If anything is unclear it asks one question instead of guessing.</p></div></li>
-  <li><span class="n">03</span><div><h3>The pipeline checks it by touch</h3><p>Five rules measure the plate in millimetres: lines at least 3.2 mm apart, labels clear of lines and points, no labels overlapping, every point that was asked for on the plate, and everything inside the edges.</p></div></li>
-  <li><span class="n">04</span><div><h3>The agent fixes its own layout</h3><p>If a rule fails, the agent changes only the layout (hides the grid, moves a label, rescales an axis) and tries again, at most three times. It never changes the maths. If the graph still cannot be read by touch, it says so and nothing is printed.</p></div></li>
-  <li><span class="n">05</span><div><h3>It ships</h3><p>The passing plate is released, checked on a staging site, published in this library on Google Cloud, and the teacher gets a reply with the page and the print file.</p></div></li>
-  <li><span class="n">06</span><div><h3>It goes to the printer</h3><p>If <a href="/print-orders/">print orders</a> are on, the print shop gets the file and the settings by email, and replies to the teacher. Then the plates are in the learners' hands.</p></div></li>
-</ol>
+const steps = (list) => `<ol class="steps">\n${list.map(([title, text], i) => `  <li><span class="n">${String(i + 1).padStart(2, '0')}</span><div><h3>${title}</h3>${text}</div></li>`).join('\n')}\n</ol>`
 
-<h2 id="request">How to request a graph</h2>
-<p><strong>Write one email like this:</strong></p>
+/** "shop@example.org" shown as "s***@example.org". */
+const maskEmail = (email) => {
+  const [user, domain] = String(email || '').split('@')
+  return domain ? `${user.slice(0, 1)}***@${domain}` : ''
+}
+
+/** About: what Locus is, how it works, requesting and printing, setting it up, and print orders, on one page. */
+const aboutPage = (printOrders) => textPage({
+  title: 'About Locus',
+  description: 'What Locus is, how it works, how to set it up and how print orders work.',
+  current: '/about/',
+  body: `<h1>About Locus</h1>
+<p class="lead">Blind and low-vision students learn maths graphs by touch, from raised-line plates. Making one by hand can take hours. With Locus a teacher writes one email, and a GitLab Duo agent turns it into a plate that has been checked the way a fingertip reads, ready to 3D print.</p>
+<nav class="toc" aria-label="On this page"><a href="#how">How it works</a><a href="#request">Requesting a graph</a><a href="#printing">Printing</a><a href="#setup">Setup</a><a href="#print-orders">Print orders</a></nav>
+
+<h2 id="how">How it works</h2>
+${steps([
+  ['Write the request', '<p>Name one function, the x range, and the points the learner should find, in plain words. The <a href="/request/">Request page</a> helps.</p>'],
+  ['The agent draws it', '<p>A GitLab Duo agent reads the email, writes the graph files and opens a merge request. If anything is unclear it asks one question instead of guessing.</p>'],
+  ['The pipeline checks it by touch', '<p>Five rules measure the plate in millimetres: lines at least 3.2 mm apart, labels clear of lines and points, no labels overlapping, every point that was asked for on the plate, and everything inside the edges.</p>'],
+  ['The agent fixes its own layout', '<p>If a rule fails, the agent changes only the layout (hides the grid, moves a label, rescales an axis) and tries again, at most three times. It never changes the maths. If the graph still cannot be read by touch, it says so and nothing is printed.</p>'],
+  ['It ships', '<p>The passing plate is released, checked on a staging site, published in the <a href="/collections/">collection</a> on Google Cloud, and the teacher gets a reply with the page and the print file.</p>'],
+  ['It goes to the printer', '<p>If <a href="#print-orders">print orders</a> are on, the print shop gets the file and the settings by email and replies to the teacher. Then the plates are in the learners\' hands.</p>']
+])}
+
+<h2 id="request">Requesting a graph</h2>
+<p><strong>One email like this is enough:</strong></p>
 <pre class="mail">${escape(MAIL)}</pre>
-<p>The <a href="/request/">Request page</a> drafts this email from your own words and opens it in your mail. It goes to your Locus project's address (<a href="/setup/">Setup</a>), where it becomes an issue that starts the agent.</p>
+<p>The <a href="/request/">Request page</a> drafts this email from your own words and opens it in your mail. It goes to your Locus project's address (see <a href="#setup">Setup</a>), where it becomes an issue that starts the agent.</p>
 <dl class="grid">
   <dt>Functions</dt><dd>One straight line, parabola or cubic (nothing above x<sup>3</sup>), with numbers between -100 and 100</dd>
   <dt>Points</dt><dd>The highest or lowest point, the turning points, where the curve crosses the y-axis or the x-axis</dd>
   <dt>Refused</dt><dd>A curve that only touches an axis, like y = (x - 1)<sup>2</sup> at its vertex: a fingertip feels one line there, so Locus says no</dd>
-  <dt>Reply</dt><dd>About ten minutes later: the page in this library, the STL print file and a text description for the learner</dd>
+  <dt>Reply</dt><dd>About ten minutes later: the page in the collection, the STL print file and a text description for the learner</dd>
 </dl>
 
-<h2>Printing the plate</h2>
+<h2 id="printing">Printing the plate</h2>
 <dl class="grid">
   <dt>Scale</dt><dd>100%. Do not resize: the checks measured the spacing at this size</dd>
   <dt>Printer</dt><dd>Any FDM printer, PLA, 0.12 to 0.16 mm layers, flat on the bed, no supports</dd>
   <dt>Size</dt><dd>100 x 100 mm, 3.6 mm at the tallest point</dd>
   <dt>Reading</dt><dd>Hold it with the raised triangle at the top-left. The braille number at the top-right is the graph's ID; it leads back to its page here</dd>
 </dl>
-<p class="limit">Automated checks measure spacing and size; they do not certify that a learner can understand the graphic.</p>
-</div></main>`
+
+<h2 id="setup">Setting up Locus</h2>
+<p>Locus runs in your own GitLab project with GitLab Duo, and publishes to your own Google Cloud. It takes about an hour, once. After that, teachers only write emails.</p>
+${steps([
+  ['Get the project', `<p>Create a GitLab project with Locus in it (import <a href="${PROJECT}">the Locus repository</a>). The project needs the GitLab Duo Agent Platform. Make it public if the teachers' download links should open without signing in.</p>`],
+  ['Merge settings', '<p>Settings, Merge requests: merge method <strong>Merge commit</strong>, and tick <strong>Pipelines must succeed</strong>. Then GitLab refuses to merge any graph that did not pass every check.</p>'],
+  ['A token for the pipeline', '<p>Create a token with the <code class="inline">api</code> scope (a project access token if your GitLab offers it, otherwise a personal one) and save it as the CI variable <code class="inline">LOCUS_GITLAB_TOKEN</code>: masked and hidden, not protected. The pipeline uses it only to merge passing graphs and to post the reply.</p>'],
+  ['Google Cloud', '<p>Open Cloud Shell and run <code class="inline">bash deploy/gcp/setup.sh &lt;project-id&gt; &lt;billing-account-id&gt;</code>. It makes the project, turns on Cloud Run, sets up keyless login for your pipeline and a 5 USD budget alert, and prints four values. Put them in <code class="inline">.gitlab-ci.yml</code>. None of them is a secret.</p>'],
+  ['Labels', '<p>Create the labels <code class="inline">locus-request</code>, <code class="inline">needs-info</code> and <code class="inline">cannot-make-readable</code>.</p>'],
+  ['The agents', '<p>Automate, Flows, New flow. Create <code class="inline">locus-request</code> from <code class="inline">.gitlab/duo/flows/locus-request.yml</code> with the triggers Assign and Mention, and <code class="inline">locus-ops</code> from <code class="inline">locus-ops.yml</code> with the triggers Pipeline events (failed) and Assign. The display names must be exactly these. Note the service account GitLab creates for locus-request: requests are assigned to it.</p>'],
+  ['Your request address', '<p>Issues, the three-dot menu, "Email a new issue". Paste that address on the <a href="/request/">Request page</a> once. Keep it private: anyone with it can file issues as you.</p>'],
+  ['The first request', '<p>Send one request from the Request page. About ten minutes later the reply arrives with the page in the collection and the print file. If anything fails, the merge request shows which check and why.</p>']
+])}
+
+<h2 id="print-orders">Print orders</h2>
+<p>When print orders are on, every graph that passes is emailed to your print shop, or to a colleague with a 3D printer, with the print file attached and the settings written out.</p>
+<p><span class="status${printOrders.enabled ? ' on' : ''}">${printOrders.enabled ? `On: orders go to ${escape(maskEmail(printOrders.to))}` : 'Off'}</span></p>
+${steps([
+  ['A graph is released', '<p>Only after the touch checks, the guards, the release and the live site check have all passed.</p>'],
+  ['The pipeline writes the order', '<p>One email per new graph: the STL file attached, the links to the page and the release, the number of copies, and how to print it.</p>'],
+  ['The shop replies to you', '<p>The order asks the shop to reply to the teacher with the price and when the plates are ready. Nothing is paid or confirmed automatically.</p>'],
+  ['The request is updated', '<p>A note on the request says that the order was sent, so the teacher sees it with the reply.</p>']
+])}
+<p>To turn it on, set these in your Locus project (Settings, CI/CD, Variables). The password is an app password of the sending account, never its real password.</p>
+<dl class="grid">
+  <dt>PRINT_ORDER_ENABLED</dt><dd><code class="inline">true</code> to send orders; anything else keeps them off</dd>
+  <dt>PRINT_ORDER_TO</dt><dd>The print shop's email address</dd>
+  <dt>PRINT_ORDER_FROM</dt><dd>The account the orders are sent from, for example a Gmail address made for Locus</dd>
+  <dt>PRINT_ORDER_SMTP_PASSWORD</dt><dd>That account's app password (masked and hidden)</dd>
+  <dt>PRINT_ORDER_REPLY_TO</dt><dd>Where the shop's reply should go, usually the teacher (optional)</dd>
+  <dt>PRINT_ORDER_COPIES</dt><dd>Copies of each graph when the request does not say (optional, 1 if not set)</dd>
+</dl>
+<p class="limit">Automated checks measure spacing and size; they do not certify that a learner can understand the graphic. Locus only sends print orders; price, payment and delivery stay between the school and the shop.</p>`
 })
 
-const creditsPage = () => page({
-  title: 'Credits | Locus',
-  description: 'Locus is built on JSCAD and made by Ashfaq, Shawki and Nourin.',
-  current: '/credits/',
-  content: `<main id="content" class="page"><div class="inner">
-<h1>Credits</h1>
-<p class="lead">Locus stands on open work. It was built for the GitLab Transcend hackathon in October 2026.</p>
+/** Collections: every shipped graph, newest first, as a compact list. */
+const collectionsPage = (graphs) => textPage({
+  title: 'Collections | Locus',
+  description: 'Every tactile graph Locus has released, ready to print.',
+  current: '/collections/',
+  body: `<h1>Collections</h1>
+<p class="lead">Every graph Locus has released. Each one passed the five touch checks before it was published. Print at 100% scale.</p>
+${graphs.length ? `<ul class="collection">
+${[...graphs].reverse().map((g) => {
+    const m = g.manifest
+    return `  <li><a href="/graphs/${escape(m.artifactId)}/">
+    <span class="thumb"><img src="/graphs/${escape(m.artifactId)}/graph.svg" alt="" loading="lazy"></span>
+    <span class="eq">${g.request ? equationHtml(g.request.equation) : escape(m.artifactId)}</span>
+    <span class="meta"><span class="cells" aria-hidden="true">${toBraille(String(m.requestIssue))}</span>${escape(m.brailleId)} • ${kindOf(g.request && g.request.equation)}${g.request ? ` • x from ${escape(g.request.from)} to ${escape(g.request.to)}` : ''} • checked in ${plural(m.touchcheck.attempts, 'attempt')}</span>
+  </a></li>`
+  }).join('\n')}
+</ul>` : '<p>No graph has been released yet.</p>'}`
+})
 
-<h2>Built on</h2>
+const creditsPage = () => textPage({
+  title: 'Credits | Locus',
+  description: 'Locus is built on JSCAD, the open-source 3D modelling library.',
+  current: '/credits/',
+  body: `<h1>Credits</h1>
+<p class="lead">Locus stands on open work, above all on JSCAD. It was built for the GitLab Transcend hackathon in October 2026.</p>
+
+<h2>JSCAD</h2>
+<div class="feature">
+  <p><a href="${JSCAD}"><strong>JSCAD</strong></a> (OpenJSCAD.org) is an open-source library for making 3D models in JavaScript, with code rather than a mouse. It is released under the MIT licence and kept by its community of contributors; its package lists Rene K. Mueller, z3dev and Mark Moissette among them.</p>
+  <p>Locus is built on it in three ways:</p>
+  <ul>
+    <li><strong>The starting point.</strong> Locus began as the JSCAD repository, imported with its full history and its MIT licence. Its packages live on unchanged in <code class="inline">packages/</code>, and JSCAD's own test suite still runs in every Locus pipeline.</li>
+    <li><strong>Every plate is JSCAD geometry.</strong> The curve, the axes, the ticks, the point domes and every braille dot are solids made with <code class="inline">@jscad/modeling</code>, joined into one plate and written out as the STL file you print.</li>
+    <li><strong>The same code makes the same plate.</strong> Because JSCAD builds geometry from code, a graph can be rebuilt exactly from its request, which is how Locus re-checks every shipped graph whenever the code changes.</li>
+  </ul>
+  <p>Thank you to everyone who has built and maintained JSCAD. <a href="${JSCAD}">github.com/jscad/OpenJSCAD.org</a></p>
+</div>
+
+<h2>Also built on</h2>
 <dl class="grid">
-  <dt><a href="${JSCAD}">JSCAD</a></dt><dd>The open-source 3D modelling library (MIT licence) that draws every plate. Locus started from the JSCAD project and keeps its history and licence.</dd>
   <dt>GitLab Duo</dt><dd>The Agent Platform runs the agents that draw, fix and review; GitLab CI runs the touch checks, guards and releases.</dd>
-  <dt>Google Cloud Run</dt><dd>Serves this library. Every release is checked on staging before it reaches it.</dd>
+  <dt>Google Cloud Run</dt><dd>Serves this site. Every release is checked on staging before it reaches it.</dd>
   <dt><a href="https://threejs.org">three.js</a></dt><dd>Draws the plates in 3D on these pages (MIT licence).</dd>
+  <dt><a href="https://github.com/elalish/manifold">Manifold</a></dt><dd>Closes the rare mesh the main union leaves open (Apache 2.0 licence).</dd>
   <dt>Typefaces</dt><dd>IBM Plex Mono and Silkscreen (SIL Open Font Licence).</dd>
   <dt>Design</dt><dd>The television look is inspired by <a href="https://www.arcmarumo.com">Arc</a>.</dd>
-</dl>
-
-<h2>Made by</h2>
-<ul class="people">
-${TEAM.map((p) => `  <li><span class="name">${escape(p.short)}</span>${escape(p.name)}<br><a href="https://gitlab.com/${escape(p.gitlab)}">@${escape(p.gitlab)}</a></li>`).join('\n')}
-</ul>
-</div></main>`
+</dl>`
 })
-
-const textPage = ({ title, description, current, body }) => page({ title, description, current, content: `<main id="content" class="page"><div class="inner">\n${body}\n</div></main>` })
-
-const steps = (list) => `<ol class="steps">\n${list.map(([title, text], i) => `  <li><span class="n">${String(i + 1).padStart(2, '0')}</span><div><h3>${title}</h3>${text}</div></li>`).join('\n')}\n</ol>`
 
 const requestPage = () => textPage({
   title: 'Request a graph | Locus',
@@ -330,7 +386,7 @@ const requestPage = () => textPage({
     <div class="field">
       <label for="to">Your Locus address</label>
       <input id="to" name="to" type="email" autocomplete="off" placeholder="the address from your Locus project">
-      <p class="help">In your Locus project on GitLab: Issues, the three-dot menu, "Email a new issue". It is private to you, so it is kept only in this browser and never sent anywhere else. <a href="/setup/">Setting up Locus</a></p>
+      <p class="help">In your Locus project on GitLab: Issues, the three-dot menu, "Email a new issue". It is private to you, so it is kept only in this browser and never sent anywhere else. <a href="/about/#setup">Setting up Locus</a></p>
     </div>
     <details class="more"><summary>Agent account</summary>
       <div class="field" style="margin-top:14px">
@@ -347,61 +403,6 @@ const requestPage = () => textPage({
     <pre data-preview aria-live="polite"></pre>
   </div>
 </form>`
-})
-
-const setupPage = () => textPage({
-  title: 'Set up Locus | Locus',
-  description: 'How to set up Locus for a school: the GitLab project, Google Cloud, the agents and the first request.',
-  current: '/setup/',
-  body: `<h1>Set up Locus</h1>
-<p class="lead">Locus runs in your own GitLab project with GitLab Duo, and publishes to your own Google Cloud. Setting it up takes about an hour, once. After that, teachers only write emails.</p>
-${steps([
-  ['Get the project', `<p>Create a GitLab project with Locus in it (import <a href="${PROJECT}">the Locus repository</a>). The project needs the GitLab Duo Agent Platform. Make it public if the teachers' download links should open without signing in.</p>`],
-  ['Merge settings', '<p>Settings, Merge requests: merge method <strong>Merge commit</strong>, and tick <strong>Pipelines must succeed</strong>. Then GitLab refuses to merge any graph that did not pass every check.</p>'],
-  ['A token for the pipeline', '<p>Create a token with the <code class="inline">api</code> scope (a project access token if your GitLab offers it, otherwise a personal one) and save it as the CI variable <code class="inline">LOCUS_GITLAB_TOKEN</code>: masked and hidden, not protected. The pipeline uses it only to merge passing graphs and to post the reply.</p>'],
-  ['Google Cloud', '<p>Open Cloud Shell and run <code class="inline">bash deploy/gcp/setup.sh &lt;project-id&gt; &lt;billing-account-id&gt;</code>. It makes the project, turns on Cloud Run, sets up keyless login for your pipeline and a 5 USD budget alert, and prints four values. Put them in <code class="inline">.gitlab-ci.yml</code>. None of them is a secret.</p>'],
-  ['Labels', '<p>Create the labels <code class="inline">locus-request</code>, <code class="inline">needs-info</code> and <code class="inline">cannot-make-readable</code>.</p>'],
-  ['The agents', '<p>Automate, Flows, New flow. Create <code class="inline">locus-request</code> from <code class="inline">.gitlab/duo/flows/locus-request.yml</code> with the triggers Assign and Mention, and <code class="inline">locus-ops</code> from <code class="inline">locus-ops.yml</code> with the triggers Pipeline events (failed) and Assign. The display names must be exactly these. Note the service account GitLab creates for locus-request: requests are assigned to it.</p>'],
-  ['Your request address', '<p>Issues, the three-dot menu, "Email a new issue". Paste that address on the <a href="/request/">Request page</a> once. Keep it private: anyone with it can file issues as you.</p>'],
-  ['Print orders (optional)', '<p>If a print shop or a colleague with a 3D printer should get every new graph by email, turn on <a href="/print-orders/">print orders</a>.</p>'],
-  ['The first request', '<p>Send one request from the Request page. About ten minutes later the reply arrives with the page in this library and the print file. If anything fails, the merge request shows which check and why.</p>']
-])}
-<p class="limit">Automated checks measure spacing and size; they do not certify that a learner can understand the graphic.</p>`
-})
-
-/** "shop@example.org" shown as "s***@example.org". */
-const maskEmail = (email) => {
-  const [user, domain] = String(email || '').split('@')
-  return domain ? `${user.slice(0, 1)}***@${domain}` : ''
-}
-
-const printPage = (printOrders) => textPage({
-  title: 'Print orders | Locus',
-  description: 'Locus can email every new graph to a print shop, ready to print.',
-  current: '/print-orders/',
-  body: `<h1>Print orders</h1>
-<p class="lead">From a lesson idea to plates in the classroom: when print orders are on, every graph that passes is emailed to your print shop, or to a colleague with a 3D printer, with the print file attached and the settings written out.</p>
-<p><span class="status${printOrders.enabled ? ' on' : ''}">${printOrders.enabled ? `On: orders go to ${escape(maskEmail(printOrders.to))}` : 'Off'}</span></p>
-
-<h2>What happens</h2>
-${steps([
-  ['A graph is released', '<p>Only after the touch checks, the guards, the release and the live site check have all passed.</p>'],
-  ['The pipeline writes the order', '<p>One email per new graph: the STL file attached, the links to the page and the release, the number of copies, and how to print it (100% scale, PLA, 0.12 to 0.16 mm layers, no supports, flat on the bed).</p>'],
-  ['The shop replies to you', '<p>The order asks the shop to reply to the teacher with the price and when the plates are ready. Nothing is paid or confirmed automatically.</p>'],
-  ['The request is updated', '<p>A note on the request says that the order was sent and to whom, so the teacher sees it with the reply.</p>']
-])}
-
-<h2>Turn it on</h2>
-<p>In your Locus project, Settings, CI/CD, Variables. The password is an app password of the sending account, never its real password.</p>
-<dl class="grid">
-  <dt>PRINT_ORDER_ENABLED</dt><dd><code class="inline">true</code> to send orders; anything else keeps them off</dd>
-  <dt>PRINT_ORDER_TO</dt><dd>The print shop's email address</dd>
-  <dt>PRINT_ORDER_FROM</dt><dd>The account the orders are sent from, for example a Gmail address made for Locus</dd>
-  <dt>PRINT_ORDER_SMTP_PASSWORD</dt><dd>That account's app password (masked and hidden)</dd>
-  <dt>PRINT_ORDER_REPLY_TO</dt><dd>Where the shop's reply should go, usually the teacher (optional)</dd>
-  <dt>PRINT_ORDER_COPIES</dt><dd>Copies of each graph (optional, 1 if not set)</dd>
-</dl>
-<p class="limit">Locus only sends the order. Price, payment and delivery stay between you and the shop.</p>`
 })
 
 /** The first sentence of the learner description, for lists. */
@@ -430,12 +431,11 @@ const writeSite = (outDir, { graphs, buildInfo, projectUrl, printOrders = { enab
     for (const [file, data] of Object.entries(g.files)) write(`${dir}/${file}`, data)
     write(`${dir}/index.html`, graphPage(g, projectUrl))
   }
-  write('index.html', indexPage(prepared))
-  write('how-it-works/index.html', howPage())
-  write('credits/index.html', creditsPage())
+  write('index.html', indexPage(prepared.slice(-HOME_GRAPHS), prepared.length))
+  write('about/index.html', aboutPage(printOrders))
   write('request/index.html', requestPage())
-  write('setup/index.html', setupPage())
-  write('print-orders/index.html', printPage(printOrders))
+  write('collections/index.html', collectionsPage(prepared))
+  write('credits/index.html', creditsPage())
   for (const a of ASSETS) write(`assets/${a}`, fs.readFileSync(path.join(__dirname, 'assets', a)))
   write('build-info.json', JSON.stringify({ ...buildInfo, graphs: prepared.map((g) => g.manifest.artifactId) }, null, 2) + '\n')
   fs.writeFileSync(path.join(outDir, 'Dockerfile'), DOCKERFILE)

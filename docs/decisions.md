@@ -4,6 +4,22 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (m): site review round with Shawki: calmer, brighter, simpler navigation (Shawki)
+
+Shawki reviewed the local preview and asked for these; all are built on branch `site-polish`, not merged yet:
+1. **No effects over the plates:** the curved-glass pass, scanlines, glass reflections and the B&W switch are gone; the
+   plates are lit evenly and coloured by height (plate light, raised parts dark), so every line, dome and braille dot
+   reads. The floating carousel stays. The Prev, Next and hint row is gone (arrow keys, drag and the wheel still work).
+2. **No white flash:** the loader dims away and the plates fade up instead.
+3. **No footer.** The nav is About, Request, Collections, Credits, then the GitLab mark linking to the project.
+4. **About** holds how it works, requesting a graph, printing, setup and print orders on one page. **Collections**
+   lists every graph, newest first; the home page shows the 4 newest. **Credits** gives JSCAD a full section (what it
+   is, its MIT licence, how Locus is built on it) and no longer lists the team.
+5. **Graph page:** wider facts panel; the learner description right under the downloads; the touch checks are now
+   interactive (choose a rule, and where it measured lights up on the plate drawing, with what it found).
+6. **Request page** and the optional **print-order** job (21 Oct (l)) are built; the print order has not sent a real
+   email yet: it needs Shawki's sender account (H3).
+
 ## 21 Oct 2026 (l): the feature freeze reopened for one story: from a lesson idea to a print in hand (Shawki)
 
 Shawki's decision, after 21 Oct (i): the video's story becomes "from the idea of teaching a topic to a physical print

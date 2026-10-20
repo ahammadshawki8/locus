@@ -12,7 +12,6 @@ const mode = root.dataset.scene
 const graphs = JSON.parse(document.getElementById('graphs-data').textContent)
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 const loader = document.querySelector('.loader')
-const flash = document.querySelector('.flash')
 const count = document.querySelector('[data-count]')
 const fill = document.querySelector('.loader .fill')
 
@@ -21,7 +20,7 @@ const finishLoading = () => {
   if (finished) return
   finished = true
   if (loader) loader.classList.add('done')
-  if (flash && !reduced) flash.classList.add('on')
+  root.classList.add('ready') // the picture fades up as the loader dims (site.css)
 }
 // Never leave a visitor on the loader: switch on after 8 s whatever happened.
 setTimeout(finishLoading, 8000)

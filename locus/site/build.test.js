@@ -80,23 +80,31 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   assert.match(index, /<a href="\/graphs\/graph-12-v1\/">G12: /)
   assert.match(index, /<script type="importmap">.*three@0\.160\.0/)
   const credits = fs.readFileSync(path.join(pub, 'credits', 'index.html'), 'utf8')
-  assert.match(credits, /href="https:\/\/github\.com\/jscad\/OpenJSCAD\.org">JSCAD<\/a>/)
-  for (const name of ['Ashfaq', 'Shawki', 'Nourin']) assert.match(credits, new RegExp(`<span class="name">${name}</span>`))
-  const how = fs.readFileSync(path.join(pub, 'how-it-works', 'index.html'), 'utf8')
-  assert.match(how, /id="request"/)
-  assert.match(how, /Subject: Tactile graph: projectile/)
+  assert.match(credits, /href="https:\/\/github\.com\/jscad\/OpenJSCAD\.org"><strong>JSCAD<\/strong><\/a>/)
+  assert.match(credits, /@jscad\/modeling/)
+  assert.ok(!/Made by/.test(credits), 'the credits are for the open work Locus is built on')
+  // About holds how it works, requesting, printing, setup and print orders
+  const about = fs.readFileSync(path.join(pub, 'about', 'index.html'), 'utf8')
+  for (const id of ['how', 'request', 'printing', 'setup', 'print-orders']) assert.match(about, new RegExp(`<h2 id="${id}">`))
+  assert.match(about, /Subject: Tactile graph: projectile/)
+  assert.match(about, /LOCUS_GITLAB_TOKEN/)
+  assert.match(about, /<span class="status">Off<\/span>/)
+  // Collections: every graph, newest first
+  const collections = fs.readFileSync(path.join(pub, 'collections', 'index.html'), 'utf8')
+  assert.match(collections, /href="\/graphs\/graph-12-v1\/"[\s\S]*href="\/graphs\/graph-7-v2\/"/)
+  // the nav: About, Request, Collections, Credits, then the GitLab mark; no footer
+  assert.match(index, /<a href="\/about\/">About<\/a><a href="\/request\/">Request<\/a><a href="\/collections\/">Collections<\/a><a href="\/credits\/">Credits<\/a><a class="gitlab" href="https:\/\/gitlab\.com\/[^"]+" aria-label="Locus on GitLab"><svg/)
+  assert.ok(!/<footer/.test(index) && !/class="flash"/.test(index))
   for (const a of ['site.css', 'hud.js', 'scene.js']) assert.ok(fs.existsSync(path.join(pub, 'assets', a)), a)
   // the request form never carries an address: the teacher pastes their own, kept in their browser
   const request = fs.readFileSync(path.join(pub, 'request', 'index.html'), 'utf8')
   assert.match(request, /<form class="request" data-request data-agent="ai-locus-request-gitlab-ai-hackathon_b127f8"/)
   assert.ok(!/incoming\+|@incoming\.gitlab\.com/.test(request), 'no project address on the public site')
-  assert.match(fs.readFileSync(path.join(pub, 'setup', 'index.html'), 'utf8'), /LOCUS_GITLAB_TOKEN/)
-  assert.match(fs.readFileSync(path.join(pub, 'print-orders', 'index.html'), 'utf8'), /<span class="status">Off<\/span>/)
   // the touch checks: one highlight group per rule over the plate drawing
   for (const r of ['TL-1', 'TL-2', 'TL-3', 'TL-4', 'TL-5']) assert.match(html, new RegExp(`class="m-${r}"`))
   assert.match(fs.readFileSync(path.join(out, 'nginx.conf'), 'utf8'), /listen 8080/)
   assert.ok(fs.existsSync(path.join(out, 'Dockerfile')))
-  for (const f of ['index.html', 'assets/site.css', 'assets/scene.js', 'assets/hud.js', 'how-it-works/index.html', 'credits/index.html', 'graphs/graph-7-v2/index.html']) assert.ok(!H2.test(fs.readFileSync(path.join(pub, f), 'utf8')), `${f}: rule H2`)
+  for (const f of ['index.html', 'assets/site.css', 'assets/scene.js', 'assets/hud.js', 'about/index.html', 'request/index.html', 'collections/index.html', 'credits/index.html', 'graphs/graph-7-v2/index.html']) assert.ok(!H2.test(fs.readFileSync(path.join(pub, f), 'utf8')), `${f}: rule H2`)
 })
 
 test('an empty library still builds, so the first deploy works before any release', () => {
@@ -126,4 +134,15 @@ test('the site takes the newest release of each request from the Package Registr
   assert.deepStrictEqual(graphs.map((g) => g.manifest.artifactId), ['graph-3-v1', 'graph-7-v2'])
   assert.ok(!fetched.some((f) => f.startsWith('graph-7-v1/')))
   assert.ok(fetched.includes('graph-7-v2/overlay.svg'))
+})
+
+test('the home page shows the four newest graphs; the collection shows them all', () => {
+  const out = tmp()
+  writeSite(out, { graphs: [1, 2, 3, 4, 5, 6].map((i) => graph(i, 1)), buildInfo: {} })
+  const index = fs.readFileSync(path.join(out, 'public', 'index.html'), 'utf8')
+  const ids = [...index.matchAll(/"id":"(graph-\d+-v1)"/g)].map((m) => m[1])
+  assert.deepStrictEqual(ids, ['graph-3-v1', 'graph-4-v1', 'graph-5-v1', 'graph-6-v1'])
+  assert.match(index, /All 6 graphs in the collection/)
+  const collections = fs.readFileSync(path.join(out, 'public', 'collections', 'index.html'), 'utf8')
+  assert.strictEqual([...collections.matchAll(/<li><a href="\/graphs\//g)].length, 6)
 })

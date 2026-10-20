@@ -1,6 +1,6 @@
-// The television's HUD and the small interactions on text pages: the running timecode, the viewer's local clock,
-// the power-on flash on pages without a 3D scene, the interactive touch checks on a graph page, and the request
-// form that drafts the email. Plain script, no dependencies. Every storage access is guarded: it may be blocked.
+// The television's HUD and the small interactions on text pages: the running timecode, the interactive touch
+// checks on a graph page, and the request form that drafts the email. Plain script, no dependencies. Every storage
+// access is guarded: it may be blocked.
 (() => {
   const pad = (n) => String(n).padStart(2, '0')
   const start = performance.now()
@@ -23,11 +23,6 @@
   }
   tick()
   setInterval(tick, 1000)
-
-  if (!document.querySelector('[data-scene]')) {
-    const flash = document.querySelector('.flash')
-    if (flash && !matchMedia('(prefers-reduced-motion: reduce)').matches) flash.classList.add('on')
-  }
 
   // Touch checks: choosing a rule lights up where it measured on the drawing and shows what it found.
   const checks = document.querySelector('[data-checks]')

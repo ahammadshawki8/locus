@@ -37,7 +37,6 @@ a { color: inherit; }
 
 .hud { position: absolute; z-index: 20; left: clamp(28px, 4.2vw, 66px); right: clamp(28px, 4.2vw, 66px); display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; text-transform: uppercase; }
 .hud.top { top: clamp(26px, 4.5vh, 60px); }
-.hud.bottom { bottom: clamp(26px, 4.5vh, 60px); align-items: flex-end; }
 .hud a, .hud button { color: var(--ink); text-decoration: none; background: none; border: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; padding: 6px 0; cursor: pointer; }
 .hud a:hover, .hud button:hover { color: #fff; }
 .hud .dim { color: var(--ink-3); }
@@ -49,7 +48,7 @@ a { color: inherit; }
 .brand .year { font-family: var(--pixel); font-size: 12px; color: var(--ink-2); letter-spacing: 0.06em; }
 
 /* Carousel caption, under the centred plate. */
-.caption { position: absolute; z-index: 20; left: 50%; bottom: clamp(70px, 13vh, 130px); transform: translateX(-50%); width: min(560px, 80%); text-align: center; text-transform: uppercase; display: grid; gap: 6px; }
+.caption { position: absolute; z-index: 20; left: 50%; bottom: clamp(44px, 8vh, 90px); transform: translateX(-50%); width: min(560px, 80%); text-align: center; text-transform: uppercase; display: grid; gap: 6px; }
 .caption .label { color: var(--ink-3); }
 .caption .title { font-size: clamp(15px, 1.5vw, 19px); color: #fff; text-transform: none; letter-spacing: -0.02em; }
 .caption .title a { text-decoration: none; }
@@ -57,24 +56,20 @@ a { color: inherit; }
 .caption .tags { color: var(--ink-3); }
 .caption sup, .title sup { font-size: 0.62em; }
 
-/* Loading screen and the power-on flash. */
-.loader { position: absolute; inset: 0; z-index: 25; background: var(--screen); display: flex; flex-direction: column; justify-content: flex-end; padding: 0 clamp(28px, 4.2vw, 66px) clamp(40px, 9vh, 90px); text-transform: uppercase; transition: opacity 0.35s ease; }
+/* Loading screen: it dims away and the picture fades up, like a television warming up (no flash). */
+.loader { position: absolute; inset: 0; z-index: 25; background: var(--screen); display: flex; flex-direction: column; justify-content: flex-end; padding: 0 clamp(28px, 4.2vw, 66px) clamp(40px, 9vh, 90px); text-transform: uppercase; transition: opacity 0.9s ease 0.15s; }
 .loader .row { display: flex; justify-content: space-between; color: var(--ink-2); margin-bottom: 18px; }
 .loader .bar { position: relative; height: 1px; background-image: repeating-linear-gradient(to right, var(--ink-3) 0 6px, transparent 6px 11px); }
 .loader .fill { position: absolute; inset: -1px auto -1px 0; width: 0%; background-image: repeating-linear-gradient(to right, var(--ink) 0 6px, transparent 6px 11px); height: 3px; transition: width 0.2s linear; }
 .loader.done { opacity: 0; pointer-events: none; }
-.flash { position: absolute; inset: 0; z-index: 26; pointer-events: none; background: #f4f3ee; opacity: 0; }
-.flash.on { animation: power 0.9s ease-out forwards; }
-@keyframes power {
-  0% { opacity: 0; transform: scaleY(0.004); }
-  14% { opacity: 1; transform: scaleY(0.004); }
-  34% { opacity: 1; transform: scaleY(1); }
-  100% { opacity: 0; transform: scaleY(1); }
-}
+.scene canvas { opacity: 0; filter: brightness(0.4); transition: opacity 1.2s ease 0.2s, filter 1.6s ease 0.2s; }
+.scene.ready canvas { opacity: 1; filter: none; }
+.page .inner, .detail .panel > * { animation: rise 0.7s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
 
 /* Text pages (how it works, credits) and the graph detail panel scroll inside the screen. */
-.page, .detail .panel { -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent clamp(96px, 14vh, 130px), #000 clamp(150px, 20vh, 190px), #000 calc(100% - clamp(110px, 16vh, 150px)), transparent calc(100% - clamp(70px, 10vh, 100px))); mask-image: linear-gradient(to bottom, transparent 0, transparent clamp(96px, 14vh, 130px), #000 clamp(150px, 20vh, 190px), #000 calc(100% - clamp(110px, 16vh, 150px)), transparent calc(100% - clamp(70px, 10vh, 100px))); }
-.page { position: absolute; inset: 0; z-index: 10; overflow-y: auto; padding: clamp(120px, 18vh, 170px) clamp(28px, 4.2vw, 66px) clamp(110px, 16vh, 150px); scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.page, .detail .panel { -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent clamp(96px, 14vh, 130px), #000 clamp(150px, 20vh, 190px), #000 calc(100% - clamp(60px, 9vh, 90px)), transparent calc(100% - clamp(20px, 3vh, 30px))); mask-image: linear-gradient(to bottom, transparent 0, transparent clamp(96px, 14vh, 130px), #000 clamp(150px, 20vh, 190px), #000 calc(100% - clamp(60px, 9vh, 90px)), transparent calc(100% - clamp(20px, 3vh, 30px))); }
+.page { position: absolute; inset: 0; z-index: 10; overflow-y: auto; padding: clamp(120px, 18vh, 170px) clamp(28px, 4.2vw, 66px) clamp(60px, 9vh, 90px); scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 .page .inner { max-width: 880px; margin: 0 auto; }
 .page h1 { font-family: var(--pixel); font-weight: 400; font-size: clamp(28px, 4vw, 46px); line-height: 1.05; letter-spacing: 0.01em; margin: 0 0 18px; text-transform: uppercase; }
 .page .lead { font-size: clamp(15px, 1.4vw, 18px); color: var(--ink); letter-spacing: -0.02em; max-width: 60ch; margin: 0 0 48px; }
@@ -97,7 +92,7 @@ ul.people .name { display: block; font-family: var(--pixel); font-size: 20px; co
 
 /* Graph detail: the plate turning on the left, the facts on the right. */
 .detail .scene { right: 50%; }
-.detail .panel { position: absolute; z-index: 10; top: 0; bottom: 0; right: 0; width: 50%; overflow-y: auto; padding: clamp(120px, 18vh, 170px) clamp(36px, 5vw, 80px) clamp(110px, 16vh, 150px) clamp(28px, 3vw, 48px); scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.detail .panel { position: absolute; z-index: 10; top: 0; bottom: 0; right: 0; width: 50%; overflow-y: auto; padding: clamp(120px, 18vh, 170px) clamp(36px, 5vw, 80px) clamp(60px, 9vh, 90px) clamp(28px, 3vw, 48px); scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 .panel .label { text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
 .panel h1 { font-size: clamp(20px, 2.1vw, 28px); font-weight: 500; letter-spacing: -0.03em; line-height: 1.2; margin: 0 0 6px; }
 .panel h1 sup { font-size: 0.6em; }
@@ -138,8 +133,8 @@ ul.people .name { display: block; font-family: var(--pixel); font-size: 20px; co
   .caption { bottom: 96px; width: 88%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .flash.on { animation: none; }
-  .loader { transition: none; }
+  .loader, .scene canvas { transition: none; }
+  .page .inner, .detail .panel > * { animation: none; }
 }
 
 /* Interactive touch checks: the clean drawing, the five rules as buttons, and the marks of the chosen rule. */
@@ -174,3 +169,31 @@ details.more summary { cursor: pointer; text-transform: uppercase; color: var(--
 .status.on::before { background: var(--pass); }
 code.inline { background: rgba(236, 233, 225, 0.08); border-radius: 5px; padding: 1px 6px; color: var(--ink); font: inherit; font-size: 14px; }
 @media (max-width: 860px) { form.request, .checks { grid-template-columns: 1fr; } }
+
+/* The GitLab mark at the end of the nav. */
+.hud nav a.gitlab { display: inline-flex; align-items: center; padding: 3px 0; color: var(--ink); }
+.hud nav a.gitlab:hover { color: #fc6d26; }
+.caption a.all { color: var(--ink-3); text-decoration: none; margin-top: 4px; }
+.caption a.all:hover { color: var(--ink); }
+
+/* About: a short table of contents. */
+nav.toc { display: flex; flex-wrap: wrap; gap: 10px; margin: -24px 0 8px; }
+nav.toc a { text-transform: uppercase; text-decoration: none; color: var(--ink-2); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; font-size: 13px; }
+nav.toc a:hover { color: var(--ink); border-color: var(--ink-3); }
+.page h2[id] { scroll-margin-top: 170px; }
+
+/* Collections: every graph, newest first, compact. */
+ul.collection { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+ul.collection li a { display: grid; grid-template-columns: 76px 1fr; grid-template-rows: auto auto; column-gap: 20px; row-gap: 4px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+ul.collection .thumb { grid-row: span 2; background: #f1eee8; border-radius: 8px; padding: 4px; }
+ul.collection .thumb img { display: block; width: 100%; height: auto; }
+ul.collection .eq { font-size: 17px; letter-spacing: -0.02em; align-self: end; }
+ul.collection .eq sup { font-size: 0.62em; }
+ul.collection .meta { text-transform: uppercase; color: var(--ink-3); align-self: start; }
+ul.collection .meta .cells { color: var(--ink); font-size: 18px; margin-right: 8px; vertical-align: -0.12em; }
+ul.collection li a:hover .eq { text-decoration: underline; text-underline-offset: 4px; }
+
+/* Credits: the JSCAD block. */
+.feature { max-width: 760px; border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px; background: rgba(236, 233, 225, 0.03); }
+.feature ul { padding-left: 18px; margin: 0 0 14px; }
+.feature li { margin-bottom: 10px; }
