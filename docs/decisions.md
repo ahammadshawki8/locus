@@ -4,6 +4,36 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (j): touch results of the four prototype prints (Shawki)
+
+**What this is:** one sighted team member (Shawki) feeling the prints, eyes open or closed as they chose; **not** a test
+with a blind or low-vision reader, and not a claim that learners can read the graphs (H3). Answers as given:
+
+| Piece | Question | Answer |
+|---|---|---|
+| Calibration, row A (line pairs, gaps 2.0 / 3.2 / 4.0 / 6.4 / 9.5 mm) | First gap that feels like two separate lines | **4.0 mm** (2.0 and 3.2 felt like one) |
+| Calibration, row B (widths 0.8 / 1.0 / 1.2 / 1.6 / 2.0 mm) | Thinnest line that is easy to follow | **1.2 mm** |
+| Calibration, braille LOCUS at 0.5 and 0.8 mm | Which height is clearer | **0.8 mm** |
+| Plate A (default layout, touchcheck fails) | Curve and grid merge into one ridge at the vertex | **Yes** |
+| Plate A | A label is hard to find or confusing | **Yes** |
+| Plate B (fixed layout, passes) | Trace the whole curve | **Yes** |
+| Plate B | Find the marked points and their labels | **Yes** |
+| Plate C (cubic, passes) | Feel both turning points | **Yes** |
+| All plates | Braille ID and orientation triangle can be felt | **Yes** |
+| All plates | Axes feel different from the curve | **Yes** |
+| All plates | Anything rough, sharp or broken | **No** |
+
+**What it means:**
+1. **Agrees with the design:** braille dots 0.8 mm high (profile `fdm-handheld-v1`), curve 1.2 mm wide, axes lower and
+   thinner than the curve, braille ID and triangle. Plate A fails by touch where touchcheck said it fails (TL-1 at the
+   vertex, TL-2 at a label); plates B and C, which pass touchcheck, also pass this check.
+2. **Against the TL-1 value:** two long parallel lines felt separate only from 4.0 mm, while TL-1 asks for 3.2 mm
+   (published guidance). Plate B, whose closest gap is 3.4 mm, still traced well: a curve passing near an axis over a
+   short stretch is easier than two long parallel lines.
+3. **Decision: keep 3.2 mm** until after judging. Raising it now would fail graph-2-v1 and graph-3-v1 on one sighted
+   person's check, three days before the freeze. The README states the finding as a limitation and names a stricter
+   TL-1 for long parallel lines as the next step. Calibration Gate 7b: results recorded.
+
 ## 21 Oct 2026 (i): feature freeze; finish, polish, show (Shawki)
 
 Shawki's decision: no new features. The video (under 3 minutes, plain words, story first) is what wins; the README
