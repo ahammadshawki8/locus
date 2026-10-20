@@ -7,6 +7,9 @@ interfaces in `docs/contracts.md`, and every decision with its evidence in `docs
 
 ## 0. Shawki: start here
 
+New to the flow? Read [docs/how-it-works.md](docs/how-it-works.md) first: the whole system in diagrams, no code, and
+three ways to test it yourself.
+
 **State on 20 Oct:** Ashfaq's part is done and has run on GitLab. One email in, the agent writes the request, the
 pipeline renders and touch-checks it, the agent fixes its own layout, and the requester gets the print files back by
 email (issue #7, section 2). What is left is the release side you own, the move to the team project, and the freeze.

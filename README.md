@@ -52,7 +52,7 @@ npm run locus -- touchcheck examples/projectile.json   # the default layout (pri
 
 ## Docs
 
-[Touch rules](docs/touch-rules.md) · [Safety](docs/safety.md) · [Contracts](docs/contracts.md) ·
+[How it works](docs/how-it-works.md) · [Touch rules](docs/touch-rules.md) · [Safety](docs/safety.md) · [Contracts](docs/contracts.md) ·
 [Before and after](docs/before-after.md) · [Related work](docs/related-work.md) · [Limitations](docs/limitations.md) ·
 [Decisions](docs/decisions.md) · [Prototype prints](tools/prints/README.md) · [Full plan](projectLocus.md)
 
