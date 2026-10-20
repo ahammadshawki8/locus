@@ -416,6 +416,7 @@ const requestPage = () => textPage({
     <div class="field">
       <div class="label-row"><label for="note">What do you need?</label><button type="button" class="speak" data-speak aria-pressed="false" hidden><span class="dot" aria-hidden="true"></span><span data-speak-label>Speak</span></button></div>
       <textarea id="note" name="note" placeholder="Tomorrow I'm teaching projectile motion. The ball follows y = -0.5x^2 + 2x + 1, from x = -0.5 to 4.5. The students should find the highest point and where it starts on the y-axis."></textarea>
+      <p class="speak-status" data-speak-status role="status" aria-live="polite"></p>
       <p class="help">A function with its x range and the points to find works best. A topic alone works too: then the agent asks you one question before it draws anything. You can also press Speak and say it: your browser turns speech into text (in Chrome, Google's speech service does it).</p>
     </div>
     <fieldset class="field prints">

@@ -94,46 +94,90 @@
     reprint.querySelector('[data-reprint-mail]').addEventListener('click', () => send(false))
   }
 
-  // Voice typing (Request page): the browser's own speech recognition, shown only where the browser has it.
+  // Voice typing (Request page): the browser's own speech recognition, shown only where the browser has it. It keeps
+  // listening through pauses (browsers end a session after a few silent seconds) until the teacher presses stop, and
+  // says in plain words why when it cannot listen at all.
   const speak = document.querySelector('[data-speak]')
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
   if (speak && Recognition) {
     const note = document.querySelector('[name="note"]')
     const label = speak.querySelector('[data-speak-label]')
-    const rec = new Recognition()
-    rec.continuous = true
-    rec.interimResults = true
-    rec.lang = document.documentElement.lang || 'en'
+    const status = document.querySelector('[data-speak-status]')
+    const PROBLEMS = {
+      'not-allowed': 'The microphone is blocked. Allow it for this site (the icon in the address bar), then press Speak again.',
+      'service-not-allowed': 'This browser does not allow speech typing here. Try Chrome, or type instead.',
+      'audio-capture': 'No microphone was found. Check that one is connected.',
+      network: 'This browser has no speech service it can reach (Brave and some Edge setups do not). Try Chrome, or type instead.',
+      'language-not-supported': 'Speech typing does not support this language here. Try Chrome in English.'
+    }
+    let rec = null
+    let wanted = false
     let base = ''
-    let listening = false
-    const set = (on) => {
-      listening = on
+    let startedAt = 0
+    let quickEnds = 0
+    const say = (text) => { if (status) status.textContent = text }
+    const show = (on) => {
       speak.setAttribute('aria-pressed', String(on))
       label.textContent = on ? 'Listening... tap to stop' : 'Speak'
     }
-    rec.onresult = (e) => {
-      let finalText = ''
-      let interim = ''
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) finalText += e.results[i][0].transcript
-        else interim += e.results[i][0].transcript
+    const begin = () => {
+      rec = new Recognition()
+      rec.continuous = true
+      rec.interimResults = true
+      rec.lang = navigator.language || 'en-US'
+      rec.onresult = (e) => {
+        let finalText = ''
+        let interim = ''
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) finalText += e.results[i][0].transcript
+          else interim += e.results[i][0].transcript
+        }
+        if (finalText) base = `${base}${base && !/\s$/.test(base) ? ' ' : ''}${finalText.trim()}`
+        note.value = interim ? `${base}${base ? ' ' : ''}${interim}` : base
+        note.dispatchEvent(new Event('input', { bubbles: true }))
+        quickEnds = 0
       }
-      if (finalText) base = `${base}${base && !/\s$/.test(base) ? ' ' : ''}${finalText.trim()}`
-      note.value = interim ? `${base}${base ? ' ' : ''}${interim}` : base
-      note.dispatchEvent(new Event('input', { bubbles: true }))
+      rec.onerror = (e) => {
+        if (PROBLEMS[e.error]) {
+          wanted = false
+          say(PROBLEMS[e.error])
+        }
+      }
+      rec.onend = () => {
+        // A session that ends within a second, twice running, is a browser that cannot listen: stop, do not loop.
+        quickEnds = performance.now() - startedAt < 1000 ? quickEnds + 1 : 0
+        if (wanted && quickEnds >= 2) {
+          wanted = false
+          say('Speech typing stopped straight away in this browser. Try Chrome, or type instead.')
+        }
+        if (wanted) return listen()
+        show(false)
+      }
+      startedAt = performance.now()
+      rec.start()
     }
-    rec.onend = () => set(false)
-    rec.onerror = () => set(false)
+    const listen = () => {
+      try {
+        begin()
+        show(true)
+      } catch {
+        wanted = false
+        show(false)
+        say('Speech typing could not start. Try again, or type instead.')
+      }
+    }
     speak.hidden = false
     speak.addEventListener('click', () => {
-      if (listening) return rec.stop()
-      base = note.value.trim()
-      try {
-        rec.start()
-        set(true)
-      } catch {
-        set(false)
+      if (wanted) {
+        wanted = false
+        if (rec) rec.stop()
+        return
       }
+      wanted = true
+      quickEnds = 0
+      base = note.value.trim()
+      say('')
+      listen()
     })
   }
 
