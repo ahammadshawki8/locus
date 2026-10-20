@@ -1,0 +1,7 @@
+* text=auto
+*.pdf binary
+*.stl binary
+*.png binary
+*.jpg binary
+# Locus: fixture bytes are hashed in manifest.json, so never convert line endings.
+fixtures/** -text

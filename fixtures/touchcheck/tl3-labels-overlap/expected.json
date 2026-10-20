@@ -1,0 +1,9 @@
+{
+  "fixture": true,
+  "seeded": "TL-3",
+  "fails": [
+    "TL-2",
+    "TL-3"
+  ],
+  "why": "Label b moved onto label a (and so onto the curve)"
+}

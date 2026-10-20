@@ -1,93 +1,68 @@
-# Showcase
+# Locus: tactile maths graphs, made and shipped by an agent
 
-Transcend Hackathon Showcase workspace for @ahammadshawki8 (DevPost: ahammadshawki8). Visit the [onboarding issue](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/work_items/1) to get started.
+**A teacher emails a maths graph. An AI agent makes a version a blind student can read by touch, checks it the way a
+fingertip would, fixes its own mistakes, and ships it. One request in, no human after that.**
 
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase.git
-git branch -M main
-git push -uf origin main
+```text
+ Teacher request ──> Duo agent drafts graph ──> Touch check
+                              ▲                      │
+                              └── fails: agent fixes ┘
+                                                     │ passes
+                                                     ▼
+            Reply with print-ready file <── Release + deploy
 ```
 
-## Integrate with your tools
+Other tools draw tactile graphs ([related work](docs/related-work.md)). Locus **checks** them against measured
+touch-legibility rules, has an agent **fix** what fails within an allowed set of changes, and **ships only what passes**.
 
-* [Set up project integrations](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/settings/integrations)
+> **Status (20 Oct 2026):** one email in, print files back by email, with the agent fixing its own layout in between,
+> runs end to end on GitLab (see below). The guards run in CI. Merge, release and deploy are not built yet, and nothing
+> is validated with an educator or reader yet. Current status: the board in [projectLocus.md](projectLocus.md) S.3.
+> Automated checks measure spacing and size; they do not certify that a learner can understand the graphic
+> ([limitations](docs/limitations.md)).
 
-## Collaborate with your team
+## See it working
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+A real run on 20 Oct 2026 in our GitLab test bed ([evidence](docs/decisions.md), entry 20 Oct (e)):
 
-## Test and Deploy
+1. One plain email with the request became
+   [issue #7](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/issues/7) and started
+   the `locus-request` GitLab Duo flow. Nobody did anything after sending it.
+2. The intake agent wrote the request files and opened
+   [MR !5](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/merge_requests/5).
+   Attempt 1 failed the touch check (lines too close, labels touching lines).
+3. The fixer agent changed only the layout (grid off, two labels moved), and attempt 2 passed every check.
+4. About 8.5 minutes after the email, the agent replied on the issue with the print files:
+   [the whole bundle](https://gitlab.com/api/v4/projects/87669530/jobs/artifacts/refs%2Fmerge-requests%2F5%2Fhead/raw/out/bundle/graph-7-v1.zip?job=bundle)
+   and [the STL alone](https://gitlab.com/api/v4/projects/87669530/jobs/artifacts/refs%2Fmerge-requests%2F5%2Fhead/raw/out/bundle/graph-7-v1/graph.stl?job=bundle)
+   (no sign-in needed), with braille ID G7 on the plate.
 
-Use the built-in continuous integration in GitLab.
+The refusal path also ran: [issue #6](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/issues/6)
+asks for a parabola that only touches the x-axis, which no layout can make readable; after 3 attempts the agent
+refused and nothing was released.
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+## Try it locally
 
-***
+```sh
+npm --prefix locus ci
+npm run test:locus
+npm run locus -- examples/projectile.json              # renders out/projectile/{graph.stl,graph.svg,description.txt,scene.json}
+npm run locus -- touchcheck examples/projectile.json   # the default layout (print A) fails; report + overlay in out/projectile
+```
 
-# Editing this README
+## Docs
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+[How it works](docs/how-it-works.md) · [Touch rules](docs/touch-rules.md) · [Safety](docs/safety.md) · [Contracts](docs/contracts.md) ·
+[Before and after](docs/before-after.md) · [Related work](docs/related-work.md) · [Limitations](docs/limitations.md) ·
+[Decisions](docs/decisions.md) · [Prototype prints](tools/prints/README.md) · [Full plan](projectLocus.md)
 
-## Suggestions for a good README
+## How it was built
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+**Claude Code** is the tool we used to build Locus. **GitLab Duo Agent Platform** runs the agents inside Locus. Every
+agent action in the product and its pipeline history is done by Duo flows.
 
-## Name
-Choose a self-explaining name for your project.
+## Upstream and licence
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Locus is built on [JSCAD / OpenJSCAD.org](https://github.com/jscad/OpenJSCAD.org), imported with its full history.
+JSCAD is MIT-licensed ([LICENSE](LICENSE)); its original README is [README.jscad.md](README.jscad.md). What is upstream
+and what is new is listed in [docs/before-after.md](docs/before-after.md). Locus's own code is also MIT.

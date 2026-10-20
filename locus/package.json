@@ -1,0 +1,25 @@
+{
+  "name": "@locus/locus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Locus: tactile maths graphs, made and shipped by an agent",
+  "license": "MIT",
+  "main": "core/index.js",
+  "bin": {
+    "locus": "cli/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@jscad/modeling": "file:../packages/modeling",
+    "ajv": "8.20.0",
+    "manifold-3d": "3.2.1"
+  },
+  "devDependencies": {
+    "yaml": "2.9.1"
+  }
+}

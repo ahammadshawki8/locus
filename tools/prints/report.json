@@ -1,0 +1,366 @@
+{
+  "graph-A-attempt1": {
+    "spec": {
+      "schemaVersion": 3,
+      "requestId": 0,
+      "graph": {
+        "type": "polynomial",
+        "coeffs": [
+          0,
+          -0.5,
+          2,
+          1
+        ],
+        "domain": {
+          "min": -0.5,
+          "max": 4.5
+        }
+      },
+      "mark": [
+        "vertex",
+        "y-intercept",
+        "x-intercept+"
+      ],
+      "labels": "braille-grade1",
+      "profileId": "fdm-handheld-v1"
+    },
+    "layout": {
+      "xScaleMm": 16,
+      "yScaleMm": 8,
+      "labelMode": "inline",
+      "labelOffsets": {},
+      "defaultLabelOffset": [
+        4.5,
+        6
+      ],
+      "showGrid": true
+    },
+    "origin": [
+      20,
+      21
+    ],
+    "marks": {
+      "vertex": [
+        2,
+        3
+      ],
+      "turning-point-1": [
+        2,
+        3
+      ],
+      "x-intercept+": [
+        4.449,
+        0
+      ],
+      "y-intercept": [
+        0,
+        1
+      ]
+    },
+    "touchcheck": {
+      "pass": false,
+      "results": [
+        {
+          "rule": "TL-1",
+          "pass": false,
+          "measuredMm": -1.1,
+          "requiredMm": 3.2,
+          "at": [
+            52,
+            45
+          ],
+          "with": "grid",
+          "message": "These lines are too close: a fingertip feels one line"
+        },
+        {
+          "rule": "TL-2",
+          "pass": false,
+          "measuredMm": -0.6,
+          "requiredMm": 6.4,
+          "at": [
+            22.9,
+            31.8
+          ],
+          "label": "b",
+          "with": "curve",
+          "message": "This label touches a line"
+        },
+        {
+          "rule": "TL-3",
+          "pass": true,
+          "measuredMm": 29.6,
+          "requiredMm": 3.2,
+          "between": [
+            "a",
+            "b"
+          ],
+          "message": "These labels overlap"
+        },
+        {
+          "rule": "TL-4",
+          "pass": true,
+          "missing": [],
+          "message": "Something requested is missing"
+        },
+        {
+          "rule": "TL-5",
+          "pass": false,
+          "edgeMarginMm": 2.3,
+          "minFeatureWidthMm": 1,
+          "message": "Too big for the plate / features too thin"
+        }
+      ]
+    }
+  },
+  "graph-B-corrected": {
+    "spec": {
+      "schemaVersion": 3,
+      "requestId": 0,
+      "graph": {
+        "type": "polynomial",
+        "coeffs": [
+          0,
+          -0.5,
+          2,
+          1
+        ],
+        "domain": {
+          "min": -0.5,
+          "max": 4.5
+        }
+      },
+      "mark": [
+        "vertex",
+        "y-intercept",
+        "x-intercept+"
+      ],
+      "labels": "braille-grade1",
+      "profileId": "fdm-handheld-v1"
+    },
+    "layout": {
+      "xScaleMm": 16,
+      "yScaleMm": 16,
+      "labelMode": "inline",
+      "labelOffsets": {
+        "vertex": [
+          0,
+          10.75
+        ],
+        "y-intercept": [
+          -9,
+          6.5
+        ],
+        "x-intercept+": [
+          -7.2,
+          -12.25
+        ]
+      },
+      "defaultLabelOffset": [
+        4.5,
+        6
+      ],
+      "showGrid": false
+    },
+    "origin": [
+      20,
+      22
+    ],
+    "marks": {
+      "vertex": [
+        2,
+        3
+      ],
+      "turning-point-1": [
+        2,
+        3
+      ],
+      "x-intercept+": [
+        4.449,
+        0
+      ],
+      "y-intercept": [
+        0,
+        1
+      ]
+    },
+    "touchcheck": {
+      "pass": true,
+      "results": [
+        {
+          "rule": "TL-1",
+          "pass": true,
+          "measuredMm": 3.4,
+          "requiredMm": 3.2,
+          "at": [
+            15.5,
+            28.4
+          ],
+          "with": "y-axis",
+          "message": "These lines are too close: a fingertip feels one line"
+        },
+        {
+          "rule": "TL-2",
+          "pass": true,
+          "measuredMm": 6.5,
+          "requiredMm": 6.4,
+          "at": [
+            20,
+            41.3
+          ],
+          "label": "b",
+          "with": "y-axis",
+          "message": "This label touches a line"
+        },
+        {
+          "rule": "TL-3",
+          "pass": true,
+          "measuredMm": 30,
+          "requiredMm": 3.2,
+          "between": [
+            "a",
+            "#b"
+          ],
+          "message": "These labels overlap"
+        },
+        {
+          "rule": "TL-4",
+          "pass": true,
+          "missing": [],
+          "message": "Something requested is missing"
+        },
+        {
+          "rule": "TL-5",
+          "pass": true,
+          "edgeMarginMm": 5.5,
+          "minFeatureWidthMm": 1,
+          "message": "Too big for the plate / features too thin"
+        }
+      ]
+    }
+  },
+  "graph-C-cubic": {
+    "spec": {
+      "schemaVersion": 3,
+      "requestId": 0,
+      "graph": {
+        "type": "polynomial",
+        "coeffs": [
+          0.5,
+          -3,
+          4.5,
+          2
+        ],
+        "domain": {
+          "min": -0.1,
+          "max": 4
+        }
+      },
+      "mark": [
+        "turning-points",
+        "y-intercept"
+      ],
+      "labels": "braille-grade1",
+      "profileId": "fdm-handheld-v1"
+    },
+    "layout": {
+      "xScaleMm": 19,
+      "yScaleMm": 12,
+      "labelMode": "inline",
+      "labelOffsets": {
+        "turning-point-1": [
+          0,
+          10.5
+        ],
+        "turning-point-2": [
+          0,
+          -10.5
+        ],
+        "y-intercept": [
+          11.2,
+          -10.5
+        ]
+      },
+      "defaultLabelOffset": [
+        4.5,
+        6
+      ],
+      "showGrid": false
+    },
+    "origin": [
+      13.9,
+      20
+    ],
+    "marks": {
+      "vertex": [
+        3,
+        2
+      ],
+      "turning-point-1": [
+        1,
+        4
+      ],
+      "turning-point-2": [
+        3,
+        2
+      ],
+      "y-intercept": [
+        0,
+        2
+      ]
+    },
+    "touchcheck": {
+      "pass": true,
+      "results": [
+        {
+          "rule": "TL-1",
+          "pass": true,
+          "measuredMm": 4.5,
+          "requiredMm": 3.2,
+          "at": [
+            19.5,
+            56.9
+          ],
+          "with": "y-axis",
+          "message": "These lines are too close: a fingertip feels one line"
+        },
+        {
+          "rule": "TL-2",
+          "pass": true,
+          "measuredMm": 6.7,
+          "requiredMm": 6.4,
+          "at": [
+            32.8,
+            68
+          ],
+          "label": "a",
+          "with": "curve",
+          "message": "This label touches a line"
+        },
+        {
+          "rule": "TL-3",
+          "pass": true,
+          "measuredMm": 38.7,
+          "requiredMm": 3.2,
+          "between": [
+            "a",
+            "c"
+          ],
+          "message": "These labels overlap"
+        },
+        {
+          "rule": "TL-4",
+          "pass": true,
+          "missing": [],
+          "message": "Something requested is missing"
+        },
+        {
+          "rule": "TL-5",
+          "pass": true,
+          "edgeMarginMm": 6,
+          "minFeatureWidthMm": 1,
+          "message": "Too big for the plate / features too thin"
+        }
+      ]
+    }
+  }
+}
