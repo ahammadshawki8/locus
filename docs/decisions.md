@@ -4,6 +4,29 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 20 Oct 2026 (g): Shawki's 16 to 19 Oct work merged into the branch; contracts D8 no longer matches the code (Ashfaq)
+
+1. **Merge:** the working repo's `main` (`6d77f814`, three commits by Shawki: 9be54757, 993b6af8, 6d77f814) is merged
+   into `feat/gate2-render`, so PR 1 and the team project's MR !1 carry both sides and have no conflicts. Nothing of
+   either side was dropped: Shawki's 19 Oct and 16 Oct entries are kept word for word in date order; his S.3 board
+   (written from the 16 Oct board) is folded into the 20 Oct one (onboarding done, credits working, all four prints
+   done, the A/B/C touch questions, enabling Secret FP Detection and Breaking Change Resolution, his handover checks as
+   S.3 Next items 4, 15 and 16). His 16 Oct entry holds the same GitLab answers as 20 Oct (c); his is the earlier
+   record.
+2. **Contracts §10:** Shawki already replaced "Still waiting on GitLab" with "GitLab's answers (16 Oct)", so the
+   proposal of 20 Oct (c) item 7 is already in the contract in his words.
+3. **Contracts D8 does not match the code (H5, both must agree).** Shawki's 16 Oct D8: "The fixer runs `touchcheck`
+   itself in the flow (`run_command`), edits `layout.json` (`edit_file`) and commits each attempt with
+   `create_commit`. The `LOCUS_REPORT` log line (§4) stays as the audit record and fallback." The flow that ran four
+   times (#3, #5, #6, #7) does what the old D8 said: it reads the `LOCUS_REPORT` line from the touchcheck job log and
+   commits with `create_commit`; it has `coding_environment: none` and no command or file tools, and `check.js`
+   rejects `run_command` as IDE only (20 Oct (c) item 4 decided to change nothing before 27 Oct). Neither side is
+   edited here. **To agree:** either D8 goes back to the old wording (it describes what ran), or the fixer gets
+   `run_command` and `edit_file` (needs a clone, `agent-config.yml`, `check.js` changes and new runs before the
+   freeze). Ashfaq's view: the old wording, because it is what the evidence shows.
+4. **Team project:** MR !1's first pipeline (2968423176, on `locus/import` at `1701f81e`) passed every job: render,
+   touchcheck, the three guards, bundle, library-impact, locus-test, upstream-test on Node 20 and 22.
+
 ## 20 Oct 2026 (f): no live runs during judging; triggers off at the deadline; handover to Shawki (Ashfaq)
 
 No change to `docs/contracts.md`.
@@ -264,6 +287,16 @@ to the message was given.
 3. **What changes:** nothing that works. S.4 step 1 (the `incoming+` address, then a person's mention) and the flow's
    header comment stay; no re-paste is needed for this answer. S.3 "Waiting on GitLab" now holds the follow-ups:
    whether the Settings page shows a different address, and GitLab's look at the assign error once Ashfaq sends it.
+
+## 19 Oct 2026: team provisioned, Duo credits working, plates printed
+
+- All three members (Shawki, Ashfaq, Nourin) are now in one hackathon group, after each was first given a separate workspace on 16 Oct.
+- Duo credits now work for the team. The 16 Oct "No credits remain" problem is closed.
+- Consequence: Gate 5 no longer has to run in Shawki's account. Ashfaq runs it in the shared project with his own account.
+- Prototype plates A, B and C are printed, so all 4 prototype prints exist (H9). Their touch results go in a later entry.
+- Still unknown: the size of the namespace credit pool for triggered flows. Gate 5 records the use of one session.
+
+---
 
 ## 17 Oct 2026 (c): flow re-pasted, Discord questions asked, practitioner booked (reported by Ashfaq)
 
@@ -1123,6 +1156,21 @@ No change to `docs/contracts.md`. These are how the code now follows it, and wha
 **Superseded from 14 Oct:** `fdm-3d-v1` and its values (180 x 180 bed, 2.0 mm curve, NLS 800 cell size), separate
 shells instead of a union, value labels next to points, braille ID `L<iid>-<n>`, the TL-2 rule that skipped a label's
 own mark, the report fields `note`/`subject`, and the line-end stub rule inside an excused stretch.
+
+---
+
+## 16 Oct 2026: GitLab's answers to our follow-up questions (Discord)
+
+| Question | GitLab's answer | What we do |
+|---|---|---|
+| Teammates added to the project? | `ashfaq909` and `nourin.richi.2026` are **not** in the hackathon group and have no workspace yet | Each confirms they submitted the form at [contributors.gitlab.com/transcend-hackathon](https://contributors.gitlab.com/transcend-hackathon), or submits it now. If they already did, they send GitLab the time they submitted. Until Ashfaq is provisioned, the Gate 5 test runs in Shawki's account, with Ashfaq pairing on a screen share |
+| "No credits remain" in Duo Chat | Set the Transcend group as the **default GitLab Duo group** at [gitlab.com/-/profile/preferences](https://gitlab.com/-/profile/preferences) | Shawki sets it now; each teammate does the same once provisioned |
+| Credits for triggered flows | They run as the flow's service account and are billed at **namespace level**, separate from personal credits. GitLab can't confirm the pool size | Gate 5 is the first test of whether triggered flows run at all. Keep the number of runs low (no polling loops, early exit in `locus-ops`). If triggered runs fail for credits, test whether starting the flow from Agentic Chat (slash command) runs on personal credits, and ask GitLab before relying on it |
+| `run_command` / `edit_file` / `read_file` in CI flows | **Available.** Use `create_commit` to commit through the API | D8 becomes: the fixer runs `touchcheck` itself with `run_command`, edits `layout.json` with `edit_file`, and commits each attempt with `create_commit`. The `LOCUS_REPORT` log line stays as the audit record and fallback |
+| Can a flow merge? | Yes, through the merge request API; there's no dedicated merge tool | **Keep D7:** the deterministic `auto-merge` CI job merges, because only a fully green pipeline should decide. Agent merging is a fallback only |
+| Secret FP Detection, Breaking Change Resolution | Both in the AI Catalog; enable them from **AI > Flows** | Shawki enables both now (T2.9) |
+
+---
 
 ## 15 Oct 2026 (b): pipeline checked against the Duo Agent Platform docs → pipeline v2 (PROPOSED, agree tonight)
 
