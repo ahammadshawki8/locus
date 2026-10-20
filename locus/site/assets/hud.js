@@ -47,6 +47,12 @@
   if (form) {
     const $ = (name) => form.querySelector(`[name="${name}"]`)
     const preview = form.querySelector('[data-preview]')
+    // Printed copies: ticked by default, 1 copy; unticked means digital files only, so no print order is sent.
+    const printed = () => form.querySelector('[name="print"]').checked
+    const copies = () => Math.min(99, Math.max(1, Math.round(Number($('copies').value) || 1)))
+    const showCopies = () => { form.querySelector('[data-copies]').hidden = !printed() }
+    form.addEventListener('change', showCopies)
+    showCopies()
     const store = {
       get: (k) => { try { return localStorage.getItem(k) || '' } catch { return '' } },
       set: (k, v) => { try { localStorage.setItem(k, v) } catch {} }
@@ -74,7 +80,7 @@
       lines.push(`Function: ${r.fn || 'not given yet (please ask me which function to use for the topic below)'}`)
       lines.push(`x range: ${r.range ? `from ${r.range[0]} to ${r.range[1]}` : 'not given (please choose a sensible range)'}`)
       lines.push(`Points to mark: ${r.points.length ? r.points.join(', ') : 'not given (please mark the most important points)'}`)
-      if ($('copies').value) lines.push(`Printed copies needed: ${$('copies').value}`)
+      lines.push(printed() ? `Printed copies needed: ${copies()}` : 'Printed copies needed: 0 (digital files only)')
       lines.push('', 'In my own words:', $('note').value.trim() || '(nothing written yet)')
       lines.push('', 'Thank you.')
       if ($('agent').value.trim()) lines.push('', `/assign @${$('agent').value.trim().replace(/^@/, '')}`)

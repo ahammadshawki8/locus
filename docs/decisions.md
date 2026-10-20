@@ -32,6 +32,12 @@ Shawki reviewed the local preview and asked for these; all are built on branch `
    section. **Credits** now has full GitLab and Google Cloud sections listing each feature or service Locus uses and
    what for. The logo turns GitLab orange on hover. Spacing under the request form's "Agent account", and a smaller
    gap between the plates and their caption on the home page.
+9. **Third round (Shawki):** About opens with the tagline "Blindness can't limit curiosity." and the newest plate
+   floating in 3D (drag to turn it), like the graph pages. The whole logo (mark and word) turns orange on hover.
+   **Printed copies:** the Request page has an "I need printed copies" box, ticked by default with 1 copy, and a
+   number for more; unticked writes "Printed copies needed: 0 (digital files only)", and the print-order job then
+   sends no order. The print shop stays the school's one setting (`PRINT_ORDER_TO`); a per-request shop address was
+   considered and dropped (simpler, and nobody can redirect orders).
 
 ## 21 Oct 2026 (l): the feature freeze reopened for one story: from a lesson idea to a print in hand (Shawki)
 

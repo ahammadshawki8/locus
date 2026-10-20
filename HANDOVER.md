@@ -139,7 +139,8 @@ S.3 Next item 13.
 - Print orders (optional, off by default; `locus/release/print-order.js`, `docs/decisions.md` 21 Oct (l)):
   `PRINT_ORDER_ENABLED` (`true` to send), `PRINT_ORDER_TO` (the print shop), `PRINT_ORDER_FROM` (the sending account),
   `PRINT_ORDER_SMTP_PASSWORD` (that account's app password: masked and hidden), and optionally `PRINT_ORDER_REPLY_TO`
-  (usually the teacher), `PRINT_ORDER_COPIES` (default copies when the request does not say) and `PRINT_ORDER_SMTP_URL`
+  (usually the teacher), `PRINT_ORDER_COPIES` (default copies when the request does not say; a request that says
+  "Printed copies needed: 0" gets no order) and `PRINT_ORDER_SMTP_URL`
   (default `smtps://smtp.gmail.com:465`). Not set yet; no order has been sent (H3).
 
 ## 8. Flaky or limited, and how to re-run

@@ -2,12 +2,13 @@
 // (docs/decisions.md 21 Oct (l)). Off unless PRINT_ORDER_ENABLED=true. For each graph this pipeline released, it emails
 // the print shop an order with the STL attached and the print settings written out, then notes on the request that
 // the order went out. Nothing is paid or confirmed: the shop replies to the teacher.
-//   PRINT_ORDER_TO             the shop's address
+//   PRINT_ORDER_TO             the school's print shop
 //   PRINT_ORDER_FROM           the sending account (for example a Gmail address made for Locus)
 //   PRINT_ORDER_SMTP_PASSWORD  that account's app password: masked and hidden, never on a command line or in a log
 //   PRINT_ORDER_SMTP_URL       optional, default smtps://smtp.gmail.com:465
 //   PRINT_ORDER_REPLY_TO       optional: where the shop should reply (the teacher)
-//   PRINT_ORDER_COPIES         optional default copies; the request's "Printed copies needed: N" line wins
+//   PRINT_ORDER_COPIES         optional default copies; the request's "Printed copies needed: N" line wins, and
+//                              "Printed copies needed: 0" (digital files only, from the Request page) means no order
 // Exit 0 = sent (or off, or nothing released), 1 = the mail server or GitLab refused, 2 = missing input.
 const fs = require('fs')
 const path = require('path')
@@ -17,10 +18,11 @@ const { spawnSync } = require('child_process')
 const { fromEnv } = require('./gitlab')
 const { packageFileUrl } = require('./release')
 
-/** "Printed copies needed: 6" in the request, else the default, else 1. */
+/** "Printed copies needed: 6" in the request, else the default, else 1. "Printed copies needed: 0" is 0: no order. */
 const copiesFrom = (issueText, fallback) => {
   const m = /Printed copies needed:\s*(\d{1,3})/i.exec(issueText || '')
-  const n = Number(m ? m[1] : fallback)
+  if (m) return Math.min(99, Number(m[1]))
+  const n = Number(fallback)
   return Number.isInteger(n) && n > 0 ? n : 1
 }
 
@@ -130,23 +132,28 @@ const runPrintOrder = async (args, env = process.env, api = fromEnv(env), send =
       console.error(`print-order: ${stlFile} not found (the bundle job writes it)`)
       return 2
     }
-    let issueText = ''
+    let issue = null
     if (env.LOCUS_GITLAB_TOKEN) {
       try {
-        issueText = (await api('GET', `/issues/${manifest.requestIssue}`, { auth: 'token' })).description || ''
+        issue = await api('GET', `/issues/${manifest.requestIssue}`, { auth: 'token' })
       } catch {}
     }
-    const copies = copiesFrom(issueText, env.PRINT_ORDER_COPIES)
+    const to = env.PRINT_ORDER_TO
+    const copies = copiesFrom(issue && issue.description, env.PRINT_ORDER_COPIES)
+    if (copies === 0) {
+      console.log(`print-order: ${tag}: the request asked for digital files only; not ordered`)
+      continue
+    }
     const message = orderMessage({
       manifest, copies, siteUrl, apiUrl: env.CI_API_V4_URL, projectId: env.CI_PROJECT_ID,
-      from: env.PRINT_ORDER_FROM, to: env.PRINT_ORDER_TO, replyTo: env.PRINT_ORDER_REPLY_TO, stl: fs.readFileSync(stlFile)
+      from: env.PRINT_ORDER_FROM, to, replyTo: env.PRINT_ORDER_REPLY_TO, stl: fs.readFileSync(stlFile)
     })
-    send({ url: env.PRINT_ORDER_SMTP_URL || 'smtps://smtp.gmail.com:465', from: env.PRINT_ORDER_FROM, to: env.PRINT_ORDER_TO, password: env.PRINT_ORDER_SMTP_PASSWORD, message })
-    console.log(`print-order: ${tag}: ${copies} ${copies === 1 ? 'copy' : 'copies'} ordered from ${maskEmail(env.PRINT_ORDER_TO)}`)
+    send({ url: env.PRINT_ORDER_SMTP_URL || 'smtps://smtp.gmail.com:465', from: env.PRINT_ORDER_FROM, to, password: env.PRINT_ORDER_SMTP_PASSWORD, message })
+    console.log(`print-order: ${tag}: ${copies} ${copies === 1 ? 'copy' : 'copies'} ordered from ${maskEmail(to)}`)
     if (env.LOCUS_GITLAB_TOKEN) {
       const note = [
         'Automated message from the Locus pipeline.',
-        `Print order sent: ${copies} ${copies === 1 ? 'copy' : 'copies'} of ${tag} to ${maskEmail(env.PRINT_ORDER_TO)}, with the STL attached and the print settings.`,
+        `Print order sent: ${copies} ${copies === 1 ? 'copy' : 'copies'} of ${tag} to ${maskEmail(to)}, with the STL attached and the print settings.`,
         `The shop has been asked to reply${env.PRINT_ORDER_REPLY_TO ? ` to ${maskEmail(env.PRINT_ORDER_REPLY_TO)}` : ''} with the price and the date. Nothing has been paid or confirmed.`
       ].join('\n\n')
       await api('POST', `/issues/${manifest.requestIssue}/notes`, { auth: 'token', body: { body: note } })

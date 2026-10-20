@@ -48,7 +48,7 @@ test('the number of copies comes from the request, then the default, then 1', ()
   assert.strictEqual(copiesFrom('Function: y = x\nPrinted copies needed: 6\n', '2'), 6)
   assert.strictEqual(copiesFrom('no copies line', '2'), 2)
   assert.strictEqual(copiesFrom('', undefined), 1)
-  assert.strictEqual(copiesFrom('Printed copies needed: 0', 'x'), 1)
+  assert.strictEqual(copiesFrom('Printed copies needed: 0 (digital files only)', '2'), 0)
   assert.strictEqual(maskEmail('shop@example.org'), 's***@example.org')
 })
 
@@ -75,6 +75,14 @@ test('when on, it sends one order per released graph, then notes it on the reque
   assert.deepStrictEqual(calls.map((c) => `${c.method} ${c.route}`), ['GET /issues/3', 'POST /issues/3/notes'])
   assert.match(calls[1].body.body, /Print order sent: 6 copies of graph-3-v1 to s\*\*\*@example\.org/)
   assert.ok(!calls[1].body.body.includes('shop@example.org'), 'the shop address is not published on the issue')
+})
+
+test('a request for digital files only gets no print order', async () => {
+  const [release, bundle] = dirs(['graph-3-v1'])
+  const { calls, api } = fake('Printed copies needed: 0 (digital files only)')
+  const send = () => { throw new Error('must not send') }
+  assert.strictEqual(await runPrintOrder(['https://l', release, bundle], env(), api, send), 0)
+  assert.deepStrictEqual(calls.map((c) => c.method), ['GET'], 'no note either')
 })
 
 test('off, frozen, nothing released or missing settings: nothing is sent', async () => {

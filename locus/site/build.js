@@ -237,7 +237,7 @@ for x from -0.5 to 4.5.
 Please mark the highest point and where the curve
 crosses the y-axis.`
 
-const textPage = ({ title, description, current, body, wide = false, full = false }) => page({ title, description, current, content: `<main id="content" class="page"><div class="inner${wide ? ' wide' : ''}${full ? ' full' : ''}">\n${body}\n</div></main>` })
+const textPage = ({ title, description, current, body, wide = false, full = false, scene = false }) => page({ title, description, current, scene, content: `<main id="content" class="page"><div class="inner${wide ? ' wide' : ''}${full ? ' full' : ''}">\n${body}\n</div></main>` })
 
 const steps = (list) => `<ol class="steps">\n${list.map(([title, text], i) => `  <li><span class="n">${String(i + 1).padStart(2, '0')}</span><div><h3>${title}</h3>${text}</div></li>`).join('\n')}\n</ol>`
 
@@ -269,13 +269,18 @@ const aboutPage = (newest) => textPage({
   description: 'What Locus is and how a teacher uses it, in plain words.',
   current: '/about/',
   full: true,
+  scene: Boolean(newest),
   body: `<section class="about-hero">
   <div>
-    <h1>Maths graphs a blind student can read by touch.</h1>
-    <p class="lead">Blind and low-vision students learn graphs from raised-line plates they read with their fingertips. Making one by hand can take hours. With Locus, a teacher writes one email and gets back a plate that is ready to 3D print.</p>
+    <h1>Blindness can't limit curiosity.</h1>
+    <p class="lead">Blind and low-vision students learn maths graphs from raised-line plates they read with their fingertips. Making one by hand can take hours. With Locus, a teacher writes one email and gets back a plate that is ready to 3D print.</p>
     <div class="buttons"><a class="btn" href="/request/">Request a graph</a><a class="btn ghost" href="/collections/">See the collection</a></div>
   </div>
-  ${newest ? `<figure class="plate-card"><img src="/graphs/${escape(newest.manifest.artifactId)}/graph.svg" alt=""><figcaption>${newest.request ? equationHtml(newest.request.equation) : escape(newest.manifest.artifactId)}, made by Locus</figcaption></figure>` : ''}
+  ${newest ? `<figure class="plate-float">
+    <section class="scene" data-scene="single" aria-label="A plate made by Locus, in 3D"><div class="fallback"><img src="/graphs/${escape(newest.manifest.artifactId)}/graph.svg" alt=""></div></section>
+    <script type="application/json" id="graphs-data">${sceneData([newest])}</script>
+    <figcaption>${newest.request ? equationHtml(newest.request.equation) : escape(newest.manifest.artifactId)}, made by Locus. Drag to turn it.</figcaption>
+  </figure>` : ''}
 </section>
 
 <h2>How to use Locus</h2>
@@ -410,10 +415,15 @@ const requestPage = () => textPage({
       <textarea id="note" name="note" placeholder="Tomorrow I'm teaching projectile motion. The ball follows y = -0.5x^2 + 2x + 1, from x = -0.5 to 4.5. The students should find the highest point and where it starts on the y-axis."></textarea>
       <p class="help">A function with its x range and the points to find works best. A topic alone works too: then the agent asks you one question before it draws anything.</p>
     </div>
-    <div class="field">
-      <label for="copies">Printed copies (optional)</label>
-      <input id="copies" name="copies" inputmode="numeric" placeholder="e.g. 6, one per student">
-    </div>
+    <fieldset class="field prints">
+      <legend class="sr-only">Printed copies</legend>
+      <label class="check"><input type="checkbox" name="print" checked> I need printed copies</label>
+      <div class="copies" data-copies>
+        <label for="copies">How many</label>
+        <input id="copies" name="copies" type="number" min="1" max="99" value="1" inputmode="numeric">
+      </div>
+      <p class="help">Ticked: your school's print shop gets the file once the graph passes the checks, and replies to you with the price. Unticked: you get the digital files only, to print yourself.</p>
+    </fieldset>
     <div class="field">
       <label for="to">Your Locus address</label>
       <input id="to" name="to" type="email" autocomplete="off" placeholder="the address from your Locus project">

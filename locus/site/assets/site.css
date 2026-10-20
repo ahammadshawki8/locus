@@ -44,7 +44,8 @@ a { color: inherit; }
 .hud a[aria-current="page"] { color: var(--ink-3); }
 .brand { position: absolute; left: 50%; transform: translateX(-50%); top: -2px; display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .brand .mark { width: 32px; height: 32px; display: block; margin-top: -3px; transition: color 0.2s ease; }
-.brand:hover .mark, .brand:focus-visible .mark { color: #fc6d26; }
+.brand, .brand .word { transition: color 0.2s ease; }
+.hud a.brand:hover, .hud a.brand:focus-visible, .hud a.brand:hover .mark, .hud a.brand:focus-visible .mark { color: #fc6d26; }
 .brand .word { font-family: var(--mono); font-weight: 500; font-size: 23px; letter-spacing: -0.05em; line-height: 1; text-transform: none; }
 
 /* Carousel caption, under the centred plate. */
@@ -208,10 +209,10 @@ ul.collection li a:hover .eq { text-decoration: underline; text-underline-offset
 .about-hero h1 { font-size: clamp(34px, 4.4vw, 58px); max-width: 15ch; }
 .about-hero .lead { margin-bottom: 36px; max-width: 58ch; }
 .about-hero .buttons { display: flex; flex-wrap: wrap; gap: 12px; }
-.plate-card { margin: 0; background: #f1eee8; border-radius: 22px; padding: 22px; transform: rotate(-2deg); box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8); }
-.plate-card img { display: block; width: 100%; height: auto; }
-.plate-card figcaption { color: #4a4f55; font-size: 13.5px; margin-top: 12px; text-align: center; letter-spacing: -0.02em; }
-.plate-card figcaption sup { font-size: 0.62em; }
+.plate-float { position: relative; margin: 0; height: clamp(360px, 40vw, 540px); }
+.plate-float .scene { position: absolute; inset: 0 0 44px; }
+.plate-float figcaption { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; color: var(--ink-3); font-size: 13.5px; letter-spacing: -0.02em; }
+.plate-float figcaption sup { font-size: 0.62em; }
 ol.cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
 ol.cards li { position: relative; border: 1px solid var(--line); border-radius: 18px; padding: 28px 26px 30px; background: rgba(236, 233, 225, 0.03); }
 ol.cards .icon { width: 40px; height: 40px; color: var(--ink); display: block; margin-bottom: 26px; }
@@ -235,9 +236,17 @@ ul.doclinks a:hover { color: #fff; }
 @media (max-width: 860px) {
   .about-hero, .two-col, ul.gets, ul.doclinks { grid-template-columns: 1fr; }
   ol.cards { grid-template-columns: 1fr; }
-  .plate-card { transform: none; }
 }
 
 /* Buttons keep their own colours inside text pages (the page's link colour must not reach them). */
 .page a.btn { color: var(--screen); text-decoration: none; }
 .page a.btn.ghost { color: var(--ink); }
+
+/* Request page: printed copies (ticked by default) or digital files only. */
+fieldset.prints { border: 0; padding: 0; min-width: 0; }
+form.request label.check { display: flex; align-items: center; gap: 12px; text-transform: none; color: var(--ink); font-size: 15.5px; letter-spacing: -0.02em; margin: 0 0 16px; cursor: pointer; }
+form.request label.check input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink); cursor: pointer; }
+.prints .copies { display: flex; align-items: center; gap: 14px; margin: 0 0 12px 32px; }
+.prints .copies[hidden] { display: none; }
+.prints .copies label { margin: 0; }
+form.request .prints .copies input { width: 96px; }

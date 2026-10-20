@@ -88,7 +88,11 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   const about = fs.readFileSync(path.join(pub, 'about', 'index.html'), 'utf8')
   assert.match(about, /<h2>How to use Locus<\/h2>/)
   assert.strictEqual([...about.matchAll(/<svg class="icon"/g)].length, 4)
-  assert.match(about, /<figure class="plate-card"><img src="\/graphs\/graph-12-v1\/graph\.svg"/)
+  assert.match(about, /<h1>Blindness can't limit curiosity\.<\/h1>/)
+  // the newest plate floats in 3D on About, like the graph pages, with its flat drawing as the fallback
+  assert.match(about, /<figure class="plate-float">\s*<section class="scene" data-scene="single"[^>]*><div class="fallback"><img src="\/graphs\/graph-12-v1\/graph\.svg"/)
+  assert.match(about, /"stl":"\/graphs\/graph-12-v1\/graph\.stl"/)
+  assert.match(about, /<script type="module" src="\/assets\/scene\.js">/)
   assert.match(about, /Subject: Tactile graph: projectile/)
   assert.match(about, /HANDOVER\.md#13-moving-the-agent-to-the-team-project/)
   assert.ok(!/LOCUS_GITLAB_TOKEN|setup\.sh/.test(about), 'no technical setup on the About page')
@@ -107,6 +111,10 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   const request = fs.readFileSync(path.join(pub, 'request', 'index.html'), 'utf8')
   assert.match(request, /<form class="request" data-request data-agent="ai-locus-request-gitlab-ai-hackathon_b127f8"/)
   assert.ok(!/incoming\+|@incoming\.gitlab\.com/.test(request), 'no project address on the public site')
+  // printed copies are ticked by default with one copy; there is no shop address to type in
+  assert.match(request, /<input type="checkbox" name="print" checked> I need printed copies/)
+  assert.match(request, /<input id="copies" name="copies" type="number" min="1" max="99" value="1"/)
+  assert.ok(!/name="shop"/.test(request))
   // the touch checks: one highlight group per rule over the plate drawing
   for (const r of ['TL-1', 'TL-2', 'TL-3', 'TL-4', 'TL-5']) assert.match(html, new RegExp(`class="m-${r}"`))
   assert.match(fs.readFileSync(path.join(out, 'nginx.conf'), 'utf8'), /listen 8080/)
