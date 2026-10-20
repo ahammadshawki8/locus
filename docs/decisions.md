@@ -4,6 +4,22 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (n): Print again goes through Locus to the school's print shop (Shawki)
+
+Shawki's call: a teacher never types a print shop address; the school sets it once (`PRINT_ORDER_TO`).
+1. **On a graph page, "Print again"** asks for the number of copies and opens the teacher's mail to their own Locus
+   address (the one the Request page keeps): subject "Reprint: graph-<iid>-v<n>, <n> copies", body with
+   `Reprint: <tag>`, `Printed copies needed: <n>` and `/label ~reprint`. No `/assign`, so no agent starts.
+2. **`print-reprints`** (`locus/release/reprint.js`): GitLab cannot start a pipeline when an issue opens and agents
+   cannot send mail, so a pipeline schedule every 30 minutes (`LOCUS_SCHEDULE=reprints`) runs only this job. It
+   reads the open `reprint` issues, takes the released STL and manifest from the Package Registry, emails the school
+   shop with the same order as `print-order`, notes it on the issue and closes it. Issues from Service Desk are
+   ignored (only project members can order prints); an unknown graph is closed with a note. Off unless
+   `PRINT_ORDER_ENABLED=true`; never during the freeze. The reprints schedule runs no other job and no scans.
+3. **Setup:** label `reprint` and the schedule (`HANDOVER.md` section 13 step 8). `LOCUS_SITE_URL` is in
+   `.gitlab-ci.yml` for the order's page link.
+4. Not run yet (H3): it needs the sender account, the label and the schedule.
+
 ## 21 Oct 2026 (m): site review round with Shawki: calmer, brighter, simpler navigation (Shawki)
 
 Shawki reviewed the local preview and asked for these; all are built on branch `site-polish`, not merged yet:

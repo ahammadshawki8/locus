@@ -162,4 +162,4 @@ const runPrintOrder = async (args, env = process.env, api = fromEnv(env), send =
   return 0
 }
 
-module.exports = { copiesFrom, orderMessage, runPrintOrder, maskEmail }
+module.exports = { copiesFrom, orderMessage, runPrintOrder, maskEmail, curlSend }

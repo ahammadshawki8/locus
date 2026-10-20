@@ -119,7 +119,9 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   assert.match(request, /<button type="button" class="speak" data-speak aria-pressed="false" hidden>/)
   // print again on a graph page: the teacher's own email drafts the reprint; no shop address is on the public page
   assert.match(html, /<details class="reprint" data-reprint data-id="graph-7-v2" data-braille="G7">/)
-  assert.match(html, /<input name="shop" type="email" autocomplete="email" placeholder="kept only in this browser">/)
+  // no print shop address anywhere on a graph page: the reprint goes to the teacher's Locus address
+  assert.ok(!/name="shop"/.test(html))
+  assert.match(html, /<label class="grow" data-reprint-to hidden>Your Locus address<input name="to" type="email"/)
   // the touch checks: one highlight group per rule over the plate drawing
   for (const r of ['TL-1', 'TL-2', 'TL-3', 'TL-4', 'TL-5']) assert.match(html, new RegExp(`class="m-${r}"`))
   assert.match(fs.readFileSync(path.join(out, 'nginx.conf'), 'utf8'), /listen 8080/)

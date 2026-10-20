@@ -53,45 +53,42 @@
       : `mailto:${q(to)}?subject=${q(subject)}&body=${q(body)}`
   }
 
-  // Print again (graph page): drafts a reprint order to the teacher's print shop in the teacher's own email.
+  // Print again (graph page): asks Locus for more copies by email to the teacher's own Locus address (the same one the
+  // Request page keeps). The issue it opens is labelled `reprint`; the print-reprints schedule orders the copies from
+  // the school's print shop. No shop address is ever typed here.
   const reprint = document.querySelector('[data-reprint]')
   if (reprint) {
-    const shop = reprint.querySelector('[name="shop"]')
+    const toField = reprint.querySelector('[data-reprint-to]')
+    const toInput = reprint.querySelector('[name="to"]')
     const copiesInput = reprint.querySelector('[name="copies"]')
-    shop.value = remember.get('locus-shop')
+    toInput.value = remember.get('locus-to')
+    toField.hidden = Boolean(toInput.value)
     const send = (gmail) => {
-      const to = shop.value.trim()
+      const to = toInput.value.trim()
       const error = reprint.querySelector('[data-reprint-error]')
       if (!to) {
-        shop.focus()
-        error.textContent = 'Add your print shop\'s email address first.'
+        toField.hidden = false
+        toInput.focus()
+        error.textContent = 'Add your Locus address first: in your Locus project, Issues, then "Email a new issue".'
         return
       }
       error.textContent = ''
-      remember.set('locus-shop', to)
+      remember.set('locus-to', to)
       const copies = Math.min(99, Math.max(1, Math.round(Number(copiesInput.value) || 1)))
       const id = reprint.dataset.id
-      const page = `${location.origin}/graphs/${id}/`
       const body = [
-        'Hello,',
+        'Hello Locus,',
         '',
-        `Please print ${copies} ${copies === 1 ? 'copy' : 'copies'} of this tactile maths graph for a class of blind and low-vision learners.`,
+        `Please print more copies of a graph that is already released.`,
         '',
-        `Graph: ${id} (braille ID ${reprint.dataset.braille} in the top-right corner)`,
-        `Print file (STL): ${page}graph.stl`,
-        `Page with a preview: ${page}`,
+        `Reprint: ${id}`,
+        `Printed copies needed: ${copies}`,
         '',
-        'How to print it:',
-        '- 100% scale. Do not resize: the touch checks measured the spacing at this size.',
-        '- The part must measure 100 x 100 x 3.6 mm in the slicer.',
-        '- PLA, 0.12 to 0.16 mm layers, flat on the bed as in the file, no supports.',
-        '- Keep the top surface clean: the raised lines and braille dots are read by touch.',
+        'Thank you.',
         '',
-        'Please reply with the price and when the plates will be ready.',
-        '',
-        'Thank you.'
+        '/label ~reprint'
       ].join('\n')
-      compose(gmail, to, `Print order: ${id}, ${copies} ${copies === 1 ? 'copy' : 'copies'}`, body)
+      compose(gmail, to, `Reprint: ${id}, ${copies} ${copies === 1 ? 'copy' : 'copies'}`, body)
     }
     reprint.querySelector('[data-reprint-gmail]').addEventListener('click', () => send(true))
     reprint.querySelector('[data-reprint-mail]').addEventListener('click', () => send(false))

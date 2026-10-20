@@ -232,6 +232,10 @@ Do this after task 2 (our history on your `main`). Every step is a person's setu
    address with a request and `/assign @<the service account>` as the last line (section 9). Expect about 8 to 10
    minutes to the pass note. Record it in `docs/decisions.md` from what GitLab shows.
 7. Optional, only if time allows: create `locus-ops` the same way (display name exactly `locus-ops`), for Gate 5b.
+8. **Print orders (optional):** set the print-order variables (section 7). For **Print again** on graph pages, also
+   create the label `reprint` and a pipeline schedule (Build > Pipeline schedules > New): target `main`, interval
+   `*/30 * * * *`, variable `LOCUS_SCHEDULE` = `reprints`. That schedule runs only the `print-reprints` job, which orders
+   the open `reprint` issues from the school's print shop and closes them. Pause it at the freeze (section 14).
 
 ## 14. Freeze and judging (H12)
 

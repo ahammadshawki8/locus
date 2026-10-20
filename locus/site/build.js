@@ -196,10 +196,10 @@ const graphPage = (g, projectUrl) => {
 
   <details class="reprint" data-reprint data-id="${escape(m.artifactId)}" data-braille="${escape(m.brailleId)}">
     <summary>Print again</summary>
-    <p class="help">Drafts an order to your print shop in your own email: this graph, the print file and the settings. Nothing is sent until you press Send there.</p>
+    <p class="help">Asks Locus for more copies of this graph. Your school's print shop gets the order within about half an hour and replies to you with the price. Nothing is sent until you press Send in your mail.</p>
     <div class="reprint-fields">
       <label>Copies<input name="copies" type="number" min="1" max="99" value="1" inputmode="numeric"></label>
-      <label class="grow">Print shop email<input name="shop" type="email" autocomplete="email" placeholder="kept only in this browser"></label>
+      <label class="grow" data-reprint-to hidden>Your Locus address<input name="to" type="email" autocomplete="off" placeholder="from your Locus project, as on the Request page"></label>
     </div>
     <div class="buttons"><button type="button" class="btn" data-reprint-gmail>Open in Gmail</button><button type="button" class="btn ghost" data-reprint-mail>Open in my mail app</button></div>
     <p class="error" data-reprint-error role="alert"></p>

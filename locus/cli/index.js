@@ -13,6 +13,7 @@
 // Release side (CI jobs on GitLab; see release/*.js and site/*.js):
 //   locus license-check | auto-merge | publish-package | release | site | validate-site <url> | reply-teacher <url>
 //   locus print-order <url>                  (off unless PRINT_ORDER_ENABLED=true; see release/print-order.js)
+//   locus print-reprints                     (on the reprints schedule; see release/reprint.js)
 // A request folder holds spec.json + layout.json (+ request.lock.json); a spec file `x.json` uses `x.layout.json`.
 // The output folder defaults to out/<folder or spec name>.
 const fs = require('fs')
@@ -33,6 +34,7 @@ const { runSite } = require('../site/build')
 const { runValidateSite } = require('../site/validate')
 const { runReply } = require('../release/reply')
 const { runPrintOrder } = require('../release/print-order')
+const { runReprints } = require('../release/reprint')
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'))
 
@@ -123,7 +125,8 @@ const main = (argv) => {
     site: () => runSite(args.slice(1)),
     'validate-site': () => runValidateSite(args.slice(1)),
     'reply-teacher': () => runReply(args.slice(1)),
-    'print-order': () => runPrintOrder(args.slice(1))
+    'print-order': () => runPrintOrder(args.slice(1)),
+    'print-reprints': () => runReprints(args.slice(1))
   }[args[0]]
   if (release) return release()
   const command = args[0] === 'touchcheck' ? args.shift() : 'render'
