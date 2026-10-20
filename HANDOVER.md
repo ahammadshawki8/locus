@@ -95,7 +95,7 @@ Each line links to the `docs/decisions.md` entry that holds the evidence.
 
 | Flow | Display name (must be exact, `locus/guards/agents.json`) | Service account | Trigger seen working |
 |---|---|---|---|
-| `locus-request` | `locus-request` | `ai-locus-request-gitlab-ai-hackathon` | Assign on an issue (#3, #6); mention on a Service Desk ticket (#5) |
+| `locus-request` | `locus-request` | Test bed: `ai-locus-request-gitlab-ai-hackathon`. **Team project: `ai-locus-request-gitlab-ai-hackathon_b127f8`** (21 Oct) | Assign on an issue (#3, #6); mention on a Service Desk ticket (#5) |
 | `locus-probe` | `locus-probe` | `ai-locus-probe-gitlab-ai-hackathon` | Mention (#2) |
 | `locus-ops` | `locus-ops` | not created | none |
 

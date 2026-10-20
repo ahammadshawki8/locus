@@ -24,4 +24,4 @@ Any of these, in your own words:
 -->
 
 /label ~locus-request
-/assign @ai-locus-request-gitlab-ai-hackathon
+/assign @ai-locus-request-gitlab-ai-hackathon_b127f8
