@@ -41,7 +41,7 @@ gcloud config set project "$PROJECT_ID"
 PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
 
 step "APIs"
-gcloud services enable compute.googleapis.com run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com \
+gcloud services enable cloudresourcemanager.googleapis.com compute.googleapis.com run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com \
   iam.googleapis.com iamcredentials.googleapis.com sts.googleapis.com billingbudgets.googleapis.com
 
 step "Artifact Registry repository for the site's container (used by gcloud run deploy --source)"

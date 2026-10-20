@@ -4,6 +4,24 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (e): the first request went from one email to a live graph page and a reply (Shawki)
+
+1. **Main pipeline 2969054691** (after the guard-scope fix, MR !5 merged by Shawki): guard-scope passed on main; bundle,
+   publish-package and release made **`graph-2-v1`** ([release](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/releases/graph-2-v1),
+   "Braille ID G2", five package links; the STL downloads signed out, HTTP 200, 699,584 bytes).
+2. **deploy-staging failed once:** Cloud Build e0ff0bc7 built and pushed the image ("DONE") and then reported
+   `INTERNAL_ERROR`; the two builds before it, same files and settings, succeeded. Shawki pressed Retry on the job
+   (a person's click, recorded here; the run before it was hands-off). The retry passed, then validate-staging,
+   promote-production, post-deploy-smoke and reply-teacher. reply-teacher closed issue #2 at 19:22 UTC.
+3. **Live** (read 21 Oct): https://locus-site-742642312166.us-central1.run.app/graphs/graph-2-v1/ shows Braille ID G2 and
+   "passed after 2 attempts"; graph.stl, the zip and graph.svg download from the site; `/build-info.json` lists
+   graph-2-v1 at commit `3f814d81`.
+4. **Hardening** (branch `deploy-diagnostics`): deploy-staging retries once on a script failure, and on a failed build
+   `deploy.sh` prints Cloud Build's own log into the job log. `setup.sh` now also enables Cloud Resource Manager
+   (Shawki enabled it by hand on 21 Oct).
+5. **For the demo:** the fresh run around 25 Oct (HANDOVER.md task 6) must be hands-off end to end; with the retry it
+   should not need a click. If it still does, say so.
+
 ## 21 Oct 2026 (d): first request in the team project ran hands-off to a merge; guard-scope then blocked main (Shawki)
 
 1. **The run (H3: read from GitLab, nobody touched it after the email):** Shawki emailed the project's "Email a new

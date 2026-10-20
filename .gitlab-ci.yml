@@ -498,6 +498,10 @@ deploy-staging:
       aud: https://iam.googleapis.com/$GCP_WIF_PROVIDER
   script:
     - bash deploy/gcp/deploy.sh staging
+  # Cloud Build can end a finished build with INTERNAL_ERROR (21 Oct: image pushed, then the error); one retry.
+  retry:
+    max: 1
+    when: script_failure
   artifacts:
     reports:
       dotenv: deploy.env
