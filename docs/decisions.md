@@ -4,6 +4,89 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 20 Oct 2026 (b): issue template, no agent-config.yml, per-rule refusal suggestions, and a manifold fallback for render (Ashfaq)
+
+No change to `docs/contracts.md`, the touch rules, the profile or `remedies.json` (H7). Nothing here has run on
+GitLab yet (H3).
+
+1. **Issue template** `.gitlab/issue_templates/graph-request.md` (tested by `locus/issue-template.test.js`): three
+   parts in plain words (function, x range, points to mark, in the words intake already maps to marks), a line asking
+   for no names or personal details, then `/label ~locus-request` (contracts §7) and
+   `/assign @ai-locus-request-gitlab-ai-hackathon`. **Decision:** the template starts the flow by **assign**, the
+   trigger that ran on #3 and #6, not by "work item created", which would start `locus-request` on every new issue in
+   the project (intake would then ask a needs-info question on issues that are not requests). Not shown yet: that a
+   quick-action assign at creation fires the assign trigger, and that `/label` works (the test bed has no
+   `locus-request` label yet; what `/label` does with a missing label is not checked, so the label is created first). The hints in the
+   template's HTML comments hold no numbers, because the raw issue text, comments included, is what intake reads.
+   GitLab reads templates from the default branch, so it can be tried only after the template reaches test bed `main`.
+   S.4 step 1, the §6b table, §8 and the flow's header comment now say this.
+2. **`.gitlab/duo/agent-config.yml` is dropped** (plan §7.1 listed it: Node image, `npm ci`, cache, network
+   allowlist). [GitLab's page](https://docs.gitlab.com/user/duo_agent_platform/flows/execution/agent-config-yaml/)
+   says it "configures how flows execute in CI/CD" (image, setup_script, network_policy, cache), and the
+   [execution page](https://docs.gitlab.com/user/duo_agent_platform/flows/execution/) says `setup_script` commands
+   "have access to all environment variables in the flow, including the triggering user's OAuth token". Every Locus
+   flow is `coding_environment: none` with GitLab API tools only (`run_command` and the file tools are IDE only, 16 Oct
+   (g)), so nothing in a flow would use the image, `npm ci` or the cache, and three real runs worked without the file.
+   Adding it would put a setup script next to that token for no benefit. Neither page says what the file does for a
+   flow with `coding_environment: none`; if a flow ever needs commands, this decision is reopened. The §6b sentence
+   "`agent-config.yml` limits network access" is replaced by what is true: no flow runs a command.
+3. **Refusal suggestions per rule** (17 Oct (b): the #6 note led with generic suggestions that could not help a
+   tangent touch). The refuse prompt now has one suggestion per rule (TL-1: a curve that crosses an axis instead of
+   only touching it, or stays clear of the axes; TL-2 and TL-3: fewer or more widely spaced marked points; TL-4: points
+   inside the x range; TL-5: a shorter x range or a smaller spread of values) and asks for those of the rules that
+   still fail only. Tested in `locus/flows/check.test.js`; `check.js` passes. **Ashfaq must paste
+   `locus-request.yml` into the AI Catalog again** for it to take effect; until a refusal runs, it is untested on GitLab.
+4. **render: manifold fallback for open meshes** (S.3 Next item 12). The JSCAD repair (16 Oct (n)) is kept and runs
+   first, so every request it closes, prints A, B and C among them, gives exactly the old bytes (`core/prints.test.js`
+   passes; contracts D3). Only when it throws "mesh still has N unpaired edges" does render pass **the same JSCAD
+   parts** (`toParts` in `core/geometry.js`; `toSolid` is still their union) to
+   [Manifold](https://github.com/elalish/manifold) (`manifold-3d` 3.2.1, Apache-2.0, pinned exactly: the newest
+   version with no dependencies of its own; 3.3.0 and later pull in about ten). Manifold unions them, cuts the result
+   to the plate's footprint when it sticks out (as `clipToPlate` does), and returns a closed mesh; stl.js writes it.
+   Manifold's WebAssembly loads only asynchronously, so it runs in a child process (`core/manifold-worker.mjs`) and
+   render stays synchronous for every caller. render returns `mesh: "jscad" | "manifold"` and the CLI logs the
+   fallback, so a render job says which step closed the STL. No change to `scene.json`, so touchcheck results do not
+   change. If the fallback also fails, render throws as before (and a flow run ends BROKEN).
+   - Found first: a seeded sweep (scratch script, not in the repo; degree 1 to 3, coefficients -2 to 3 in steps of
+     0.5, domains of 2 to 5 units from -3 to 0, the default layout, grid on and off) failed **10 of 240** renders (4.2%)
+     with the old code. On all 10, Manifold's union of the parts is closed, with a volume within 0.1% of JSCAD's union
+     of the same parts. Prints A, B and C through Manifold give JSCAD's volume to 0.01 cubic mm (checked once; they
+     never take this path).
+   - Tests (`core/render.test.js`): prints A and B take the JSCAD path; five requests from the sweep (1, 117, 7, 31
+     and 188 open edges; one far taller than the plate, two steep cubics with pinches) take the fallback and give a
+     closed STL inside the plate, within 1% of the JSCAD volume; the fallback gives the same bytes twice.
+   - **Two things that are fine in Manifold's mesh are open edges in an STL**, which holds float32 positions only
+     (stl.js's `countOpenEdges` compares them to 4 decimals): a zero-length edge (two vertices one edge apart that
+     float32 cannot tell apart; collapsed on output, dropping the triangles that vanish), and a pinch (surfaces that
+     touch along a line or at a point, for example a steep cubic's outline touching itself; there an edge is shared by
+     four triangles). Each pinch is fused with a filler 0.02 mm wide, far below what a printer makes (layers are about
+     0.1 mm), like the sliver filler of 16 Oct (n); at most 3 rounds. Found because the first version of the fallback
+     still left 3 of the 10 open (1, 1 and 43 edges); Manifold's own `simplify(1e-4)` did not remove them and was
+     dropped.
+   - **Sweep result:** the generator above with two seeds, 480 renders: 12 (2.5%) fail on the JSCAD path, and **all 12
+     now render a closed STL through the fallback** (0 open edges). The other 468 take the JSCAD path, unchanged.
+     This does not show that every request renders: the sweep covers the default layout only, and a fixer's layout can
+     still fail; then render throws, as before.
+   - This changes `locus/core/**`, a `library-impact` path; no graph has shipped, so there is nothing to re-check.
+
+## 20 Oct 2026 (a): GitLab's answer on the two Service Desk questions (Discord, reported by Ashfaq)
+
+No change to `docs/contracts.md`. The questions were asked on 17 Oct (c); Ashfaq pasted the reply on 20 Oct. No link
+to the message was given.
+1. **`contact-project+` address:** "mail to the contact-project+<token>@gitlab.com address only creates a ticket if
+   Service Desk is enabled for that project and the token matches exactly. Check Settings > General > Service Desk to
+   confirm it is enabled and that you are using the exact address shown there." Read the same day (GraphQL, as
+   Ashfaq909): `serviceDeskEnabled` is true, and `serviceDeskAddress` is a `contact-project+...-issue-@incoming.gitlab.com`
+   address, the one we mailed twice on 16 Oct (o). That is not the `contact-project+<token>@gitlab.com` form in the
+   answer, so the Settings page may show another address. Ashfaq is a Developer on the test bed and Settings needs
+   Maintainer, so it is not checked (H3).
+2. **Assigning a flow's service account to a ticket:** "we have not confirmed whether a flow service account can be
+   assigned to a Service Desk ticket. If assignment fails, share the exact error and we will investigate." The exact
+   error is in 16 Oct (o) item 4: "Cannot assign @ai-locus-request-gitlab-ai-hackathon to #4".
+3. **What changes:** nothing that works. S.4 step 1 (the `incoming+` address, then a person's mention) and the flow's
+   header comment stay; no re-paste is needed for this answer. S.3 "Waiting on GitLab" now holds the follow-ups:
+   whether the Settings page shows a different address, and GitLab's look at the assign error once Ashfaq sends it.
+
 ## 17 Oct 2026 (c): flow re-pasted, Discord questions asked, practitioner booked (reported by Ashfaq)
 
 No change to `docs/contracts.md`. All three are Ashfaq's report; none can be read from git.
