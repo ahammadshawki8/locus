@@ -175,7 +175,10 @@ Note: automated checks measure spacing and size; they do not certify that a lear
 
 ## 9. Deploy and site
 
-- **`deploy/gcp/production-revision`:** one line, the Cloud Run revision name currently serving production. Changing it through an MR is the only way production moves, including rollbacks.
+- **`deploy/gcp/production-revision`:** one line, `UNSET` or a Cloud Run revision name.
+  - `UNSET`: every default-branch pipeline promotes its own revision to production after `validate-staging` passes.
+  - A revision name: production is pinned there (a rollback). New releases are still built and checked on staging, but production does not move until a person sets it back to `UNSET` through an MR.
+  - Only the release guard (`locus-ops`) and people change it, always through an MR. No CI job commits. `promote-production` applies it on every default-branch pipeline (it replaces the planned `deploy-production-pointer` job). Changed on 21 Oct by agreement (`docs/decisions.md` 21 Oct (c)).
 - **`build-info.json`** (served at `/build-info.json`): `{ "version": "", "commit": "", "builtAt": "", "graphs": ["graph-12-v1"] }`.
 - **Graph page URL:** `/graphs/<artifactId>/`. It shows the SVG preview, the text description, downloads, the braille ID and a link to the GitLab release.
 
@@ -190,7 +193,7 @@ Note: automated checks measure spacing and size; they do not certify that a lear
 | D5 | Release tag | **`graph-<iid>-v<n>`**, the same as the bundle's `artifactId` | One name everywhere: tag, package, page URL, manifest |
 | D6 | Re-layout requests from the regression detective | **One issue per affected graph**, labelled `locus-request` + `regression`, linking the original issue. A person assigns each one to the bot | One issue = one flow session = one release `v<n+1>`. Agent-created issues can't start a flow on their own (`docs/decisions.md`, 15 Oct) |
 | D7 | Trigger design | **Pipeline v2** (`docs/decisions.md`, 15 Oct b): `locus-request` = intake → fixer in one session; `locus-ops` = triage → impact reviewer / regression detective / release guard; `auto-merge` CI job | Triggers only fire on a person's action |
-| D8 | Agent reads the touchcheck result | The fixer runs `touchcheck` itself in the flow (`run_command`), edits `layout.json` (`edit_file`) and commits each attempt with `create_commit`. The `LOCUS_REPORT` log line (§4) stays as the audit record and fallback | GitLab confirmed on 16 Oct that these tools work in CI flows (`docs/decisions.md`) |
+| D8 | Agent reads the touchcheck result | The fixer reads the `LOCUS_REPORT` line (§4) from the `touchcheck` job log of its own attempt (`get_job_logs`) and commits each `layout.json` change with `create_commit`. The flows run no commands (`coding_environment: none`) | It is what ran on #3, #5, #6 and #7. Changed on 21 Oct by agreement (`docs/decisions.md` 21 Oct (c)) |
 | D9 | Sample bundle | `fixtures/bundle-sample/graph-0-v1/` is generated from print B's spec and layout | Real geometry, so Shawki's release and deploy jobs are tested against realistic files |
 
 **GitLab's answers (16 Oct, `docs/decisions.md`):** triggered flows bill a namespace-level pool of unknown size, so test early and keep runs few. Flows can merge through the API, but D7 stays: `auto-merge` CI job.

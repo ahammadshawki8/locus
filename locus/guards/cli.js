@@ -11,7 +11,7 @@ const fs = require('fs')
 const path = require('path')
 
 const g = require('./git')
-const { checkScope } = require('./scope')
+const { checkScope, checkDefaultBranch } = require('./scope')
 const { checkMaths } = require('./maths')
 const { checkDescription } = require('./description')
 const { checkRevert } = require('./revert')
@@ -48,7 +48,6 @@ const runScope = (args) => {
   if (!base) return cannotCheck('guard-scope', NO_BASE)
   const head = option(args, '--head') || 'HEAD'
   const branch = g.resolveBranch({ branch: option(args, '--branch') })
-  const commits = g.listCommits(base, head)
   const pathsOf = (sha) => {
     try {
       return g.changedPaths(sha)
@@ -56,7 +55,11 @@ const runScope = (args) => {
       return [] // not a commit here: nothing is allowed
     }
   }
-  const result = checkScope({ branch, commits, pathsOf })
+  // On the default branch, agent work arrives through merges: each merge is checked by its source branch's rules.
+  const onDefault = branch === (process.env.CI_DEFAULT_BRANCH || 'main')
+  const firstParent = onDefault ? g.listFirstParent(base, head) : null
+  const commits = onDefault ? firstParent.flatMap((c) => [...(c.merged || []), c]) : g.listCommits(base, head)
+  const result = onDefault ? checkDefaultBranch({ branch, firstParent, pathsOf }) : checkScope({ branch, commits, pathsOf })
   writeResult('scope', { branch, base, ...result })
   console.log(`guard-scope: ${commits.length} commit(s) on ${branch} since ${base.slice(0, 8)}: ${result.agentCommits} by agents, ${result.personCommits} by people`)
   return report('guard-scope', result.pass, result.violations.map((v) => `${v.sha.slice(0, 8)} (${v.flow})${v.path ? ` ${v.path}` : ''}: ${v.reason}`))

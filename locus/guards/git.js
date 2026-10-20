@@ -37,6 +37,31 @@ const listCommits = (base, head, cwd) => {
   })
 }
 
+/**
+ * The first-parent line of base..head (the default branch's own history), oldest first, each with its `subject`; a
+ * merge also gets `merged`: the commits it brought in (M^1..M^2), oldest first, as listCommits gives them.
+ */
+const listFirstParent = (base, head, cwd) => {
+  const out = git(['log', '--reverse', '--first-parent', '--format=%H%x00%P%x00%an%x00%ae%x00%cn%x00%ce%x00%s', `${base}..${head}`], cwd)
+  if (!out) return []
+  return out.split('\n').map((line) => {
+    const [sha, parents, authorName, authorEmail, committerName, committerEmail, subject] = line.split('\0')
+    const [first, second] = parents.split(' ')
+    let paths
+    return {
+      sha,
+      merge: Boolean(second),
+      subject,
+      authorName,
+      authorEmail,
+      committerName,
+      committerEmail,
+      merged: second ? listCommits(first, second, cwd) : undefined,
+      get paths () { return paths || (paths = changedPaths(sha, cwd)) }
+    }
+  })
+}
+
 /** Commits in base..head that touched `path`, oldest first. */
 const commitsTouching = (base, head, path, cwd) => {
   const out = git(['log', '--reverse', '--format=%H', `${base}..${head}`, '--', path], cwd)
@@ -106,5 +131,5 @@ const resolveBranch = ({ branch, env = process.env, cwd } = {}) =>
   branch || env.CI_MERGE_REQUEST_SOURCE_BRANCH_NAME || env.CI_COMMIT_BRANCH || git(['rev-parse', '--abbrev-ref', 'HEAD'], cwd)
 
 module.exports = {
-  git, listCommits, changedPaths, commitsTouching, fileExistsAt, resolveBase, resolveBranch, resolveCommit, isAncestor, hasParent, treeEntry
+  git, listCommits, listFirstParent, changedPaths, commitsTouching, fileExistsAt, resolveBase, resolveBranch, resolveCommit, isAncestor, hasParent, treeEntry
 }

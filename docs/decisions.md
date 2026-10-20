@@ -4,6 +4,37 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (d): first request in the team project ran hands-off to a merge; guard-scope then blocked main (Shawki)
+
+1. **The run (H3: read from GitLab, nobody touched it after the email):** Shawki emailed the project's "Email a new
+   issue" address with `/assign @ai-locus-request-gitlab-ai-hackathon_b127f8`. Issue #2 appeared assigned to the flow;
+   its session ran as pipeline 2968962168 (`refs/workloads/...`, success). Intake committed attempt 1 (`b6022b42`) on
+   `graph/2` and opened MR !4: pipeline 2968966165 **failed** at touchcheck (the default layout), and bundle and
+   auto-merge were skipped. The fixer committed attempt 2 (`75dc9050`: grid hidden, vertex label above the vertex,
+   y-intercept label left of the y-axis): pipeline 2968972322 **passed** every job, and `auto-merge` set the MR to
+   merge when the pipeline succeeds. GitLab merged !4 on its own (`f6bfda0d`).
+2. **Blocked:** main pipeline 2968984338 failed at **guard-scope**, so nothing was released. guard-scope had never
+   run on a merged request: on main it saw the agent's two commits and said "locus-request may commit only on
+   graph/<iid>". GitLab also credits the merge commit to the MR's author, `locus-request`.
+3. **Fix** (`locus/guards/scope.js` `checkDefaultBranch`, `git.js` `listFirstParent`): on the default branch each merge
+   is checked by the rules of the branch it names ("Merge graph/2: ..." from auto-merge, or GitLab's "Merge branch
+   'x' into 'main'"); an agent-credited merge passes only when it merges an agent branch; an agent commit straight on
+   main still fails. Run locally on the real history: `guard scope --base a5ccd71c --head f6bfda0d --branch main`
+   passes (3 agent commits, all in their allowed files). 260 of 260 tests pass.
+4. **Next:** merging this fix starts a new main pipeline; `bundle` picks up request 2 (no release tag yet), so it
+   should release `graph-2-v1`, deploy it and reply on #2.
+
+## 21 Oct 2026 (c): contracts D8 and §9 changed, both agreed (H5)
+
+1. **D8:** Ashfaq proposed it on 20 Oct (g); Shawki agreed on 21 Oct. The contract now says what ran four times: the
+   fixer reads the `LOCUS_REPORT` line from its own attempt's touchcheck job log and commits with `create_commit`; no
+   flow runs a command. Giving the fixer `run_command` would need a clone, `agent-config.yml` and new runs before the
+   freeze, for no visible gain.
+2. **§9 `production-revision`:** Shawki proposed it on 20 Oct (i) item 6 and agreed on 21 Oct; Ashfaq to confirm (he is
+   on call for Phase 1 code, and this touches only Shawki's side). `UNSET` lets each validated release reach
+   production (hands-off); a revision name pins production for a rollback. Built that way in `deploy/gcp/deploy.sh`.
+3. `docs/contracts.md` D8 and §9 are edited to match; nothing else in the contract changes.
+
 ## 21 Oct 2026 (b): locus-request created in the team project (Shawki)
 
 1. Shawki created the custom flow in the team project (Flows > New flow): display name `locus-request`, visibility

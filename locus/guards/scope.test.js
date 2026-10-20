@@ -139,3 +139,42 @@ test('a GitLab service account that is not a Locus flow may not commit on graph/
   assert.strictEqual(elsewhere.pass, true)
   assert.strictEqual(elsewhere.personCommits, 1)
 })
+
+// The default branch (21 Oct: the first merged request, graph/2, was blocked on main). Agent work arrives only through
+// merges; GitLab credits the merge commit to the MR's author, here locus-request.
+const { checkDefaultBranch, mergedBranch } = require('./scope')
+const mergeOf = (who, subject, merged) => ({ sha: `m${++n}`, merge: true, subject, ...who, paths: [], merged })
+const intake = (iid) => commit(REQUEST, add(`requests/${iid}/spec.json`), add(`requests/${iid}/request.lock.json`), add(`requests/${iid}/layout.json`))
+
+test('a merge subject names its source branch: GitLab\'s default and the auto-merge job\'s', () => {
+  assert.strictEqual(mergedBranch("Merge branch 'team-flow' into 'main'"), 'team-flow')
+  assert.strictEqual(mergedBranch('Merge graph/2: Tactile graph for #2: y = -0.5x^2 + 2x + 1'), 'graph/2')
+  assert.strictEqual(mergedBranch('Merge graph/2 by hand'), null)
+  assert.strictEqual(mergedBranch('Fix the README'), null)
+})
+
+test('on main, a merged graph/<iid> is checked by the graph branch rules, whoever GitLab credits the merge to', () => {
+  const merged = [intake(2), commit(REQUEST, 'requests/2/layout.json')]
+  const ok = checkDefaultBranch({ branch: 'main', firstParent: [mergeOf(REQUEST, 'Merge graph/2: Tactile graph for #2', merged)] })
+  assert.deepStrictEqual(violationsOf(ok), [])
+  assert.strictEqual(ok.pass, true)
+  assert.strictEqual(ok.agentCommits, 3)
+  const people = checkDefaultBranch({ branch: 'main', firstParent: [mergeOf(PERSON, "Merge branch 'graph/2' into 'main'", merged), commit(PERSON, 'README.md')] })
+  assert.strictEqual(people.pass, true)
+})
+
+test('on main, the fixer stays in layout.json and the intake in its own request, even after the merge', () => {
+  const bad = checkDefaultBranch({ branch: 'main', firstParent: [mergeOf(REQUEST, 'Merge graph/2: t', [intake(2), commit(REQUEST, 'locus/touchcheck/rules/tl1.js')])] })
+  assert.match(violationsOf(bad).join('\n'), /may not change this file here/)
+  const other = checkDefaultBranch({ branch: 'main', firstParent: [mergeOf(REQUEST, 'Merge graph/2: t', [intake(3)])] })
+  assert.strictEqual(other.pass, false)
+})
+
+test('on main, an agent commit straight on the branch, or an agent-credited merge of a person\'s branch, fails', () => {
+  const direct = checkDefaultBranch({ branch: 'main', firstParent: [commit(REQUEST, 'requests/2/layout.json')] })
+  assert.match(violationsOf(direct)[0], /only on graph\/<iid>, not on main/)
+  const sneaky = checkDefaultBranch({ branch: 'main', firstParent: [mergeOf(REQUEST, "Merge branch 'feature' into 'main'", [commit(PERSON, 'locus/core/x.js')])] })
+  assert.match(violationsOf(sneaky)[0], /must merge an agent branch, not feature/)
+  const smuggled = checkDefaultBranch({ branch: 'main', firstParent: [mergeOf(PERSON, "Merge branch 'feature' into 'main'", [commit(REQUEST, 'requests/2/layout.json')])] })
+  assert.match(violationsOf(smuggled)[0], /not on main/)
+})
