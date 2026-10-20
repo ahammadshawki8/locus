@@ -4,6 +4,22 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (l): the feature freeze reopened for one story: from a lesson idea to a print in hand (Shawki)
+
+Shawki's decision, after 21 Oct (i): the video's story becomes "from the idea of teaching a topic to a physical print
+in the teacher's hands", and the site carries every step. Three additions, nothing else:
+1. **Setup guide page** on the site: how to run Locus for a school (fork, Google Cloud, CI variables, the two flows,
+   labels, the first email).
+2. **Request page:** the teacher writes freely (a graph, or just today's topic); pressing Send opens their mail app with
+   the To, Subject and a tidy body filled in. The teacher pastes their own Locus address once (kept in that browser
+   only). No address and no token is on the public site (H8): the personal "Email a new issue" address holds a token,
+   and Service Desk needs a person's comment before a flow starts. No second AI: the GitLab Duo intake agent reads the
+   informal text and asks one question when it must.
+3. **Print order (off by default):** a `print-order` CI step after reply-teacher. When switched on and a print shop
+   address is set, it emails the shop the released STL link, size, material and quantity, from a sender account whose
+   app password is a masked CI variable. Shawki creates the sender account.
+Order: Shawki reviews the redesigned site locally first; then these three are built into the same design.
+
 ## 21 Oct 2026 (j): touch results of the four prototype prints (Shawki)
 
 **What this is:** one sighted team member (Shawki) feeling the prints, eyes open or closed as they chose; **not** a test
