@@ -309,8 +309,9 @@ bundle:
       done
       echo "bundle: ${checked} request(s) checked"
       exit "$status"
+  # 90 days: the pass note links these files (docs/decisions.md 20 Oct (d)), and they must outlive judging.
   artifacts:
-    expire_in: 30 days
+    expire_in: 90 days
     paths:
       - out/bundle/
   rules:
