@@ -8,6 +8,8 @@ Cloud Run hosting for the graph library site (staging + production). **Owner: Sh
 | `deploy.sh` | What the CI jobs run: `staging` (new revision `locus-site-p<pipeline>`, no production traffic, tag `staging`) and `promote` (production traffic to that revision, or to the one `production-revision` pins) |
 | `production-revision` | GitOps rollback pointer: `UNSET`, or the one Cloud Run revision production must serve (docs/contracts.md §9). Only the release guard (`locus-ops`) and people change it, through an MR |
 
+**Project:** `locus-tactile-2026` (number 742642312166), in Shawki's organisation `ahammadshawki8-org`, billing account "My Billing Account 1" (set up 20 Oct with `setup.sh`; budget "Locus", 5 USD).
+
 **Service:** one Cloud Run service `locus-site` in `us-central1`, min instances 0, max 2, 256 MiB: it costs nothing while nobody visits. Staging is the `staging` tag URL of the newest revision; production is the service URL.
 
 **CI variables** (in `.gitlab-ci.yml`, not secrets): `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_SERVICE_ACCOUNT`. The deploy jobs run only when all are set. Login uses GitLab's ID token `GITLAB_OIDC_TOKEN`; there is no Google key anywhere.

@@ -35,10 +35,10 @@ variables:
   # supervised: the fallback, with one approval. Recorded in every bundle manifest (docs/contracts.md §5).
   RELEASE_MODE: "hands-off"
   # Google Cloud (deploy/gcp/setup.sh prints these; none is a secret). The deploy jobs exist only once they are set.
-  GCP_PROJECT_ID: ""
+  GCP_PROJECT_ID: "locus-tactile-2026"
   GCP_REGION: "us-central1"
-  GCP_WIF_PROVIDER: ""
-  GCP_SERVICE_ACCOUNT: ""
+  GCP_WIF_PROVIDER: "projects/742642312166/locations/global/workloadIdentityPools/gitlab/providers/gitlab-com"
+  GCP_SERVICE_ACCOUNT: "locus-deploy@locus-tactile-2026.iam.gserviceaccount.com"
 
 # Render every request (and the example) to STL + SVG + description + scene.json. The CLI also validates the spec,
 # the layout and request.lock.json, so an invalid request fails here. Artifacts are kept even on failure.
