@@ -10,6 +10,8 @@
 //   locus bundle <requests/<iid>> ...           (see cli/bundle.js): out/bundle/graph-<iid>-v<n>/ + .zip + manifest
 //   locus recheck [--impact]                    (see cli/recheck.js): re-check every shipped graph with this code
 //   locus bisect                                (see cli/bisect.js): the first commit after which a shipped graph fails
+// Release side (CI jobs on GitLab; see release/*.js and site/*.js):
+//   locus license-check | auto-merge | publish-package | release | site | validate-site <url> | reply-teacher <url>
 // A request folder holds spec.json + layout.json (+ request.lock.json); a spec file `x.json` uses `x.layout.json`.
 // The output folder defaults to out/<folder or spec name>.
 const fs = require('fs')
@@ -23,6 +25,12 @@ const { runGuard } = require('../guards/cli')
 const { runBundle } = require('./bundle')
 const { runRecheck } = require('./recheck')
 const { runBisect } = require('./bisect')
+const { runLicenseCheck } = require('../release/license')
+const { runAutoMerge } = require('../release/auto-merge')
+const { runPublish, runRelease } = require('../release/release')
+const { runSite } = require('../site/build')
+const { runValidateSite } = require('../site/validate')
+const { runReply } = require('../release/reply')
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'))
 
@@ -105,6 +113,16 @@ const main = (argv) => {
   if (args[0] === 'bundle') return runBundle(args.slice(1))
   if (args[0] === 'recheck') return runRecheck(args.slice(1))
   if (args[0] === 'bisect') return runBisect(args.slice(1))
+  const release = {
+    'license-check': () => runLicenseCheck(args.slice(1)),
+    'auto-merge': () => runAutoMerge(),
+    'publish-package': () => runPublish(args.slice(1)),
+    release: () => runRelease(args.slice(1)),
+    site: () => runSite(args.slice(1)),
+    'validate-site': () => runValidateSite(args.slice(1)),
+    'reply-teacher': () => runReply(args.slice(1))
+  }[args[0]]
+  if (release) return release()
   const command = args[0] === 'touchcheck' ? args.shift() : 'render'
   const outIndex = args.indexOf('--out')
   const outArg = outIndex >= 0 ? args.splice(outIndex, 2)[1] : null
@@ -123,4 +141,8 @@ const main = (argv) => {
   return command === 'touchcheck' ? runTouchcheck(target, outDir, attempt) : runRender(target, outDir)
 }
 
-process.exitCode = main(process.argv)
+// The release-side commands are async (GitLab API, the live site); an error there is a failed job, never a pass.
+Promise.resolve().then(() => main(process.argv)).then((code) => { process.exitCode = code }, (err) => {
+  console.error(err.message)
+  process.exitCode = 1
+})

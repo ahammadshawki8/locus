@@ -4,6 +4,54 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 20 Oct 2026 (i): the release side is built; tokens and permissions; two contract proposals (Shawki)
+
+1. **Our role** (onboarding email, read by Ashfaq): custom role Developer+ = Developer plus Manage AI catalog items,
+   Configure AI catalog items, **Manage CI/CD variables**, **Manage merge request settings**, Manage webhooks, Manage
+   Terraform state, Link security policy projects. Not included: project access tokens (Settings > Access tokens is a
+   404 for Shawki).
+2. **GitLab's answers to other teams** (Discord, Mattias, pasted by Shawki): "Project access tokens are not available
+   in the hackathon workspace"; for auto-merge "a flow or CI job can call the MR accept API. Use a personal access
+   token stored as a masked CI/CD variable. CI_JOB_TOKEN does not have sufficient scope"; "PAT-authored requests are
+   attributed to that user"; "Fully autonomous with self-freeze/rollback policy: yes, that fits the Hands-off
+   definition". Shawki also asked Mattias on 20 Oct; no answer yet.
+3. **Decision: `LOCUS_GITLAB_TOKEN`.** Shawki made a legacy personal access token (scope `api`, expires 30 Nov 2026)
+   and saved it as a masked and hidden, unprotected CI variable (HANDOVER.md section 7). Only `auto-merge` and
+   `reply-teacher` use it. Everything else uses `CI_JOB_TOKEN`. The README must say that these two calls show as
+   Shawki, and the reply note starts "Automated message from the Locus pipeline". Rejected: a token kept in Google
+   Secret Manager (same account, more parts) and releasing from the unmerged MR.
+4. **Built (tests first; 256 of 256 pass locally; nothing has run on GitLab yet, H3):**
+   - `license-check` (`locus/release/license.js`): every Locus runtime dependency is MIT, ISC, BSD or Apache-2.0.
+   - `auto-merge` (`locus/release/auto-merge.js`): on a `graph/<iid>` MR in hands-off mode, the merge API with
+     `auto_merge` pinned to the pipeline's commit; GitLab merges when the whole pipeline succeeds. `allow_failure`, so
+     a failure never reads to the fixer as a touch failure.
+   - `publish-package` and `release` (`locus/release/release.js`): generic package `locus-graphs/graph-<iid>-v<n>/`,
+     then tag and release `graph-<iid>-v<n>` on that commit with the package links; the released manifest has
+     `releaseTag` filled in. Job token only.
+   - `site` (`locus/site/build.js`): the library page, `/graphs/<artifactId>/` and `/build-info.json`, from the
+     released package files, refusing any file whose sha256 differs from its manifest.
+   - `deploy-staging`, `validate-staging`, `promote-production`, `post-deploy-smoke` (`deploy/gcp/deploy.sh`,
+     `locus/site/validate.js`): Cloud Run service `locus-site`, keyless login through Workload Identity Federation.
+   - `reply-teacher` (`locus/release/reply.js`): the contracts §8 note, then the issue is closed.
+   - `deploy/gcp/setup.sh`: the one-time Google Cloud setup, for Shawki to run in Cloud Shell.
+   - Every one of them does nothing while `JUDGING_FREEZE=true`.
+5. **Proposal A, contracts D8 (needs both, H5):** go back to the wording that matches the four runs: the fixer reads
+   the `LOCUS_REPORT` line from the touchcheck job log and commits with `create_commit`. Ashfaq agrees (20 Oct (g)).
+   Shawki: pending.
+6. **Proposal B, contracts §9 `production-revision` (needs both, H5):** "`UNSET`: production follows the newest
+   revision that passed `validate-staging`. A revision name: production is pinned there (a rollback); new releases
+   are still built and checked on staging, but production does not move until a person sets it back to `UNSET`." The
+   release guard's rollback stays a one-line MR, and no CI job ever commits. `deploy-production-pointer` becomes part
+   of `promote-production`. Built this way; pending agreement.
+
+## 20 Oct 2026 (h): handover received; both merges done; Windows checkouts use LF (Shawki)
+
+1. **Merges:** [PR 1](https://github.com/ahammadshawki8/locus/pull/1) merged into the working repo's `main` with a merge commit (`fc267a6f`). [MR !1](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/merge_requests/1) merged in the team project: `main` at `df01ab9e`, [pipeline 2968472746](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/pipelines/2968472746) passed (read from the GitLab API).
+2. **Seen working:** Ashfaq showed Shawki the agents running in his test bed (the runs listed in `HANDOVER.md` section 2).
+3. **Local checks on Shawki's machine (Windows, Node 24):** `npm --prefix locus ci`, then `npm run test:locus`: 233 of 233 pass; `node locus/flows/check.js`: exit 0; `npm run locus -- touchcheck examples/projectile.json`: fails TL-1 and TL-2 with a `LOCUS_REPORT` line and `overlay.svg`, exit 1, as designed.
+4. **Line endings:** on the first run, 2 tests failed on Windows only (`production-revision` and the issue template quick actions), because Git turned LF into CRLF in the working copy. `.gitattributes` now says `* text=auto eol=lf`, so every checkout matches CI. The repo contents do not change.
+5. **Still open:** contracts D8 (20 Oct (g) item 3).
+
 ## 20 Oct 2026 (g): Shawki's 16 to 19 Oct work merged into the branch; contracts D8 no longer matches the code (Ashfaq)
 
 1. **Merge:** the working repo's `main` (`6d77f814`, three commits by Shawki: 9be54757, 993b6af8, 6d77f814) is merged

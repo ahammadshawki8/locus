@@ -1,4 +1,5 @@
-* text=auto
+# Locus: LF in every checkout, so Windows clones run the same tests as CI (Linux).
+* text=auto eol=lf
 *.pdf binary
 *.stl binary
 *.png binary

@@ -130,8 +130,12 @@ S.3 Next item 13.
 ## 7. CI variables (names only, H8)
 
 - `RELEASE_MODE` (`hands-off` or `supervised`), set in `.gitlab-ci.yml`, recorded in every manifest.
-- No secret variables exist yet. The Google Cloud deploy jobs will need protected, masked variables; list their
-  names here when they are added.
+- `LOCUS_GITLAB_TOKEN` (20 Oct, Shawki): masked and hidden, not protected (MR pipelines need it). Shawki's legacy
+  personal access token, scope `api`, expires 30 Nov 2026. Used only by `auto-merge` and `reply-teacher`, the two calls
+  the job token cannot make; GitLab shows them under Shawki's name. Project access tokens are not available in the
+  hackathon workspace (GitLab, `docs/decisions.md` 20 Oct (i)). Revoke it after judging.
+- `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_SERVICE_ACCOUNT`: set in `.gitlab-ci.yml`, not secrets
+  (`deploy/gcp/README.md`). Google Cloud login is keyless (Workload Identity Federation).
 
 ## 8. Flaky or limited, and how to re-run
 
