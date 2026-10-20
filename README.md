@@ -15,11 +15,31 @@ fingertip would, fixes its own mistakes, and ships it. One request in, no human 
 Other tools draw tactile graphs ([related work](docs/related-work.md)). Locus **checks** them against measured
 touch-legibility rules, has an agent **fix** what fails within an allowed set of changes, and **ships only what passes**.
 
-> **Status (16 Oct 2026):** the generator renders a polynomial request to STL + SVG and reproduces the prototype prints
-> A, B and C exactly; `touchcheck` measures all five rules and writes the report and overlay. The Duo flows, guards,
-> release and deploy are not built yet, and nothing is validated with an educator or reader yet. Current status: the
-> board in [projectLocus.md](projectLocus.md) S.3. Automated checks measure spacing and size; they do not certify that a
-> learner can understand the graphic ([limitations](docs/limitations.md)).
+> **Status (20 Oct 2026):** one email in, print files back by email, with the agent fixing its own layout in between,
+> runs end to end on GitLab (see below). The guards run in CI. Merge, release and deploy are not built yet, and nothing
+> is validated with an educator or reader yet. Current status: the board in [projectLocus.md](projectLocus.md) S.3.
+> Automated checks measure spacing and size; they do not certify that a learner can understand the graphic
+> ([limitations](docs/limitations.md)).
+
+## See it working
+
+A real run on 20 Oct 2026 in our GitLab test bed ([evidence](docs/decisions.md), entry 20 Oct (e)):
+
+1. One plain email with the request became
+   [issue #7](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/issues/7) and started
+   the `locus-request` GitLab Duo flow. Nobody did anything after sending it.
+2. The intake agent wrote the request files and opened
+   [MR !5](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/merge_requests/5).
+   Attempt 1 failed the touch check (lines too close, labels touching lines).
+3. The fixer agent changed only the layout (grid off, two labels moved), and attempt 2 passed every check.
+4. About 8.5 minutes after the email, the agent replied on the issue with the print files:
+   [the whole bundle](https://gitlab.com/api/v4/projects/87669530/jobs/artifacts/refs%2Fmerge-requests%2F5%2Fhead/raw/out/bundle/graph-7-v1.zip?job=bundle)
+   and [the STL alone](https://gitlab.com/api/v4/projects/87669530/jobs/artifacts/refs%2Fmerge-requests%2F5%2Fhead/raw/out/bundle/graph-7-v1/graph.stl?job=bundle)
+   (no sign-in needed), with braille ID G7 on the plate.
+
+The refusal path also ran: [issue #6](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/issues/6)
+asks for a parabola that only touches the x-axis, which no layout can make readable; after 3 attempts the agent
+refused and nothing was released.
 
 ## Try it locally
 

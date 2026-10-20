@@ -4,6 +4,31 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 20 Oct 2026 (f): no live runs during judging; triggers off at the deadline; handover to Shawki (Ashfaq)
+
+No change to `docs/contracts.md`.
+1. **GitLab's answer** (Discord, asked by the team whether event-driven flows may stay on after 27 Oct 13:00 UTC so a
+   judge can see them work; pasted by Ashfaq): "Switch your triggers off at the deadline. The submitted repository
+   must stay unchanged until winners are announced - if a flow fires when a judge opens an MR, it could create new
+   commits in the repo, which puts your eligibility at risk. Document the flows working in your demo video and README
+   instead. That is sufficient evidence for judges." Licensing and app-scope questions are Devpost's to rule on (the
+   Devpost forum or the organisers), not GitLab's.
+2. **Decision:** no live runs during judging, in this repo or a separate requests repo (considered the same day and
+   dropped). At the deadline every flow trigger is switched off (`HANDOVER.md` section 14; Part VII). Judges get the
+   recorded runs (issue #7, MR !5 and the rest), the download links of those runs, and the local commands. A browser
+   page that runs render and touchcheck without any repo change stays an option for Shawki's site, not a plan.
+3. **Bundle artifacts kept 90 days** (`.gitlab-ci.yml`, was 30): the pass note and the README link them, and 30 days
+   from a 25 Oct run would end before the winners may be announced. Whether GitLab keeps the latest artifacts of a ref
+   regardless is not visible to a Developer, so it is not relied on. Applies to pipelines run with this file only.
+4. **README** status (it still said, on 16 Oct, that the flows and guards were not built, which is no longer true) and
+   a "See it working" section with the #7 links. The README is Shawki's to polish.
+5. **Questions not asked:** a list of six further questions for GitLab (service-account triggers, merge pattern,
+   starting flows from CI, credits budget, MCP servers, whether autonomous rollback is Hands-off) was reviewed and not
+   posted: the first, second and fourth are answered (15 Oct (a), 20 Oct (c)), the third and fifth are about things
+   Locus does not use, and the sixth is a Devpost question that matters only if the release guard is built.
+6. **Handover:** `HANDOVER.md` section 0 lists Shawki's tasks in order, section 13 the steps to set up the agent in the
+   team project, section 14 the freeze.
+
 ## 20 Oct 2026 (e): the email-to-files demo ran: one email, no comment, print files back (Ashfaq ran it)
 
 No change to `docs/contracts.md`. Ashfaq re-pasted `locus-request.yml` (as of `eaf06941`; his report) and sent one

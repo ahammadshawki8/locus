@@ -5,6 +5,37 @@ flaky and how to re-run it. It does not repeat the plan: rules are in `projectLo
 interfaces in `docs/contracts.md`, and every decision with its evidence in `docs/decisions.md`. Finished on 20 Oct
 (Gate H checklist, §15.4, in section 11); keep it true after that.
 
+## 0. Shawki: start here
+
+**State on 20 Oct:** Ashfaq's part is done and has run on GitLab. One email in, the agent writes the request, the
+pipeline renders and touch-checks it, the agent fixes its own layout, and the requester gets the print files back by
+email (issue #7, section 2). What is left is the release side you own, the move to the team project, and the freeze.
+Rules that bite: `projectLocus.md` S.2 (H1 commit as yourself, no AI co-author lines; H2 no emojis or long dashes; H3
+never fake a pass; H6 Claude Code never starts a flow; H12 freeze).
+
+**Your tasks, in order:**
+1. **Merge [PR 1](https://github.com/ahammadshawki8/locus/pull/1)** (`feat/gate2-render` into the working repo's
+   `main`, merge commit only, 16 Oct (i)).
+2. **Put our history into your Showcase `main`** (S.3 Next item 0). It is protected and holds only the organisers'
+   README; Ashfaq and Nourin are Developers there and cannot push it. Push the working repo's `main` over it (or
+   import), then check that its first pipeline is green (`npm run test:locus` equivalent: job `locus-test`).
+3. **Set up the agent in your project** (section 13). Until then every run happens in Ashfaq's test bed, which is fine
+   for the video.
+4. **Build the release side** you own (S.4 steps 6 to 8, contracts §6, §8, §9): `auto-merge` (or decide supervised),
+   `publish-package`, `release` (tag `graph-<iid>-v<n>`), Cloud Run staging and production, `reply-teacher`. When the
+   release exists, the reply should link the release and the graph page instead of the pipeline files (20 Oct (d)
+   item 3). Never hand-make a tag or manifest.
+5. **README and video** (yours): the README now has a "See it working" section with the #7 links; polish it. The
+   video follows Part V; issue #7 is the run to film (or a fresh one).
+6. **Around 25 Oct: one fresh demo run** (section 9), so its links, MR and session are recent through judging (agent
+   sessions are deleted 30 days after their last activity).
+7. **At 27 Oct, 13:00 UTC: freeze** (section 14). Switch off every flow trigger; GitLab said a flow that fires during
+   judging could commit to the repo and put our eligibility at risk.
+8. **Questions only Devpost can answer** (licensing, app scope, whether autonomous rollback counts as Hands-off): the
+   Devpost forum, not GitLab (20 Oct (f)).
+
+**Decisions that need both of you:** section 12.
+
 ## 1. Where things are
 
 | What | Where |
@@ -23,7 +54,7 @@ Each line links to the `docs/decisions.md` entry that holds the evidence.
 - **Pipeline:** on test bed `main`, every job that ran passed (pipeline 2955199583: 12 jobs, 16 Oct (m); pipeline
   2955873544: 11 jobs, 16 Oct (o)). `bisect-regression` was skipped both times: it runs only after a failed recheck,
   so it has run locally and in tests, not on GitLab.
-- **locus-request, three real runs:**
+- **locus-request, four real runs:**
   - Issue #3, started by **assign**, MR !1, session 9601992: attempt 1 red, the agent's own layout fix, attempt 2
     green, bundle `graph-3-v1` (16 Oct (m)).
   - Service Desk ticket #5, started by a **mention**, MR !3, session 9616199: same shape, bundle `graph-5-v1`, and the
@@ -45,9 +76,11 @@ Each line links to the `docs/decisions.md` entry that holds the evidence.
 
 - In `locus-request`: the needs-info question, the `exists` answer, a pass on attempt 1 or 3, an immediate refusal
   (a rule with no allowed fix) and the BROKEN note (17 Oct (b) lists the routes that ran).
-- The refuse prompt's per-rule suggestions (20 Oct): in the repo, not yet pasted into the AI Catalog, not run.
-- The issue template route (file from the template, the `/assign` quick action starts the flow): the test bed reads
-  templates from `main`, which does not have the template yet.
+- The refuse prompt's per-rule suggestions (20 Oct): pasted into the AI Catalog with the pass-note change (Ashfaq's
+  report, 20 Oct (e)); no refusal has run since.
+- The issue template route (file from the template on the website; its `/assign` starts the flow): the template is
+  on test bed `main` since `b011f52c`; the same quick action ran by email on #7, the template itself has not run.
+- Service Desk from any address with the start given by replying to GitLab's new-ticket email (20 Oct (e)).
 - `locus-ops` (impact reviewer, regression detective): written and schema-checked, never created in the AI Catalog.
 - Not built: `auto-merge`, `publish-package`, `release`, `deploy-staging`, `validate-staging`, `promote-production`,
   `post-deploy-smoke`, `reply-teacher`, the release guard, `license-check`. No graph has been merged or released, so
@@ -163,4 +196,40 @@ they ran on our MRs is not recorded. T2.1 to T2.4 and T2.6 to T2.8 are not start
 
 ## 12. Decisions that need both of us
 
-S.3 Next items 0, 9, 10, 11 and the owner of `auto-merge` (item 13).
+S.3 Next items 0, 9, 10, 11, the owner of `auto-merge` (item 13), and the contracts §10 wording proposed in
+`docs/decisions.md` 20 Oct (c) item 7.
+
+## 13. Moving the agent to the team project
+
+Do this after task 2 (our history on your `main`). Every step is a person's setup action, not an agent action.
+1. **Labels:** create `locus-request`, `needs-info`, `cannot-make-readable` (contracts §7; `incident` and
+   `regression` when the release guard and detective exist).
+2. **Service Desk:** Settings > General > Service Desk, enable it. Use the `incoming+...-issue-@incoming.gitlab.com`
+   address shown there (section 5).
+3. **Create the flow:** AI > Catalog (or AI > Flows) > new custom flow. Display name **exactly** `locus-request`
+   (`locus/guards/agents.json` matches it; another name makes guard-scope block every agent commit). Paste the whole
+   of `.gitlab/duo/flows/locus-request.yml`. Run `node locus/flows/check.js` first (exit 0).
+4. **Enable it in the project** with the triggers **Assign** and **Mention** (not "Work item created", section 4).
+   Note the service account GitLab creates. If its name is not `ai-locus-request-gitlab-ai-hackathon` (it may differ
+   because the test bed's flow already has that name in the same group), change the `/assign` line in
+   `.gitlab/issue_templates/graph-request.md` and in `locus/issue-template.test.js`, and use the new name in emails.
+5. **Check the project is public with public pipelines** (it is, read 20 Oct): the reply's download links need it.
+6. **First run:** from the Issues page, three-dot menu, "Email a new issue to this project", mail your personal
+   address with a request and `/assign @<the service account>` as the last line (section 9). Expect about 8 to 10
+   minutes to the pass note. Record it in `docs/decisions.md` from what GitLab shows.
+7. Optional, only if time allows: create `locus-ops` the same way (display name exactly `locus-ops`), for Gate 5b.
+
+## 14. Freeze and judging (H12)
+
+GitLab's answer (20 Oct (f)): switch the triggers off at the deadline; the video and README are the evidence.
+- **Before 27 Oct, 13:00 UTC:** the fresh demo run (task 6); `JUDGING_FREEZE=true` set as a CI variable; the README
+  links checked from a signed-out browser.
+- **At 27 Oct, 13:00 UTC:** switch off the triggers of every custom flow (`locus-request`, `locus-probe`, `locus-ops`)
+  in every project where they are enabled, and of any foundational flow that can commit or open MRs (Developer, Fix
+  CI/CD Pipeline, SAST Vulnerability Resolution); Code Review only comments, but switching it off too is safest.
+  Pause the nightly schedule, or keep it report-only with `JUDGING_FREEZE`.
+- **After that:** nothing in the repo, video or Devpost changes until the winners are announced. Judges see the
+  recorded runs, download the files from them, and can run the checker locally (section 9, local part). They cannot
+  start a run. Bundle artifacts are kept 90 days only for pipelines that run with that setting (on
+  `feat/gate2-render` since 20 Oct (f); on test bed `main` once Ashfaq approves the push). The files of #7 were made
+  with the old 30 days and expire around 19 Nov; the fresh run of task 6 gets 90 days.
