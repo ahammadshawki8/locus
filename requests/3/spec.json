@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 3,
+  "requestId": 3,
+  "graph": {
+    "type": "polynomial",
+    "coeffs": [0.5, -3, 4.5, 2],
+    "domain": {
+      "min": -0.1,
+      "max": 4
+    }
+  },
+  "mark": ["turning-points", "y-intercept"],
+  "labels": "braille-grade1",
+  "profileId": "fdm-handheld-v1"
+}
