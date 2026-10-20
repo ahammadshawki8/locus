@@ -39,6 +39,13 @@ a passing bundle already ran (#5, 16 Oct (o)); the missing part was getting the 
      GitLab notification emails (as for #4, 16 Oct (o)). The address holds a personal token: never write it in the
      repo, a commit or a log (H8).
 5. **Ashfaq must paste `locus-request.yml` into the AI Catalog again** (this and 20 Oct (b) item 3 together).
+6. **The demo uses the no-comment way** (Ashfaq's choice, 20 Oct): "Email a new issue" with the `/assign` line. The
+   [triggers page](https://docs.gitlab.com/user/duo_agent_platform/triggers/) says Assign fires "When the service
+   account user is assigned to an issue or merge request" and does not say whether an issue created with an assignee
+   counts, so the first email decides it. **Fallback**, only if no session starts: switch on the flow's "Work item
+   created" trigger ("When a work item is created") and send the next email without the `/assign` line, so that one
+   issue never starts two sessions. A Service Desk ticket cannot start a flow by itself in either way: its author is
+   the Support Bot, and "All trigger event types require a human user to perform the triggering action".
 
 ## 20 Oct 2026 (c): GitLab's answers to Shawki's Discord questions: team access, credits, CI tools, merging (reported by Ashfaq)
 
