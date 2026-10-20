@@ -49,7 +49,28 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 
 ## S.3 Status board (update at the end of every session)
 
-**Last updated: 21 Oct 2026 (Shawki).**
+**Last updated: 22 Oct 2026 (Shawki).**
+
+**FRONTEND LOCKED (21 Oct, Shawki).** The site on branch `site-polish` is the final design: a CRT television with the
+plates floating in 3D, About, Request (with voice typing and printed copies), Collections, Credits, graph pages with
+interactive touch checks and Print again (`docs/decisions.md` 21 Oct (k) to (o)). No more design changes; only fixes.
+Next stage: prove every feature end to end (checklist below), then finalise, then the README, Devpost and video.
+
+**End-to-end checklist (frontend feature: state, what proves it, who):**
+
+| Feature | State | Proves it | Who |
+|---|---|---|---|
+| Site deployed with the new design | Not yet: `site-polish` is not merged | Merge the MR; the main pipeline deploys; the live site shows the new home page | Shawki merges |
+| Home: 4 newest plates floating, caption, open a plate | Built; checked locally in software rendering | Look on the live site in Chrome | Shawki |
+| Graph page: 3D plate, downloads, interactive checks, description | Built; checks and downloads checked locally | Live site: click every download, hover each rule | Shawki |
+| About, Collections, Credits, doc links | Built; checked locally | Live site; the doc links open the right GitLab sections after the merge | Shawki |
+| Request: draft from typed or spoken words, Open in Gmail | Built; draft checked on Shawki's spoken sentence | Send the U-curve request (y = 0.5x^2 - 2x + 5) from the page; the agent runs | Shawki sends, Claude Code watches |
+| Request: printed copies (ticked) gives a print order | Built, never sent | Needs the sender Gmail + app password and `PRINT_ORDER_*` variables (HANDOVER.md section 7) | Shawki sets up |
+| Request: digital files only (unticked) gives no order | Built; unit tested | Shown on the same run with the box unticked, or in the tests | Claude Code |
+| Print again on a graph page, ordered by `print-reprints` | Built, never run | Label `reprint`, the 30-minute schedule (HANDOVER.md section 13 step 8), print-order variables; then press Print again | Shawki sets up |
+| Voice typing | Fixed for spoken maths; Shawki to retest | Speak the sentence in Chrome; the draft fills in | Shawki |
+
+
 
 **21 Oct, Shawki: a second request (#3, the cubic) ran hands-off with no click at all**, session finished with its pass note, released `graph-3-v1` (`docs/decisions.md` 21 Oct (g)). **Impact reviewer ran (21 Oct (h)):** on Shawki's MR !9 it explained, before merge, which shipped graphs the change breaks and why. Earlier plan: Gate 5b with `locus-ops` (enabled 21 Oct, service account `ai-locus-ops-gitlab-ai-hackathon`): a person's MR with a seeded generator regression.**
 
