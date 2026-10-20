@@ -24,6 +24,14 @@ Shawki reviewed the local preview and asked for these; all are built on branch `
    to the lowercase wordmark "locus" in the nav, and on a dark tile as the favicon (`locus/site/assets/logo.svg`).
    Text pages now use a 760 px column that fits their text, more space between sections and lines, and larger
    section headings.
+8. **Second review round (Shawki):** the pixel font is gone; titles use IBM Plex Mono, large. **About** is rewritten
+   for teachers in plain words, full width: what Locus is (with the newest released plate), how to use it in four
+   illustrated steps, what you get back, tips for a good request, and good-to-know notes (refusals, the braille ID, the
+   limits of the checks). The technical setup and the print-order settings moved out to the repository's docs
+   (`HANDOVER.md` sections 7 and 13, `docs/how-it-works.md`), linked from a short "For schools setting it up"
+   section. **Credits** now has full GitLab and Google Cloud sections listing each feature or service Locus uses and
+   what for. The logo turns GitLab orange on hover. Spacing under the request form's "Agent account", and a smaller
+   gap between the plates and their caption on the home page.
 
 ## 21 Oct 2026 (l): the feature freeze reopened for one story: from a lesson idea to a print in hand (Shawki)
 

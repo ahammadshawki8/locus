@@ -82,13 +82,16 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   const credits = fs.readFileSync(path.join(pub, 'credits', 'index.html'), 'utf8')
   assert.match(credits, /href="https:\/\/github\.com\/jscad\/OpenJSCAD\.org"><strong>JSCAD<\/strong><\/a>/)
   assert.match(credits, /@jscad\/modeling/)
-  assert.ok(!/Made by/.test(credits), 'the credits are for the open work Locus is built on')
-  // About holds how it works, requesting, printing, setup and print orders
+  assert.ok(!/Made by/.test(credits), 'the credits are for the work Locus is built on')
+  for (const part of ['<h2>GitLab</h2>', '<h2>Google Cloud</h2>', 'Duo Agent Platform', 'Package Registry', 'Cloud Run', 'Workload Identity Federation']) assert.ok(credits.includes(part), part)
+  // About is for teachers, in plain words: how to use it, with the newest plate; the technical setup is in the docs
   const about = fs.readFileSync(path.join(pub, 'about', 'index.html'), 'utf8')
-  for (const id of ['how', 'request', 'printing', 'setup', 'print-orders']) assert.match(about, new RegExp(`<h2 id="${id}">`))
+  assert.match(about, /<h2>How to use Locus<\/h2>/)
+  assert.strictEqual([...about.matchAll(/<svg class="icon"/g)].length, 4)
+  assert.match(about, /<figure class="plate-card"><img src="\/graphs\/graph-12-v1\/graph\.svg"/)
   assert.match(about, /Subject: Tactile graph: projectile/)
-  assert.match(about, /LOCUS_GITLAB_TOKEN/)
-  assert.match(about, /<span class="status">Off<\/span>/)
+  assert.match(about, /HANDOVER\.md#13-moving-the-agent-to-the-team-project/)
+  assert.ok(!/LOCUS_GITLAB_TOKEN|setup\.sh/.test(about), 'no technical setup on the About page')
   // Collections: every graph, newest first
   const collections = fs.readFileSync(path.join(pub, 'collections', 'index.html'), 'utf8')
   assert.match(collections, /href="\/graphs\/graph-12-v1\/"[\s\S]*href="\/graphs\/graph-7-v2\/"/)

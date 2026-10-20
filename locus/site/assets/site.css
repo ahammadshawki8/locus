@@ -8,7 +8,6 @@
   --line: rgba(236, 233, 225, 0.16);
   --pass: #8fe3b4;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --pixel: "Silkscreen", var(--mono);
   --gutter: clamp(10px, 1.8vw, 26px);
   --radius: clamp(18px, 3vw, 42px);
 }
@@ -44,11 +43,12 @@ a { color: inherit; }
 .hud nav { display: flex; gap: clamp(16px, 2.4vw, 36px); }
 .hud a[aria-current="page"] { color: var(--ink-3); }
 .brand { position: absolute; left: 50%; transform: translateX(-50%); top: -2px; display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.brand .mark { width: 32px; height: 32px; display: block; margin-top: -3px; }
+.brand .mark { width: 32px; height: 32px; display: block; margin-top: -3px; transition: color 0.2s ease; }
+.brand:hover .mark, .brand:focus-visible .mark { color: #fc6d26; }
 .brand .word { font-family: var(--mono); font-weight: 500; font-size: 23px; letter-spacing: -0.05em; line-height: 1; text-transform: none; }
 
 /* Carousel caption, under the centred plate. */
-.caption { position: absolute; z-index: 20; left: 50%; bottom: clamp(44px, 8vh, 90px); transform: translateX(-50%); width: min(560px, 80%); text-align: center; text-transform: uppercase; display: grid; gap: 6px; }
+.caption { position: absolute; z-index: 20; left: 50%; bottom: clamp(64px, 11vh, 120px); transform: translateX(-50%); width: min(560px, 80%); text-align: center; text-transform: uppercase; display: grid; gap: 6px; }
 .caption .label { color: var(--ink-3); }
 .caption .title { font-size: clamp(15px, 1.5vw, 19px); color: #fff; text-transform: none; letter-spacing: -0.02em; }
 .caption .title a { text-decoration: none; }
@@ -72,7 +72,8 @@ a { color: inherit; }
 .page { position: absolute; inset: 0; z-index: 10; overflow-y: auto; padding: clamp(120px, 18vh, 170px) clamp(28px, 4.2vw, 66px) clamp(60px, 9vh, 90px); scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 .page .inner { max-width: 760px; margin: 0 auto; }
 .page .inner.wide { max-width: 1040px; }
-.page h1 { font-family: var(--pixel); font-weight: 400; font-size: clamp(30px, 4.2vw, 50px); line-height: 1.05; letter-spacing: 0.01em; margin: 0 0 30px; text-transform: uppercase; }
+.page .inner.full { max-width: 1180px; }
+.page h1 { font-family: var(--mono); font-weight: 500; font-size: clamp(32px, 4.2vw, 54px); line-height: 1.1; letter-spacing: -0.05em; margin: 0 0 30px; color: #fff; }
 .page .lead { font-size: clamp(16px, 1.45vw, 19px); line-height: 1.65; color: var(--ink); letter-spacing: -0.02em; margin: 0 0 64px; }
 .page h2 { font-size: 19px; text-transform: uppercase; color: var(--ink); font-weight: 500; margin: 104px 0 30px; letter-spacing: -0.03em; line-height: 1.3; }
 .page .lead + h2, .page nav.toc + h2 { margin-top: 72px; }
@@ -82,7 +83,7 @@ a { color: inherit; }
 .page a { color: var(--ink); text-underline-offset: 3px; }
 ol.steps { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
 ol.steps > li { display: grid; grid-template-columns: 64px 1fr; gap: 28px; padding: 34px 0; border-bottom: 1px solid var(--line); }
-ol.steps .n { font-family: var(--pixel); font-size: 18px; color: var(--ink-3); }
+ol.steps .n { font-size: 18px; font-weight: 500; color: var(--ink-3); }
 ol.steps h3 { margin: 2px 0 12px; font-size: 16px; font-weight: 500; text-transform: uppercase; color: var(--ink); letter-spacing: -0.03em; }
 ol.steps p { margin: 0; }
 pre.mail { background: rgba(236, 233, 225, 0.05); border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px; color: var(--ink); white-space: pre-wrap; font: inherit; font-size: 14.5px; line-height: 1.65; letter-spacing: -0.02em; margin: 20px 0 28px; }
@@ -91,7 +92,6 @@ dl.grid dt { text-transform: uppercase; color: var(--ink-3); }
 dl.grid dd { margin: 0; color: var(--ink-2); font-size: 15.5px; line-height: 1.65; letter-spacing: -0.02em; }
 ul.people { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
 ul.people li { padding: 22px 18px 22px 0; border-bottom: 1px solid var(--line); }
-ul.people .name { display: block; font-family: var(--pixel); font-size: 20px; color: var(--ink); margin-bottom: 6px; }
 
 /* Graph detail: the plate turning on the left, the facts on the right. */
 .detail .scene { right: 50%; }
@@ -165,7 +165,7 @@ form.request .send { display: flex; flex-wrap: wrap; gap: 12px; }
 form.request button.btn { font: inherit; letter-spacing: inherit; cursor: pointer; }
 form.request .error { color: #ffb4a8; min-height: 1.4em; margin: 10px 0 0; font-size: 14px; }
 form.request pre { margin: 0; white-space: pre-wrap; font: inherit; font-size: 14px; letter-spacing: -0.02em; color: var(--ink); background: rgba(236, 233, 225, 0.05); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-height: 320px; }
-details.more { margin-top: 6px; }
+details.more { margin: 6px 0 36px; }
 details.more summary { cursor: pointer; text-transform: uppercase; color: var(--ink-3); }
 .status { display: inline-flex; align-items: center; gap: 10px; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; }
 .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
@@ -192,7 +192,7 @@ ul.collection .thumb { grid-row: span 2; background: #f1eee8; border-radius: 8px
 ul.collection .thumb img { display: block; width: 100%; height: auto; }
 ul.collection .eq { font-size: 17px; letter-spacing: -0.02em; align-self: end; }
 ul.collection .eq sup { font-size: 0.62em; }
-ul.collection .meta { text-transform: uppercase; color: var(--ink-3); align-self: start; }
+ul.collection .meta { color: var(--ink-3); align-self: start; font-size: 14px; }
 ul.collection .meta .cells { color: var(--ink); font-size: 18px; margin-right: 8px; vertical-align: -0.12em; }
 ul.collection li a:hover .eq { text-decoration: underline; text-underline-offset: 4px; }
 
@@ -201,3 +201,43 @@ ul.collection li a:hover .eq { text-decoration: underline; text-underline-offset
 .feature ul { padding-left: 18px; margin: 4px 0 24px; }
 .feature li { margin-bottom: 16px; }
 .feature p:last-child { margin-bottom: 0; }
+
+/* About: a hero with a real plate, four illustrated steps, and short plain-word blocks. */
+.page .inner.full h2 { font-size: 22px; margin-top: 112px; }
+.about-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 72px; align-items: center; }
+.about-hero h1 { font-size: clamp(34px, 4.4vw, 58px); max-width: 15ch; }
+.about-hero .lead { margin-bottom: 36px; max-width: 58ch; }
+.about-hero .buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+.plate-card { margin: 0; background: #f1eee8; border-radius: 22px; padding: 22px; transform: rotate(-2deg); box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8); }
+.plate-card img { display: block; width: 100%; height: auto; }
+.plate-card figcaption { color: #4a4f55; font-size: 13.5px; margin-top: 12px; text-align: center; letter-spacing: -0.02em; }
+.plate-card figcaption sup { font-size: 0.62em; }
+ol.cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+ol.cards li { position: relative; border: 1px solid var(--line); border-radius: 18px; padding: 28px 26px 30px; background: rgba(236, 233, 225, 0.03); }
+ol.cards .icon { width: 40px; height: 40px; color: var(--ink); display: block; margin-bottom: 26px; }
+ol.cards .n { position: absolute; top: 26px; right: 26px; color: var(--ink-3); font-size: 15px; }
+ol.cards h3, ul.gets h3 { font-size: 16px; font-weight: 500; color: var(--ink); margin: 0 0 12px; letter-spacing: -0.03em; line-height: 1.35; }
+ol.cards p, ul.gets p { margin: 0; font-size: 15px; line-height: 1.7; }
+ul.gets { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 44px; border-top: 1px solid var(--line); padding-top: 32px; }
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+ul.tips { margin: 0; padding-left: 18px; }
+ul.tips li { margin-bottom: 16px; }
+.two-col pre.mail { margin: 0; }
+.wide-p { max-width: 70ch; }
+ul.doclinks { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 44px; border-top: 1px solid var(--line); }
+ul.doclinks a { display: flex; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+ul.doclinks a::after { content: "GitLab"; color: var(--ink-3); text-transform: uppercase; font-size: 13px; }
+ul.doclinks a:hover { color: #fff; }
+.feature + .feature { margin-top: 0; }
+.feature dl.grid { margin: 22px 0 0; }
+.feature dl.grid dt { color: var(--ink-2); }
+@media (max-width: 1100px) { ol.cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) {
+  .about-hero, .two-col, ul.gets, ul.doclinks { grid-template-columns: 1fr; }
+  ol.cards { grid-template-columns: 1fr; }
+  .plate-card { transform: none; }
+}
+
+/* Buttons keep their own colours inside text pages (the page's link colour must not reach them). */
+.page a.btn { color: var(--screen); text-decoration: none; }
+.page a.btn.ghost { color: var(--ink); }

@@ -180,7 +180,7 @@ if (renderer) {
       if (carousel) {
         const d = i - at
         const a = d * 0.5
-        g.position.set(Math.sin(a) * 230, 18 + (reduced ? 0 : Math.sin(t * 0.9 + it.phase) * 3.2), (Math.cos(a) - 1) * 230)
+        g.position.set(Math.sin(a) * 230, 2 + (reduced ? 0 : Math.sin(t * 0.9 + it.phase) * 3.2), (Math.cos(a) - 1) * 230)
         g.rotation.set(-0.42 + (reduced ? 0 : Math.sin(t * 0.7 + it.phase) * 0.05), -a * 0.9 + (reduced ? 0 : Math.sin(t * 0.5 + it.phase) * 0.08), (reduced ? 0 : Math.sin(t * 0.6 + it.phase) * 0.03))
         const s = 1 - Math.min(Math.abs(d), 2) * 0.14
         g.scale.setScalar(s)
