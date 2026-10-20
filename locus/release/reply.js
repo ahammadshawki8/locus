@@ -10,18 +10,20 @@ const path = require('path')
 const { fromEnv } = require('./gitlab')
 const { packageFileUrl } = require('./release')
 
-/** The contracts §8 note, plain text, no long dashes (H2). */
+/**
+ * The contracts §8 note, plain text, no long dashes (H2). Lines are separated by blank lines: GitLab's Markdown joins
+ * single line breaks into one paragraph (seen on issue #2, 21 Oct).
+ */
 const replyNote = ({ manifest, siteUrl, apiUrl, projectId }) => {
   const attempts = manifest.touchcheck.attempts
   return [
     'Automated message from the Locus pipeline.',
-    '',
     `Your graph is ready: ${siteUrl.replace(/\/+$/, '')}/graphs/${manifest.artifactId}/`,
     `Download (print at 100% scale): ${packageFileUrl(apiUrl, projectId, manifest.artifactId, 'graph.stl')}`,
     `Checks passed: TL-1 to TL-5 (after ${attempts} attempt${attempts === 1 ? '' : 's'})`,
     `Braille ID on the plate: ${manifest.brailleId}`,
     `Note: ${manifest.limitations.charAt(0).toLowerCase()}${manifest.limitations.slice(1)}`
-  ].join('\n')
+  ].join('\n\n')
 }
 
 const runReply = async (args, env = process.env, api = fromEnv(env)) => {

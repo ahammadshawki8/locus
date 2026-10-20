@@ -33,13 +33,12 @@ const fake = () => {
 test('the reply is the contracts §8 note, marked automated, with links that work signed out', () => {
   assert.strictEqual(replyNote({ manifest, siteUrl: 'https://locus.example/', apiUrl: 'https://gitlab.example/api/v4', projectId: '9' }), [
     'Automated message from the Locus pipeline.',
-    '',
     'Your graph is ready: https://locus.example/graphs/graph-7-v1/',
     'Download (print at 100% scale): https://gitlab.example/api/v4/projects/9/packages/generic/locus-graphs/graph-7-v1/graph.stl',
     'Checks passed: TL-1 to TL-5 (after 2 attempts)',
     'Braille ID on the plate: G7',
     'Note: automated checks measure spacing and size; they do not certify that a learner can understand the graphic.'
-  ].join('\n'))
+  ].join('\n\n'))
 })
 
 test('it notes and closes each released request with the personal token', async () => {

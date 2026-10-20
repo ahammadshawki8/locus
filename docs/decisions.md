@@ -4,6 +4,24 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (f): the locus-request session on #2 timed out while waiting; graph MR pipelines made shorter (Shawki)
+
+1. **What GitLab shows:** session 9772083 "Session failed: Session did not report a final status before its pipeline
+   finished" (status "failed (dropped)" on #2). The work was right (attempt 2 passed, auto-merge merged it), but the
+   fixer never posted its pass note. Its log: after the attempt 2 commit it called get_pipeline_failing_jobs on
+   pipeline 2968972322 about 30 times, as its prompt says while a pipeline runs.
+2. **Timings (GitLab API):** session workload 18:39:15 to 18:47:10 (472 s). Attempt 1 pipeline 18:40:46 to 18:44:49,
+   attempt 2 18:43:12 to 18:47:14; in each, locus-test took 163 to 211 s of about 240. The session ended 4 s before
+   attempt 2's pipeline reported success. Cause: the session's time or step budget ran out while it waited.
+3. **Fix:** on a `graph/<iid>` MR, locus-test runs only if code, profiles, packages or the CI file changed; such an MR
+   otherwise changes only `requests/<iid>/` (guard-scope). Every main pipeline still runs the whole suite. auto-merge
+   needs locus-test as optional. Expected attempt pipeline: about 2.5 minutes (render, touchcheck, bundle, auto-merge).
+4. **Also:** the reply note now has one line per paragraph (GitLab's Markdown joined the lines on #2).
+5. **Found on #2 too:** GitLab does not email a person about their own actions, and reply-teacher posts with Shawki's
+   token, so Shawki got no email of the reply. In the demo the teacher must be someone else: Nourin sends the request
+   from her own "Email a new issue" address; then every note on the issue is emailed to her.
+6. **To prove (H3):** a fresh request whose session ends with its pass note and status finished.
+
 ## 21 Oct 2026 (e): the first request went from one email to a live graph page and a reply (Shawki)
 
 1. **Main pipeline 2969054691** (after the guard-scope fix, MR !5 merged by Shawki): guard-scope passed on main; bundle,

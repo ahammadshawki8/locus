@@ -363,6 +363,19 @@ locus-test:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
+    # The locus-request session waits for each graph/<iid> pipeline, and the whole suite took 3 to 4 minutes of an
+    # attempt's 4 (docs/decisions.md 21 Oct (f)). Such an MR changes only request files (guard-scope), so the tests run
+    # there only when code changed too. Every main pipeline still runs them.
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^graph\//
+      changes:
+        - locus/**/*
+        - packages/**/*
+        - profiles/**/*
+        - package.json
+        - package-lock.json
+        - .gitlab-ci.yml
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^graph\//
+      when: never
     - when: on_success
 
 # Every runtime dependency of Locus carries a permissive licence (release/license.js). `release` needs it.
@@ -400,7 +413,8 @@ auto-merge:
     - guard-description
     - bundle
     - license-check
-    - locus-test
+    - job: locus-test
+      optional: true # not run on a graph MR that changes no code
   cache:
     key: npm-locus
     paths:
