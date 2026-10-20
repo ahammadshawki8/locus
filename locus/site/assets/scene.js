@@ -1,12 +1,11 @@
 // The 3D scene: the released STL plates, floating, seen through a curved CRT screen.
-//   data-scene="carousel": every shipped graph on an arc; arrow keys, drag, wheel or the buttons move it; Enter or a
+//   data-scene="carousel": every shipped graph on an arc; arrow keys, drag or the wheel move it; Enter or a
 //     click on the centred plate opens its page. The caption under it follows the centred plate.
 //   data-scene="single": one plate, turning slowly; drag to turn it.
-// The scene is drawn off-screen and then through a barrel-distortion pass with a soft edge, like the glass of a
-// CRT (the technique arcmarumo.com uses; this code is our own). The loader counts the real STL downloads.
+// Lit evenly and coloured by height (plate light, raised parts dark) so every line, dome and braille dot reads.
+// The loader counts the real STL downloads.
 import * as THREE from 'three'
 import { STLLoader } from 'three/addons/loaders/STLLoader.js'
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 
 const root = document.querySelector('[data-scene]')
 const mode = root.dataset.scene
@@ -27,9 +26,6 @@ const finishLoading = () => {
 // Never leave a visitor on the loader: switch on after 8 s whatever happened.
 setTimeout(finishLoading, 8000)
 
-// The single plate is closer to the light than the carousel's: a little less exposure keeps its relief visible.
-const carouselExposure = () => (mode === 'carousel' ? 0.95 : 0.8)
-
 let renderer
 try {
   renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
@@ -40,65 +36,40 @@ try {
 if (renderer) {
   root.classList.add('webgl')
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
-  renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = carouselExposure()
+  renderer.toneMapping = THREE.NoToneMapping
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.setClearColor(0x121212, 1)
   root.prepend(renderer.domElement)
   renderer.domElement.setAttribute('aria-hidden', 'true')
 
+  // Plain, even light: the plate reads like a printed object on a desk, with no glare and no blur over it.
   const scene = new THREE.Scene()
-  scene.fog = new THREE.Fog(0x121212, 260, 520)
-  const pmrem = new THREE.PMREMGenerator(renderer)
-  const light = () => { scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture }
-  light()
-  // A software GPU can drop the context (seen when the window is resized): light the scene again when it returns.
-  renderer.domElement.addEventListener('webglcontextrestored', light)
-  const key = new THREE.DirectionalLight(0xfff6ea, 1.25)
-  key.position.set(-120, 160, 220)
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a8a, 1.9))
+  const key = new THREE.DirectionalLight(0xffffff, 1.4)
+  key.position.set(-90, 140, 260)
   scene.add(key)
 
   const camera = new THREE.PerspectiveCamera(30, 1, 1, 2000)
   const carousel = mode === 'carousel'
-  camera.position.set(0, carousel ? 10 : 6, carousel ? 430 : 330)
+  camera.position.set(0, carousel ? 10 : 6, carousel ? 430 : 300)
   camera.lookAt(0, carousel ? -6 : 0, 0)
 
-  // A grey PLA print: a little satin, a little warm.
-  const material = new THREE.MeshPhysicalMaterial({ color: 0xcfccc4, roughness: 0.58, metalness: 0, clearcoat: 0.15, clearcoatRoughness: 0.6 })
-
-  // Off-screen target and the curved-glass pass.
-  const target = new THREE.WebGLRenderTarget(1, 1, { samples: 2 })
-  const glass = new THREE.ShaderMaterial({
-    uniforms: { picture: { value: target.texture }, bend: { value: 0.07 }, soft: { value: 0.06 } },
-    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: `
-      uniform sampler2D picture;
-      uniform float bend;
-      uniform float soft;
-      varying vec2 vUv;
-      void main() {
-        vec2 c = vUv * 2.0 - 1.0;
-        // barrel distortion: points further from the centre are pushed outwards, as on bulging glass
-        vec2 q = c * (1.0 + bend * dot(c, c));
-        vec2 uv = q * 0.5 + 0.5;
-        if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) { gl_FragColor = vec4(vec3(0.07), 1.0); return; }
-        vec2 e = smoothstep(vec2(0.0), vec2(soft), uv) * smoothstep(vec2(0.0), vec2(soft), 1.0 - uv);
-        vec3 col = texture2D(picture, uv).rgb;
-        gl_FragColor = vec4(mix(vec3(0.07), col, e.x * e.y), 1.0);
-      }`,
-    depthTest: false,
-    depthWrite: false
-  })
-  const post = new THREE.Scene()
-  post.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), glass))
-  const postCamera = new THREE.Camera()
+  // Coloured by height, like the drawings: the plate light, everything raised above it (lines, domes, braille) dark.
+  const PLATE = new THREE.Color(0xf1eee8)
+  const RAISED = new THREE.Color(0x20272e)
+  const material = new THREE.MeshLambertMaterial({ vertexColors: true })
+  const paint = (geometry) => {
+    const pos = geometry.attributes.position
+    const colors = new Float32Array(pos.count * 3)
+    const top = 2.05 // the plate is 2 mm thick (profile fdm-handheld-v1); anything higher is a raised feature
+    for (let i = 0; i < pos.count; i++) (pos.getZ(i) > top ? RAISED : PLATE).toArray(colors, i * 3)
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  }
 
   const resize = () => {
     const w = root.clientWidth
     const h = root.clientHeight
     renderer.setSize(w, h, false)
-    const pr = renderer.getPixelRatio()
-    target.setSize(Math.floor(w * pr), Math.floor(h * pr))
     camera.aspect = w / h
     camera.updateProjectionMatrix()
   }
@@ -122,7 +93,9 @@ if (renderer) {
     stl.load(g.stl, (geometry) => {
       geometry.computeBoundingBox()
       const b = geometry.boundingBox
-      geometry.translate(-(b.min.x + b.max.x) / 2, -(b.min.y + b.max.y) / 2, -b.min.z)
+      geometry.translate(0, 0, -b.min.z)
+      paint(geometry)
+      geometry.translate(-(b.min.x + b.max.x) / 2, -(b.min.y + b.max.y) / 2, 0)
       geometry.computeVertexNormals()
       const mesh = new THREE.Mesh(geometry, material)
       group.add(mesh)
@@ -151,8 +124,6 @@ if (renderer) {
   }
   if (carousel) {
     show(goal)
-    document.querySelector('[data-prev]')?.addEventListener('click', () => go(goal - 1))
-    document.querySelector('[data-next]')?.addEventListener('click', () => go(goal + 1))
     window.addEventListener('keydown', (e) => {
       if (e.target.closest('input, textarea')) return
       if (e.key === 'ArrowLeft') go(goal - 1)
@@ -220,10 +191,7 @@ if (renderer) {
         g.rotation.set(-0.5 + tilt, spin + auto, 0)
       }
     })
-    renderer.setRenderTarget(target)
     renderer.render(scene, camera)
-    renderer.setRenderTarget(null)
-    renderer.render(post, postCamera)
     requestAnimationFrame(frame)
   }
   frame()

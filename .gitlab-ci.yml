@@ -584,3 +584,31 @@ reply-teacher:
     - |
       if [ "$PROMOTED" != "true" ]; then echo "reply-teacher: production is pinned by deploy/gcp/production-revision; no reply until it serves this release"; exit 0; fi
       node locus/cli/index.js reply-teacher "$PRODUCTION_URL" out/release
+
+# Optional print order (docs/decisions.md 21 Oct (l)): emails the print shop each released graph with the STL attached.
+# Off unless PRINT_ORDER_ENABLED is "true"; the sender's app password is the masked CI variable PRINT_ORDER_SMTP_PASSWORD.
+print-order:
+  extends: .node-job
+  stage: monitor
+  needs:
+    - job: release
+      artifacts: true
+    - job: bundle
+      artifacts: true
+    - job: promote-production
+      artifacts: true
+    - job: reply-teacher
+  script:
+    - |
+      if [ "$PROMOTED" != "true" ]; then echo "print-order: production is pinned by deploy/gcp/production-revision; no order until it serves this release"; exit 0; fi
+      node locus/cli/index.js print-order "$PRODUCTION_URL" out/release out/bundle
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $JUDGING_FREEZE == "true"
+      when: never
+    - if: $PRINT_ORDER_ENABLED != "true"
+      when: never
+    - if: $GCP_PROJECT_ID == "" || $GCP_WIF_PROVIDER == "" || $GCP_SERVICE_ACCOUNT == ""
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

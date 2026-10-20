@@ -11,7 +11,12 @@ const { sha256, LIMITATIONS } = require('../core/bundle')
 const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="100mm" height="100mm" viewBox="0 0 100 100">\n  <title>y = -0.5x^2 + 2x + 1</title>\n  <rect class="plate" x="0" y="0" width="100" height="100"/>\n</svg>\n'
 const files = (id) => ({
   'graph.svg': Buffer.from(SVG),
-  'overlay.svg': Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>'),
+  'overlay.svg': Buffer.from([
+    '<svg xmlns="http://www.w3.org/2000/svg" width="248mm" height="141mm" viewBox="0 0 248 141">',
+    '<circle class="passed" cx="30" cy="48" r="3" fill="none"/><circle class="passed" cx="15" cy="55" r="5" fill="none"/>',
+    ...['TL-1 Lines at least 3.2 mm apart; closest 3.31 mm', 'TL-2 Labels clear', 'TL-3 No labels overlap', 'TL-4 Everything requested is there', 'TL-5 Fits the plate'].map((t) => `<text x="4" y="110">PASS ${t}</text>`),
+    '</svg>'
+  ].join('\n')),
   'graph.stl': Buffer.from(`solid ${id}`),
   'description.txt': Buffer.from('This tactile graph shows y = -0.5x^2 + 2x + 1, for x from -0.5 to 4.5.\nIts highest point is at (2, 3).\n'),
   [`${id}.zip`]: Buffer.from('zip')
@@ -81,6 +86,14 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   assert.match(how, /id="request"/)
   assert.match(how, /Subject: Tactile graph: projectile/)
   for (const a of ['site.css', 'hud.js', 'scene.js']) assert.ok(fs.existsSync(path.join(pub, 'assets', a)), a)
+  // the request form never carries an address: the teacher pastes their own, kept in their browser
+  const request = fs.readFileSync(path.join(pub, 'request', 'index.html'), 'utf8')
+  assert.match(request, /<form class="request" data-request data-agent="ai-locus-request-gitlab-ai-hackathon_b127f8"/)
+  assert.ok(!/incoming\+|@incoming\.gitlab\.com/.test(request), 'no project address on the public site')
+  assert.match(fs.readFileSync(path.join(pub, 'setup', 'index.html'), 'utf8'), /LOCUS_GITLAB_TOKEN/)
+  assert.match(fs.readFileSync(path.join(pub, 'print-orders', 'index.html'), 'utf8'), /<span class="status">Off<\/span>/)
+  // the touch checks: one highlight group per rule over the plate drawing
+  for (const r of ['TL-1', 'TL-2', 'TL-3', 'TL-4', 'TL-5']) assert.match(html, new RegExp(`class="m-${r}"`))
   assert.match(fs.readFileSync(path.join(out, 'nginx.conf'), 'utf8'), /listen 8080/)
   assert.ok(fs.existsSync(path.join(out, 'Dockerfile')))
   for (const f of ['index.html', 'assets/site.css', 'assets/scene.js', 'assets/hud.js', 'how-it-works/index.html', 'credits/index.html', 'graphs/graph-7-v2/index.html']) assert.ok(!H2.test(fs.readFileSync(path.join(pub, f), 'utf8')), `${f}: rule H2`)
