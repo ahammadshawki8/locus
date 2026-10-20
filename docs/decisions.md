@@ -4,6 +4,18 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (i): feature freeze; finish, polish, show (Shawki)
+
+Shawki's decision: no new features. The video (under 3 minutes, plain words, story first) is what wins; the README
+backs it with links. From now on only finishing, polishing for the camera, and the must-dos.
+1. **Not built, and stays unbuilt:** the release guard (Gate 5c). The README calls it planned, never done (H3).
+2. **Not run:** the regression detective (built and tested locally, never run on GitLab). The impact reviewer's real
+   run on MR !9 is the "an agent protects shipped graphs" evidence. MR !9 is closed, not merged.
+3. **Left to do:** touch results for the four prototype prints; camera polish of the graph page (no new behaviour);
+   tidy the team project; export session evidence to `docs/evidence/`; README; the video with a fresh run where
+   Nourin is the teacher (Shawki, when filming); `JUDGING_FREEZE` and all triggers off right after submitting.
+4. Tier 2 (T2.1 to T2.8) is dropped.
+
 ## 21 Oct 2026 (h): Gate 5b, first half: the impact reviewer ran on a person's MR (Shawki)
 
 1. **The person's change:** Shawki, in GitLab's web editor, removed the tick-skipping guards in `locus/core/scene.js`
