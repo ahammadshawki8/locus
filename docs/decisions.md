@@ -4,6 +4,22 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (h): Gate 5b, first half: the impact reviewer ran on a person's MR (Shawki)
+
+1. **The person's change:** Shawki, in GitLab's web editor, removed the tick-skipping guards in `locus/core/scene.js`
+   (`Simplify ticks: draw a tick at every unit`) on branch `simplify-ticks` and opened MR !9. Claude Code found the
+   seed with a local `locus recheck --impact` against the two real release tags and wrote the steps; it did not push
+   the change or start any flow (H6).
+2. **Pipelines:** MR pipeline 2969300647 failed at `library-impact` (`LOCUS_IMPACT`: graph-2-v1 TL-1 3 mm at (85.5,
+   24.4); graph-3-v1 TL-1 3.1 mm at (12, 30.1) and 0.8 mm at (16.4, 43.5); 3.2 mm needed), and at touchcheck and
+   locus-test. The branch pipeline 2969300111 failed too.
+3. **locus-ops started by itself** on both failed pipelines (trigger: pipeline events, failed): sessions 2969311709
+   (43 s, the branch pipeline: no MR, so triage ends) and 2969312152 (158 s). The second posted the impact review on
+   MR !9 as `locus-ops`: the two graphs and three failures with the numbers above, the cause read from the diff ("my
+   reading of the diff, not a measurement"), the developer's two choices (fix the MR, or merge and re-layout each
+   graph as v(n+1)), the job log link and the limitations line. Before anything was merged.
+4. Not yet run: the regression detective (merge anyway, library-recheck fails on main, bisect, revert MR).
+
 ## 21 Oct 2026 (g): second request, hands-off from the email to the reply, session finished (Shawki)
 
 Read from GitLab and Shawki's inbox; nobody acted after the email (H3).
