@@ -4,6 +4,17 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (c): contracts D8 and §9 changed, both agreed (H5)
+
+1. **D8:** Ashfaq proposed it on 20 Oct (g); Shawki agreed on 21 Oct. The contract now says what ran four times: the
+   fixer reads the `LOCUS_REPORT` line from its own attempt's touchcheck job log and commits with `create_commit`; no
+   flow runs a command. Giving the fixer `run_command` would need a clone, `agent-config.yml` and new runs before the
+   freeze, for no visible gain.
+2. **§9 `production-revision`:** Shawki proposed it on 20 Oct (i) item 6 and agreed on 21 Oct; Ashfaq to confirm (he is
+   on call for Phase 1 code, and this touches only Shawki's side). `UNSET` lets each validated release reach
+   production (hands-off); a revision name pins production for a rollback. Built that way in `deploy/gcp/deploy.sh`.
+3. `docs/contracts.md` D8 and §9 are edited to match; nothing else in the contract changes.
+
 ## 21 Oct 2026 (b): locus-request created in the team project (Shawki)
 
 1. Shawki created the custom flow in the team project (Flows > New flow): display name `locus-request`, visibility
