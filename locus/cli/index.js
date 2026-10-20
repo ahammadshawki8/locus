@@ -58,6 +58,7 @@ const runRender = (target, outDir) => {
   writeOutputs(outDir, result)
   const { widthMm, heightMm } = result.scene.plate
   console.log(`${target}: rendered ${widthMm.toFixed(1)} x ${heightMm.toFixed(1)} mm plate to ${outDir}`)
+  if (result.mesh === 'manifold') console.log('  mesh: the JSCAD union left open edges; the manifold fallback closed it (core/manifold.js)')
   for (const m of result.scene.missing) console.log(`  missing: ${m.mark} (${m.reason})`)
   console.log(`  Not touch-checked yet: run \`locus touchcheck ${target}\`.`)
   return 0

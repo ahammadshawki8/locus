@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@jscad/modeling": "file:../packages/modeling",
-    "ajv": "8.20.0"
+    "ajv": "8.20.0",
+    "manifold-3d": "3.2.1"
   },
   "devDependencies": {
     "yaml": "2.9.1"

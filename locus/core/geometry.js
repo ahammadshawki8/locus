@@ -22,7 +22,8 @@ const dropStraightSamples = (pts) => {
   return straight ? [pts[0], pts[pts.length - 1]] : pts
 }
 
-const toSolid = (scene) => {
+/** The plate and every raised feature, as separate JSCAD solids (the manifold fallback unions these same parts). */
+const toParts = (scene) => {
   const { widthMm: W, heightMm: H, thicknessMm: TOP } = scene.plate
   const raisedPath = (pts, w, h) => transforms.translate([0, 0, TOP - EPS], extrusions.extrudeLinear({ height: h + EPS },
     expansions.expand({ delta: w / 2, corners: 'round', segments: 16 }, geometries.path2.fromPoints({ closed: false }, dropStraightSamples(pts)))))
@@ -30,13 +31,15 @@ const toSolid = (scene) => {
 
   const plate = extrusions.extrudeLinear({ height: TOP }, primitives.roundedRectangle({ size: [W, H], roundRadius: 3, center: [W / 2, H / 2] }))
   const corner = transforms.translate([0, 0, TOP - EPS], extrusions.extrudeLinear({ height: scene.orientation.heightMm + EPS }, primitives.polygon({ points: scene.orientation.points })))
-  return booleans.union(
+  return [
     plate, corner,
     ...scene.lines.map((l) => raisedPath(l.points, l.widthMm, l.heightMm)),
     ...scene.marks.map((m) => dome(m.xMm, m.yMm, m.diameterMm, m.heightMm)),
     ...scene.labels.flatMap((l) => l.dots.map(([x, y]) => dome(x, y, l.dotDiameterMm, l.dotHeightMm)))
-  )
+  ]
 }
+
+const toSolid = (scene, parts = toParts(scene)) => booleans.union(...parts)
 
 /**
  * A layout can put features past the plate edge (a default scale that is too wide). TL-5 fails it from scene.json, so
@@ -52,4 +55,4 @@ const clipToPlate = (solid, plate) => {
   return booleans.intersect(solid, primitives.cuboid({ size: [W, H, z1 + 2], center: [W / 2, H / 2, z1 / 2] }))
 }
 
-module.exports = { toSolid, clipToPlate }
+module.exports = { toParts, toSolid, clipToPlate }

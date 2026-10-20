@@ -2,8 +2,10 @@ const test = require('node:test')
 const assert = require('node:assert')
 const path = require('path')
 
+const { measurements } = require('@jscad/modeling')
+
 const { render } = require('./render')
-const { readTriangleCount, watertightTriangles } = require('./stl')
+const { countOpenEdges, readBounds, readTriangleCount, watertightTriangles } = require('./stl')
 
 const prints = path.join(__dirname, '..', '..', 'tools', 'prints')
 const spec = require(path.join(prints, 'spec.json'))
@@ -85,4 +87,45 @@ test('straight lines render a closed STL', () => {
     const out = render(request(coeffs, min, max, ['y-intercept'], 9), layoutA)
     assert.strictEqual(watertightTriangles(out.solid).openAfter, 0, JSON.stringify(coeffs))
   }
+})
+
+test('prints and ordinary requests are closed by the JSCAD repair, not the manifold fallback', () => {
+  assert.strictEqual(render(spec, layoutA).mesh, 'jscad')
+  assert.strictEqual(render(spec, layoutB).mesh, 'jscad')
+})
+
+// Volume enclosed by a closed binary STL (divergence theorem over its triangles), in cubic millimetres.
+const stlVolume = (buffer) => {
+  let sum = 0
+  for (let t = 0; t < readTriangleCount(buffer); t++) {
+    const [a, b, c] = [0, 1, 2].map((k) => [0, 1, 2].map((j) => buffer.readFloatLE(84 + 50 * t + 12 + k * 12 + j * 4)))
+    sum += a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0])
+  }
+  return sum / 6
+}
+
+// Requests from a seeded sweep (20 Oct) whose JSCAD union the repair cannot close ("mesh still has N unpaired edges",
+// 1, 117 and 7 edges). Manifold unions the same parts; the STL must be closed, inside the plate, and hold the same
+// solid as the JSCAD union (the volumes agree to 0.1 % on these; 1 % allows for the clip and float32 output).
+test('requests the JSCAD repair cannot close render a closed STL through the manifold fallback', () => {
+  const cases = [
+    [request([0, -2, 1.5, -1.5], -1.5, 1.5, ['vertex', 'y-intercept', 'x-intercepts'], 27), true],
+    [request([-1, 0, 3, 2], -2, 2, ['turning-points', 'y-intercept', 'x-intercepts'], 26), false],
+    [request([0, 3, 1.5, 3], -1.5, 2.5, ['vertex', 'y-intercept', 'x-intercepts'], 12), true] // far taller than the plate
+  ]
+  for (const [r, showGrid] of cases) {
+    const name = `${JSON.stringify(r.graph.coeffs)} grid ${showGrid}`
+    const out = render(r, { ...layoutA, showGrid })
+    assert.strictEqual(out.mesh, 'manifold', name)
+    assert.strictEqual(countOpenEdges(out.stl), 0, name)
+    const { min, max } = readBounds(out.stl)
+    assert.ok(min.every((v) => v >= -1e-4) && max[0] <= 100 + 1e-4 && max[1] <= 100 + 1e-4 && max[2] <= 3.6 + 1e-4, `${name} ${JSON.stringify({ min, max })}`)
+    const expected = measurements.measureVolume(out.solid)
+    assert.ok(Math.abs(stlVolume(out.stl) - expected) / expected < 0.01, `${name}: ${stlVolume(out.stl)} vs ${expected}`)
+  }
+})
+
+test('the manifold fallback is deterministic: the same request gives the same bytes', () => {
+  const r = request([0, -2, 1.5, -1.5], -1.5, 1.5, ['vertex', 'y-intercept', 'x-intercepts'], 27)
+  assert.ok(render(r, layoutA).stl.equals(render(r, layoutA).stl))
 })

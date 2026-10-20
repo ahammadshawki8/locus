@@ -178,4 +178,4 @@ const readBounds = (buffer) => {
   return { min, max }
 }
 
-module.exports = { toBinaryStl, watertightTriangles, fillSliverHoles, readTriangleCount, countOpenEdges, readBounds }
+module.exports = { toBinaryStl, writeBinaryStl, watertightTriangles, fillSliverHoles, readTriangleCount, countOpenEdges, readBounds }
