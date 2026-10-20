@@ -1,0 +1,154 @@
+/* Locus site: a CRT television showing the graph library (layout and effects after arcmarumo.com; our own code). */
+:root {
+  --bezel: #070707;
+  --screen: #121212;
+  --ink: #ece9e1;
+  --ink-2: rgba(236, 233, 225, 0.62);
+  --ink-3: rgba(236, 233, 225, 0.38);
+  --line: rgba(236, 233, 225, 0.16);
+  --pass: #8fe3b4;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --pixel: "Silkscreen", var(--mono);
+  --gutter: clamp(10px, 1.8vw, 26px);
+  --radius: clamp(18px, 3vw, 42px);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bezel); color: var(--ink); }
+body { font-family: var(--mono); font-weight: 500; font-size: 13.75px; letter-spacing: -0.03em; line-height: 1.45; overflow: hidden; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip { position: absolute; left: -999px; z-index: 50; }
+.skip:focus { left: 40px; top: 40px; background: var(--ink); color: var(--screen); padding: 6px 10px; }
+
+/* The television: a bezel around a rounded, slightly bulging screen. */
+.tv { position: fixed; inset: 0; padding: var(--gutter); }
+.screen { position: relative; width: 100%; height: 100%; border-radius: var(--radius) / calc(var(--radius) * 0.85); overflow: hidden; background: var(--screen); isolation: isolate; }
+.screen::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 30;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 0 70px 18px rgba(0, 0, 0, 0.9), inset 0 0 160px 40px rgba(0, 0, 0, 0.45); }
+.glass { position: absolute; inset: 0; pointer-events: none; z-index: 31; border-radius: inherit;
+  background:
+    radial-gradient(60% 40% at 28% 6%, rgba(255, 255, 255, 0.07), transparent 70%),
+    linear-gradient(100deg, transparent 58%, rgba(255, 255, 255, 0.035) 62%, transparent 67%, transparent 72%, rgba(255, 255, 255, 0.03) 75%, transparent 80%); }
+.scan { position: absolute; inset: 0; pointer-events: none; z-index: 29; mix-blend-mode: overlay;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0 1px, rgba(0, 0, 0, 0.12) 1px 3px); }
+html.bw .screen > *:not(.glass):not(.scan) { filter: grayscale(1) contrast(1.05); }
+
+/* The 3D scene fills the screen; the HUD sits on top. */
+.scene { position: absolute; inset: 0; z-index: 1; }
+.scene canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; }
+.scene canvas:active { cursor: grabbing; }
+.scene .fallback { position: absolute; inset: 0; display: grid; place-items: center; }
+.scene .fallback img { width: min(52vh, 70vw); background: #f2f0ea; border-radius: 12px; padding: 12px; }
+.scene.webgl .fallback { display: none; }
+
+.hud { position: absolute; z-index: 20; left: clamp(28px, 4.2vw, 66px); right: clamp(28px, 4.2vw, 66px); display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; text-transform: uppercase; }
+.hud.top { top: clamp(26px, 4.5vh, 60px); }
+.hud.bottom { bottom: clamp(26px, 4.5vh, 60px); align-items: flex-end; }
+.hud a, .hud button { color: var(--ink); text-decoration: none; background: none; border: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; padding: 6px 0; cursor: pointer; }
+.hud a:hover, .hud button:hover { color: #fff; }
+.hud .dim { color: var(--ink-3); }
+.hud .group { display: flex; gap: clamp(16px, 2.6vw, 40px); align-items: baseline; }
+.hud nav { display: flex; gap: clamp(16px, 2.4vw, 36px); }
+.hud a[aria-current="page"] { color: var(--ink-3); }
+.brand { position: absolute; left: 50%; transform: translateX(-50%); top: -4px; display: grid; justify-items: center; gap: 2px; text-decoration: none; }
+.brand .word { font-family: var(--pixel); font-size: 26px; letter-spacing: 0.02em; line-height: 1; }
+.brand .year { font-family: var(--pixel); font-size: 12px; color: var(--ink-2); letter-spacing: 0.06em; }
+
+/* Carousel caption, under the centred plate. */
+.caption { position: absolute; z-index: 20; left: 50%; bottom: clamp(70px, 13vh, 130px); transform: translateX(-50%); width: min(560px, 80%); text-align: center; text-transform: uppercase; display: grid; gap: 6px; }
+.caption .label { color: var(--ink-3); }
+.caption .title { font-size: clamp(15px, 1.5vw, 19px); color: #fff; text-transform: none; letter-spacing: -0.02em; }
+.caption .title a { text-decoration: none; }
+.caption .title a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.caption .tags { color: var(--ink-3); }
+.caption sup, .title sup { font-size: 0.62em; }
+.arrows { display: flex; justify-content: center; gap: 28px; margin-top: 4px; }
+.arrows button { background: none; border: 1px solid var(--line); color: var(--ink); font: inherit; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.arrows button:hover { border-color: var(--ink-2); }
+.hint { color: var(--ink-3); }
+
+/* Loading screen and the power-on flash. */
+.loader { position: absolute; inset: 0; z-index: 25; background: var(--screen); display: flex; flex-direction: column; justify-content: flex-end; padding: 0 clamp(28px, 4.2vw, 66px) clamp(40px, 9vh, 90px); text-transform: uppercase; transition: opacity 0.35s ease; }
+.loader .row { display: flex; justify-content: space-between; color: var(--ink-2); margin-bottom: 18px; }
+.loader .bar { position: relative; height: 1px; background-image: repeating-linear-gradient(to right, var(--ink-3) 0 6px, transparent 6px 11px); }
+.loader .fill { position: absolute; inset: -1px auto -1px 0; width: 0%; background-image: repeating-linear-gradient(to right, var(--ink) 0 6px, transparent 6px 11px); height: 3px; transition: width 0.2s linear; }
+.loader.done { opacity: 0; pointer-events: none; }
+.flash { position: absolute; inset: 0; z-index: 26; pointer-events: none; background: #f4f3ee; opacity: 0; }
+.flash.on { animation: power 0.9s ease-out forwards; }
+@keyframes power {
+  0% { opacity: 0; transform: scaleY(0.004); }
+  14% { opacity: 1; transform: scaleY(0.004); }
+  34% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1); }
+}
+
+/* Text pages (how it works, credits) and the graph detail panel scroll inside the screen. */
+.page, .detail .panel { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 clamp(110px, 16vh, 150px), #000 calc(100% - clamp(100px, 15vh, 140px)), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 clamp(110px, 16vh, 150px), #000 calc(100% - clamp(100px, 15vh, 140px)), transparent 100%); }
+.page { position: absolute; inset: 0; z-index: 10; overflow-y: auto; padding: clamp(120px, 18vh, 170px) clamp(28px, 4.2vw, 66px) clamp(110px, 16vh, 150px); scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.page .inner { max-width: 880px; margin: 0 auto; }
+.page h1 { font-family: var(--pixel); font-weight: 400; font-size: clamp(28px, 4vw, 46px); line-height: 1.05; letter-spacing: 0.01em; margin: 0 0 18px; text-transform: uppercase; }
+.page .lead { font-size: clamp(15px, 1.4vw, 18px); color: var(--ink); letter-spacing: -0.02em; max-width: 60ch; margin: 0 0 48px; }
+.page h2 { font-size: 13.75px; text-transform: uppercase; color: var(--ink-3); font-weight: 500; margin: 56px 0 18px; letter-spacing: -0.03em; }
+.page p, .page li { font-size: 15px; letter-spacing: -0.02em; line-height: 1.6; color: var(--ink-2); max-width: 66ch; }
+.page strong { color: var(--ink); font-weight: 500; }
+.page a { color: var(--ink); text-underline-offset: 3px; }
+ol.steps { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+ol.steps > li { display: grid; grid-template-columns: 64px 1fr; gap: 20px; padding: 26px 0; border-bottom: 1px solid var(--line); max-width: none; }
+ol.steps .n { font-family: var(--pixel); font-size: 18px; color: var(--ink-3); }
+ol.steps h3 { margin: 0 0 8px; font-size: 15px; font-weight: 500; text-transform: uppercase; color: var(--ink); letter-spacing: -0.03em; }
+ol.steps p { margin: 0 0 10px; }
+pre.mail { background: rgba(236, 233, 225, 0.05); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; color: var(--ink); white-space: pre-wrap; font: inherit; font-size: 14px; letter-spacing: -0.02em; margin: 12px 0 4px; }
+dl.grid { display: grid; grid-template-columns: minmax(140px, max-content) 1fr; gap: 12px 28px; margin: 0; }
+dl.grid dt { text-transform: uppercase; color: var(--ink-3); }
+dl.grid dd { margin: 0; color: var(--ink-2); font-size: 15px; letter-spacing: -0.02em; }
+ul.people { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+ul.people li { padding: 22px 18px 22px 0; border-bottom: 1px solid var(--line); }
+ul.people .name { display: block; font-family: var(--pixel); font-size: 20px; color: var(--ink); margin-bottom: 6px; }
+
+/* Graph detail: the plate turning on the left, the facts on the right. */
+.detail .scene { right: 42%; }
+.detail .panel { position: absolute; z-index: 10; top: 0; bottom: 0; right: 0; width: 42%; overflow-y: auto; padding: clamp(120px, 18vh, 170px) clamp(28px, 4.2vw, 66px) clamp(110px, 16vh, 150px) 12px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.panel .label { text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
+.panel h1 { font-size: clamp(20px, 2.1vw, 28px); font-weight: 500; letter-spacing: -0.03em; line-height: 1.2; margin: 0 0 6px; }
+.panel h1 sup { font-size: 0.6em; }
+.panel .range { color: var(--ink-2); margin: 0 0 26px; font-size: 15px; letter-spacing: -0.02em; }
+.panel .braille { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+.panel .braille .cells { font-size: 42px; line-height: 1; color: var(--ink); }
+.panel .braille .what { text-transform: uppercase; color: var(--ink-2); }
+.panel .ok { color: var(--pass); text-transform: uppercase; margin: 0 0 6px; }
+.panel .sub { color: var(--ink-2); margin: 0 0 24px; font-size: 14px; }
+.panel .buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 34px; }
+.btn { display: inline-block; text-transform: uppercase; text-decoration: none; padding: 11px 16px; border-radius: 999px; border: 1px solid var(--ink); color: var(--screen); background: var(--ink); }
+.btn.ghost { background: none; color: var(--ink); border-color: var(--line); }
+.btn:hover { filter: brightness(1.08); }
+.panel h2 { font-size: 13.75px; font-weight: 500; text-transform: uppercase; color: var(--ink-3); margin: 30px 0 12px; }
+.panel ol.made { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+.panel ol.made li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); color: var(--ink-2); font-size: 14px; letter-spacing: -0.02em; }
+.panel ol.made li::before { content: counter(s, decimal-leading-zero); color: var(--ink-3); }
+.panel ul.rules { list-style: none; margin: 0; padding: 0; }
+.panel ul.rules li { display: grid; grid-template-columns: 52px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); color: var(--ink-2); font-size: 14px; letter-spacing: -0.02em; }
+.panel ul.rules .rule { color: var(--pass); }
+.panel .overlay { background: #f4f3ee; border-radius: 10px; padding: 8px; margin-top: 14px; }
+.panel .overlay svg { display: block; width: 100%; height: auto; }
+.panel pre.desc { white-space: pre-wrap; font: inherit; font-size: 14px; letter-spacing: -0.02em; color: var(--ink-2); margin: 0; line-height: 1.6; }
+.panel dl.grid dd { font-size: 14px; }
+.panel a:not(.btn) { color: var(--ink); text-underline-offset: 3px; }
+
+.limit { color: var(--ink-3); }
+
+@media (max-width: 860px) {
+  body { overflow: auto; }
+  .hud .hide-s { display: none; }
+  .brand { position: static; transform: none; }
+  .hud.top { flex-wrap: wrap; }
+  .detail .scene { right: 0; bottom: 52%; }
+  .detail .panel { width: 100%; top: 48%; padding-top: 24px; padding-left: clamp(28px, 4.2vw, 66px); }
+  ul.people { grid-template-columns: 1fr; }
+  ol.steps > li { grid-template-columns: 40px 1fr; }
+  .caption { bottom: 96px; width: 88%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash.on { animation: none; }
+  .loader { transition: none; }
+}
