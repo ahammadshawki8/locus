@@ -1,0 +1,24 @@
+{
+  "xScaleMm": 16,
+  "yScaleMm": 16,
+  "labelMode": "inline",
+  "labelOffsets": {
+    "vertex": [
+      0,
+      10.75
+    ],
+    "y-intercept": [
+      32,
+      42
+    ],
+    "x-intercept+": [
+      -7.2,
+      -12.25
+    ]
+  },
+  "defaultLabelOffset": [
+    4.5,
+    6
+  ],
+  "showGrid": false
+}

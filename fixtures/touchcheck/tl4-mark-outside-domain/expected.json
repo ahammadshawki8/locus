@@ -1,0 +1,8 @@
+{
+  "fixture": true,
+  "seeded": "TL-4",
+  "fails": [
+    "TL-4"
+  ],
+  "why": "The negative x-intercept is requested but x = 2 - sqrt(6) is outside the domain (no allowed fix: refuse or ask)"
+}
