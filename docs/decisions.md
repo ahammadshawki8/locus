@@ -4,6 +4,52 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 20 Oct 2026 (e): the email-to-files demo ran: one email, no comment, print files back (Ashfaq ran it)
+
+No change to `docs/contracts.md`. Ashfaq re-pasted `locus-request.yml` (as of `eaf06941`; his report) and sent one
+plain-text email; everything below was read from GitLab, git and a signed-out download afterwards. Claude Code
+started nothing and changed nothing in the run (H6); it watched through the API, read-only.
+
+1. **14:00:57 UTC issue #7** "Tactile graph: projectile", created from Ashfaq's email to his personal "Email a new
+   issue" address: type issue, author Ashfaq909, not confidential. The description is the email body without its last
+   line: the `/assign` quick action was applied ("assigned to @ai-locus-request-gitlab-ai-hackathon" by Ashfaq909 at
+   14:00:57.9) and removed from the text.
+2. **The assign at creation fired the Assign trigger:** 14:01:03
+   [session 9753341](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43396940/showcase/-/automate/agent-sessions/9753341)
+   "triggered by @Ashfaq909". **So one email starts the flow with no comment** (20 Oct (d) item 6: the fallback was
+   not needed). The issue template's `/assign` uses the same quick action; the template itself has still not run.
+3. **Intake** (14:01:59): commit `22cbd4b8` on `graph/7` from `820fd236`, author and committer `locus-request`,
+   `Locus-Session` trailer; only the three request files; spec coeffs [0, -0.5, 2, 1], domain -0.5 to 4.5, marks
+   vertex and y-intercept; the default layout. MR !5. The intake note read the request right (the vertex at x = 2).
+   A local run of that spec with requestId 7 on `820fd236`, made before the email, failed TL-1 and TL-2 at attempt 1
+   and passed with print B's layout.
+4. **Attempt 1:** pipelines 2967886587 (push) and 2967886911 (MR) failed.
+5. **Attempt 2** (14:04:55): commit `bc49410a`, `requests/7/layout.json` only: `showGrid` false (TL-1),
+   `labelOffsets` vertex [0, 12] and y-intercept [-12, 4] (TL-2); one sentence per change, trailer. **MR pipeline
+   2967900651 passed all 7 jobs** (render, touchcheck, guard-scope, guard-maths, guard-description, bundle, locus-test).
+6. **14:09:26 the pass note**, exactly the new shape: "Your tactile graph is ready to print.", the zip link and the STL
+   link for `refs/merge-requests/5/head`, "Checks passed: TL-1 to TL-5 (after 2 attempt(s))", "Braille ID on the
+   plate: G7", what changed, the MR, the limitations line, the session. Session completed. **About 8.5 min from email
+   to files.**
+7. **Both links, downloaded signed out:** zip 200, 164775 bytes, the 7 contract files; STL 200, 726784 bytes, the same
+   file as in the zip. Manifest: `graph-7-v1`, `G7`, `sourceCommit` `bc49410a`, pipeline 2967900651, touchcheck pass
+   after 2 attempts, all three guards true, `agentSessions` = [session 9753341]; the hashes of graph.stl, graph.svg and
+   description.txt match the files.
+8. **Where the email went:** GitLab sent the notifications (for example "locus-request pushed new commits to merge
+   request !5") to the notification address of Ashfaq's GitLab account, not to the mailbox the request was sent from
+   (Ashfaq's report). That is how this route works: the issue belongs to the account. To answer the sending mailbox,
+   make it the account's notification address, or use Service Desk (which answers the sender but needs one comment).
+9. **The STL is closed, like the prototype prints:** read by exact float32 position, no edge is unmatched (no hole);
+   13 edges are shared by four triangles (surfaces touching) and 4 have zero length. stl.js's `countOpenEdges`
+   (4 decimals) counts 17, and it counts 41, 11 and 17 on the printed plates A, B and C, so this is the same class of
+   mesh as the plates that printed. The test bed `main` still has the old renderer; the 20 Oct (b) fallback is not in
+   this run.
+
+**What this proves and what it doesn't (H3):** a person sends one email and, with no other human step, gets a
+touch-checked, guard-checked print file back by email in about 8.5 minutes, made and fixed by the agent alone. It
+needs the sender to be a project member (a teacher without an account uses Service Desk plus one comment). Nothing
+was merged, released or deployed (Shawki's S.4 steps 6 to 8), and it does not show that a learner can read the plate.
+
 ## 20 Oct 2026 (d): email in, print files back by email: the pass note carries the download links (Ashfaq)
 
 No change to `docs/contracts.md`, the touch rules, the profile or `remedies.json`. Not run on GitLab yet (H3).

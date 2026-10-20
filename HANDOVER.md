@@ -28,6 +28,10 @@ Each line links to the `docs/decisions.md` entry that holds the evidence.
     green, bundle `graph-3-v1` (16 Oct (m)).
   - Service Desk ticket #5, started by a **mention**, MR !3, session 9616199: same shape, bundle `graph-5-v1`, and the
     requester's inbox got the Support Bot thank-you and both agent notes (16 Oct (o) item 7).
+  - Issue #7, **one email, no comment** (20 Oct (e)): an email to the personal "Email a new issue" address ending
+    with `/assign @ai-locus-request-gitlab-ai-hackathon`, session 9753341, MR !5: red, the agent's fix, green, and the
+    pass note with the bundle zip and STL links (both download signed out), about 8.5 min after the email. **This is
+    the demo.**
   - Issue #6, started by **assign**, MR !4, session 9633187: the **refusal path**. y = (x - 1)^2 touches the x-axis
     at its vertex, which TL-1 can never pass; attempts 1 to 3 red, then label `cannot-make-readable` and a plain
     refusal note, no bundle (17 Oct (b)). Use this request again whenever a refusal must be shown.
@@ -115,8 +119,9 @@ On GitLab (needs Developer access to the project where `locus-request` is enable
 the demo: one email in, the print files back by email (`docs/decisions.md` 20 Oct (d)).
 1. Email a request (one polynomial, its x range, the points to mark) from any mail account to the project's
    `incoming+...` address. A confidential ticket appears and the sender gets the Support Bot's thank-you.
-   Or, as a project member, mail your personal "Email a new issue" address (Issues page) with
-   `/assign @ai-locus-request-gitlab-ai-hackathon` as the last line of the body; then skip step 2 (not run yet).
+   Or, as a project member, mail your personal "Email a new issue" address (Issues page, three-dot menu) with
+   `/assign @ai-locus-request-gitlab-ai-hackathon` as the last line of the body; then skip step 2 (ran on #7,
+   20 Oct (e); the replies go to your GitLab account's notification address).
    That address holds a personal token: never paste it into the repo or a log (H8).
 2. On the ticket, comment `@ai-locus-request-gitlab-ai-hackathon please make this graph.` A session starts.
 3. Watch MR `graph/<iid>`: attempt 1 is the default layout; the fixer commits until touchcheck passes (at most 3), or
