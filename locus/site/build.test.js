@@ -82,7 +82,7 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   const credits = fs.readFileSync(path.join(pub, 'credits', 'index.html'), 'utf8')
   assert.match(credits, /href="https:\/\/github\.com\/jscad\/OpenJSCAD\.org"><strong>JSCAD<\/strong><\/a>/)
   assert.match(credits, /@jscad\/modeling/)
-  assert.ok(!/Made by/.test(credits), 'the credits are for the work Locus is built on')
+  assert.ok(!/Made by|Also built on/.test(credits), 'the credits are JSCAD, GitLab and Google Cloud only')
   for (const part of ['<h2>GitLab</h2>', '<h2>Google Cloud</h2>', 'Duo Agent Platform', 'Package Registry', 'Cloud Run', 'Workload Identity Federation']) assert.ok(credits.includes(part), part)
   // About is for teachers, in plain words: how to use it, with the newest plate; the technical setup is in the docs
   const about = fs.readFileSync(path.join(pub, 'about', 'index.html'), 'utf8')
@@ -115,6 +115,11 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   assert.match(request, /<input type="checkbox" name="print" checked> I need printed copies/)
   assert.match(request, /<input id="copies" name="copies" type="number" min="1" max="99" value="1"/)
   assert.ok(!/name="shop"/.test(request))
+  // voice typing: hidden until the browser offers speech recognition (hud.js shows it)
+  assert.match(request, /<button type="button" class="speak" data-speak aria-pressed="false" hidden>/)
+  // print again on a graph page: the teacher's own email drafts the reprint; no shop address is on the public page
+  assert.match(html, /<details class="reprint" data-reprint data-id="graph-7-v2" data-braille="G7">/)
+  assert.match(html, /<input name="shop" type="email" autocomplete="email" placeholder="kept only in this browser">/)
   // the touch checks: one highlight group per rule over the plate drawing
   for (const r of ['TL-1', 'TL-2', 'TL-3', 'TL-4', 'TL-5']) assert.match(html, new RegExp(`class="m-${r}"`))
   assert.match(fs.readFileSync(path.join(out, 'nginx.conf'), 'utf8'), /listen 8080/)

@@ -38,6 +38,13 @@ Shawki reviewed the local preview and asked for these; all are built on branch `
    number for more; unticked writes "Printed copies needed: 0 (digital files only)", and the print-order job then
    sends no order. The print shop stays the school's one setting (`PRINT_ORDER_TO`); a per-request shop address was
    considered and dropped (simpler, and nobody can redirect orders).
+10. **Fourth round (Shawki):** Credits keep only JSCAD, GitLab and Google Cloud. **Voice typing** on the Request page:
+    a Speak button that uses the browser's own speech recognition, shown only where the browser has it; the help text
+    says that in Chrome Google's speech service does the recognition. **Print again** on every graph page: copies and
+    the shop's address (kept only in that browser), then the teacher's own Gmail or mail app opens with the order
+    (graph, STL link, page link, print settings). A static site cannot send mail, and the school's shop address is
+    not published on a public page, so this is drafted for the teacher to send. Checked: it opens Gmail compose with
+    the right To, Subject and body.
 
 ## 21 Oct 2026 (l): the feature freeze reopened for one story: from a lesson idea to a print in hand (Shawki)
 

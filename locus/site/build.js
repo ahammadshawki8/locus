@@ -194,6 +194,17 @@ const graphPage = (g, projectUrl) => {
   <p class="sub">After ${plural(attempts, 'attempt')}. The maths, scope and description guards passed too.</p>
   <div class="buttons"><a class="btn" href="graph.stl" download>Download STL</a><a class="btn ghost" href="${escape(m.artifactId)}.zip" download>All files</a></div>
 
+  <details class="reprint" data-reprint data-id="${escape(m.artifactId)}" data-braille="${escape(m.brailleId)}">
+    <summary>Print again</summary>
+    <p class="help">Drafts an order to your print shop in your own email: this graph, the print file and the settings. Nothing is sent until you press Send there.</p>
+    <div class="reprint-fields">
+      <label>Copies<input name="copies" type="number" min="1" max="99" value="1" inputmode="numeric"></label>
+      <label class="grow">Print shop email<input name="shop" type="email" autocomplete="email" placeholder="kept only in this browser"></label>
+    </div>
+    <div class="buttons"><button type="button" class="btn" data-reprint-gmail>Open in Gmail</button><button type="button" class="btn ghost" data-reprint-mail>Open in my mail app</button></div>
+    <p class="error" data-reprint-error role="alert"></p>
+  </details>
+
   <h2>Description for the learner</h2>
   <pre class="desc" id="description">${escape(g.description.trim())}</pre>
 
@@ -351,7 +362,7 @@ const creditsPage = () => textPage({
   current: '/credits/',
   full: true,
   body: `<h1>Credits</h1>
-<p class="lead">Locus stands on open work and on two platforms. It was built for the GitLab Transcend hackathon in October 2026.</p>
+<p class="lead">Locus stands on JSCAD, GitLab and Google Cloud. It was built for the GitLab Transcend hackathon in October 2026.</p>
 
 <h2>JSCAD</h2>
 <div class="feature">
@@ -390,15 +401,7 @@ const creditsPage = () => textPage({
     <dt>Workload Identity Federation</dt><dd>Trusts GitLab's ID token from our project's protected main branch only, so no Google key exists anywhere.</dd>
     <dt>IAM and billing</dt><dd>One deploy service account with only the roles it needs, and a 5 USD monthly budget alert.</dd>
   </dl>
-</div>
-
-<h2>Also built on</h2>
-<dl class="grid">
-  <dt><a href="https://threejs.org">three.js</a></dt><dd>Draws the plates in 3D on these pages (MIT licence).</dd>
-  <dt><a href="https://github.com/elalish/manifold">Manifold</a></dt><dd>Closes the rare mesh the main union leaves open (Apache 2.0 licence).</dd>
-  <dt>IBM Plex Mono</dt><dd>The typeface of this site (SIL Open Font Licence).</dd>
-  <dt>Design</dt><dd>The television look is inspired by <a href="https://www.arcmarumo.com">Arc</a>.</dd>
-</dl>`
+</div>`
 })
 
 const requestPage = () => textPage({
@@ -411,9 +414,9 @@ const requestPage = () => textPage({
 <form class="request" data-request data-agent="${AGENT}" onsubmit="return false">
   <div>
     <div class="field">
-      <label for="note">What do you need?</label>
+      <div class="label-row"><label for="note">What do you need?</label><button type="button" class="speak" data-speak aria-pressed="false" hidden><span class="dot" aria-hidden="true"></span><span data-speak-label>Speak</span></button></div>
       <textarea id="note" name="note" placeholder="Tomorrow I'm teaching projectile motion. The ball follows y = -0.5x^2 + 2x + 1, from x = -0.5 to 4.5. The students should find the highest point and where it starts on the y-axis."></textarea>
-      <p class="help">A function with its x range and the points to find works best. A topic alone works too: then the agent asks you one question before it draws anything.</p>
+      <p class="help">A function with its x range and the points to find works best. A topic alone works too: then the agent asks you one question before it draws anything. You can also press Speak and say it: your browser turns speech into text (in Chrome, Google's speech service does it).</p>
     </div>
     <fieldset class="field prints">
       <legend class="sr-only">Printed copies</legend>

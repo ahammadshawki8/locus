@@ -42,6 +42,104 @@
     if (buttons[0]) select(buttons[0])
   }
 
+  const remember = {
+    get: (k) => { try { return localStorage.getItem(k) || '' } catch { return '' } },
+    set: (k, v) => { try { localStorage.setItem(k, v) } catch {} }
+  }
+  const compose = (gmail, to, subject, body) => {
+    const q = encodeURIComponent
+    location.href = gmail
+      ? `https://mail.google.com/mail/?view=cm&fs=1&to=${q(to)}&su=${q(subject)}&body=${q(body)}`
+      : `mailto:${q(to)}?subject=${q(subject)}&body=${q(body)}`
+  }
+
+  // Print again (graph page): drafts a reprint order to the teacher's print shop in the teacher's own email.
+  const reprint = document.querySelector('[data-reprint]')
+  if (reprint) {
+    const shop = reprint.querySelector('[name="shop"]')
+    const copiesInput = reprint.querySelector('[name="copies"]')
+    shop.value = remember.get('locus-shop')
+    const send = (gmail) => {
+      const to = shop.value.trim()
+      const error = reprint.querySelector('[data-reprint-error]')
+      if (!to) {
+        shop.focus()
+        error.textContent = 'Add your print shop\'s email address first.'
+        return
+      }
+      error.textContent = ''
+      remember.set('locus-shop', to)
+      const copies = Math.min(99, Math.max(1, Math.round(Number(copiesInput.value) || 1)))
+      const id = reprint.dataset.id
+      const page = `${location.origin}/graphs/${id}/`
+      const body = [
+        'Hello,',
+        '',
+        `Please print ${copies} ${copies === 1 ? 'copy' : 'copies'} of this tactile maths graph for a class of blind and low-vision learners.`,
+        '',
+        `Graph: ${id} (braille ID ${reprint.dataset.braille} in the top-right corner)`,
+        `Print file (STL): ${page}graph.stl`,
+        `Page with a preview: ${page}`,
+        '',
+        'How to print it:',
+        '- 100% scale. Do not resize: the touch checks measured the spacing at this size.',
+        '- The part must measure 100 x 100 x 3.6 mm in the slicer.',
+        '- PLA, 0.12 to 0.16 mm layers, flat on the bed as in the file, no supports.',
+        '- Keep the top surface clean: the raised lines and braille dots are read by touch.',
+        '',
+        'Please reply with the price and when the plates will be ready.',
+        '',
+        'Thank you.'
+      ].join('\n')
+      compose(gmail, to, `Print order: ${id}, ${copies} ${copies === 1 ? 'copy' : 'copies'}`, body)
+    }
+    reprint.querySelector('[data-reprint-gmail]').addEventListener('click', () => send(true))
+    reprint.querySelector('[data-reprint-mail]').addEventListener('click', () => send(false))
+  }
+
+  // Voice typing (Request page): the browser's own speech recognition, shown only where the browser has it.
+  const speak = document.querySelector('[data-speak]')
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  if (speak && Recognition) {
+    const note = document.querySelector('[name="note"]')
+    const label = speak.querySelector('[data-speak-label]')
+    const rec = new Recognition()
+    rec.continuous = true
+    rec.interimResults = true
+    rec.lang = document.documentElement.lang || 'en'
+    let base = ''
+    let listening = false
+    const set = (on) => {
+      listening = on
+      speak.setAttribute('aria-pressed', String(on))
+      label.textContent = on ? 'Listening... tap to stop' : 'Speak'
+    }
+    rec.onresult = (e) => {
+      let finalText = ''
+      let interim = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript
+        else interim += e.results[i][0].transcript
+      }
+      if (finalText) base = `${base}${base && !/\s$/.test(base) ? ' ' : ''}${finalText.trim()}`
+      note.value = interim ? `${base}${base ? ' ' : ''}${interim}` : base
+      note.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+    rec.onend = () => set(false)
+    rec.onerror = () => set(false)
+    speak.hidden = false
+    speak.addEventListener('click', () => {
+      if (listening) return rec.stop()
+      base = note.value.trim()
+      try {
+        rec.start()
+        set(true)
+      } catch {
+        set(false)
+      }
+    })
+  }
+
   // Request form: turns what the teacher wrote into an email Locus can act on, then opens Gmail or the mail app.
   const form = document.querySelector('[data-request]')
   if (form) {
