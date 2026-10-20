@@ -4,6 +4,16 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (b): locus-request created in the team project (Shawki)
+
+1. Shawki created the custom flow in the team project (Flows > New flow): display name `locus-request`, visibility
+   Private, the YAML of `.gitlab/duo/flows/locus-request.yml` pasted unchanged. Enabled with the triggers **Mention**
+   and **Assign**; "Assign reviewer", offered by default, was removed (it would start intake on an MR).
+2. GitLab named its service account **`ai-locus-request-gitlab-ai-hackathon_b127f8`** (read from the members page): the
+   group already has Ashfaq's test-bed account without the suffix. The issue template's `/assign` now names it, and
+   its test accepts the `_<hex>` suffix. Role: Developer, combined with the triggering person's role.
+3. Not run yet in the team project (H3).
+
 ## 21 Oct 2026 (a): Google Cloud set up; the first default-branch pipeline deployed the site (Shawki)
 
 1. **Google Cloud** (`deploy/gcp/setup.sh`, run by Shawki in Cloud Shell on 20 Oct): project `locus-tactile-2026`
