@@ -182,4 +182,4 @@ const checkFlow = (text) => {
 const flowFiles = (dir) => fs.readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).sort().map((f) => path.join(dir, f))
 const isDraft = (text) => DRAFT.test(text)
 
-module.exports = { checkFlow, flowFiles, isDraft, writeTools, MAX_FLOW_BYTES }
+module.exports = { checkFlow, flowFiles, isDraft, writeTools, MAX_FLOW_BYTES, H2 }
