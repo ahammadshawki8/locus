@@ -4,6 +4,23 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (a): Google Cloud set up; the first default-branch pipeline deployed the site (Shawki)
+
+1. **Google Cloud** (`deploy/gcp/setup.sh`, run by Shawki in Cloud Shell on 20 Oct): project `locus-tactile-2026`
+   (number 742642312166) in Shawki's organisation `ahammadshawki8-org`. The first link to the billing account failed
+   with `INVALID_ARGUMENT` because the project had been created outside the organisation that owns the billing
+   account; moving it in fixed that. Second run: a new service account was not yet visible to IAM, so the script now
+   retries the IAM steps and also enables Compute Engine (Cloud Run runs as its default service account). Workload
+   Identity Federation accepts only our project's protected `main`. Budget "Locus", 5 USD.
+2. **Merged:** `release-side` into the team project's `main` (`96aa4890`), by Shawki through an MR.
+3. **[Pipeline 2968850266](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/pipelines/2968850266)
+   passed every job,** among them license-check, publish-package, release, site, deploy-staging, validate-staging,
+   promote-production, post-deploy-smoke and reply-teacher. With no request on `main` yet, publish-package, release
+   and reply-teacher had nothing to do, so they are shown working only once a real request is merged.
+4. **Live:** https://locus-site-742642312166.us-central1.run.app (read 21 Oct): the library page says no graph has
+   been released yet, and `/build-info.json` names commit `96aa4890` and pipeline 2968850266. Gate 6b passed.
+5. **Not run yet (H3):** `auto-merge`, a real release and package, a graph page, the reply note, a rollback.
+
 ## 20 Oct 2026 (i): the release side is built; tokens and permissions; two contract proposals (Shawki)
 
 1. **Our role** (onboarding email, read by Ashfaq): custom role Developer+ = Developer plus Manage AI catalog items,
