@@ -19,9 +19,10 @@ never fake a pass; H6 Claude Code never starts a flow; H12 freeze).
 **Your tasks, in order:**
 1. **Merge [PR 1](https://github.com/ahammadshawki8/locus/pull/1)** (`feat/gate2-render` into the working repo's
    `main`, merge commit only, 16 Oct (i)).
-2. **Put our history into your Showcase `main`** (S.3 Next item 0). It is protected and holds only the organisers'
-   README; Ashfaq and Nourin are Developers there and cannot push it. Push the working repo's `main` over it (or
-   import), then check that its first pipeline is green (`npm run test:locus` equivalent: job `locus-test`).
+2. **Merge [MR !1 in your Showcase](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/merge_requests/1)**
+   (S.3 Next item 0; opened by Ashfaq on 20 Oct, you are the reviewer). Branch `locus/import` holds exactly
+   `feat/gate2-render` joined to your project's first commit, so the merge is a fast-forward and replaces only the
+   organisers' template README. Then check that the first `main` pipeline is green (job `locus-test`).
 3. **Set up the agent in your project** (section 13). Until then every run happens in Ashfaq's test bed, which is fine
    for the video.
 4. **Build the release side** you own (S.4 steps 6 to 8, contracts §6, §8, §9): `auto-merge` (or decide supervised),

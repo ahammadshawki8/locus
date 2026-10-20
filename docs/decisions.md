@@ -27,7 +27,14 @@ No change to `docs/contracts.md`.
    posted: the first, second and fourth are answered (15 Oct (a), 20 Oct (c)), the third and fifth are about things
    Locus does not use, and the sixth is a Devpost question that matters only if the release guard is built.
 6. **Handover:** `HANDOVER.md` section 0 lists Shawki's tasks in order, section 13 the steps to set up the agent in the
-   team project, section 14 the freeze.
+   team project, section 14 the freeze. `docs/how-it-works.md` explains the flow in diagrams without code, with three
+   ways to test it.
+7. **MR !1 in Shawki's Showcase** (Ashfaq asked for a merge request Shawki can start from): commit `1701f81e`, whose
+   tree is exactly `feat/gate2-render` at `f75c756a` and whose parents are that commit and the project's first commit
+   `f83d9336` (the organisers' template README), pushed as branch `locus/import`;
+   [MR !1](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/merge_requests/1) into
+   `main`, reviewer Shawki. Merging it is a fast-forward and is S.3 Next item 0. No flow is enabled there, so no agent
+   runs until Shawki sets one up. The project's `main` was not touched.
 
 ## 20 Oct 2026 (e): the email-to-files demo ran: one email, no comment, print files back (Ashfaq ran it)
 
