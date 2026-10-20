@@ -18,7 +18,7 @@ const { sha256 } = require('../core/bundle')
 const { toBraille } = require('../core/braille')
 
 const SITE_FILES = ['graph.svg', 'overlay.svg', 'graph.stl', 'description.txt', 'manifest.json']
-const ASSETS = ['site.css', 'hud.js', 'scene.js']
+const ASSETS = ['site.css', 'hud.js', 'scene.js', 'logo.svg']
 const JSCAD = 'https://github.com/jscad/OpenJSCAD.org'
 const PROJECT = 'https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase'
 const AGENT = 'ai-locus-request-gitlab-ai-hackathon_b127f8'
@@ -39,7 +39,9 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 const kindOf = (equation) => (/x\^3/.test(equation || '') ? 'Cubic' : /x\^2/.test(equation || '') ? 'Parabola' : 'Line')
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Silkscreen&display=swap'
-const FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23121212'/%3E%3Cg fill='%23ece9e1'%3E%3Ccircle cx='11' cy='8' r='3'/%3E%3Ccircle cx='21' cy='8' r='3'/%3E%3Ccircle cx='11' cy='16' r='3'/%3E%3C/g%3E%3Cg fill='%23ece9e1' opacity='.3'%3E%3Ccircle cx='21' cy='16' r='3'/%3E%3Ccircle cx='11' cy='24' r='3'/%3E%3Ccircle cx='21' cy='24' r='3'/%3E%3C/g%3E%3C/svg%3E"
+// The mark: a locus is the set of points that follow a rule, so it is five raised dots along an arch, the vertex
+// marked larger, like a curve read by touch. assets/logo.svg is the same mark on a tile, used as the favicon.
+const LOGO_MARK = '<svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="currentColor"><circle cx="6" cy="23.5" r="2.4"/><circle cx="10.6" cy="14.6" r="2.4"/><circle cx="16" cy="10.5" r="3.3"/><circle cx="21.4" cy="14.6" r="2.4"/><circle cx="26" cy="23.5" r="2.4"/></g></svg>'
 
 const NAV = [['/about/', 'About'], ['/request/', 'Request'], ['/collections/', 'Collections'], ['/credits/', 'Credits']]
 const HOME_GRAPHS = 4
@@ -54,7 +56,7 @@ const page = ({ title, description, current, content, scene, loader, screen = ''
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(title)}</title>
 <meta name="description" content="${escape(description)}">
-<link rel="icon" href="${FAVICON}">
+<link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="${FONTS}">
@@ -70,7 +72,7 @@ ${scene ? `<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.ne
 ${content}
 <header class="hud top">
   <div class="group"><a href="/"${current === 'home' ? ' aria-current="page"' : ''}>Home</a><span class="dim hide-s" data-timecode aria-hidden="true">00:00:00</span></div>
-  <a class="brand" href="/" aria-label="Locus, home"><span class="word">Locus</span><span class="year">Year 2026</span></a>
+  <a class="brand" href="/" aria-label="Locus, home">${LOGO_MARK}<span class="word">locus</span></a>
   <nav aria-label="Site">${NAV.map(([href, label]) => `<a href="${href}"${current === href ? ' aria-current="page"' : ''}>${label}</a>`).join('')}<a class="gitlab" href="${PROJECT}" aria-label="Locus on GitLab">${GITLAB_MARK}</a></nav>
 </header>
 ${loader ? `<div class="loader" role="status" aria-label="Loading the plates"><div class="row"><span>Loading</span><span data-count>0</span></div><div class="bar"><div class="fill"></div></div></div>` : ''}
@@ -235,7 +237,7 @@ for x from -0.5 to 4.5.
 Please mark the highest point and where the curve
 crosses the y-axis.`
 
-const textPage = ({ title, description, current, body }) => page({ title, description, current, content: `<main id="content" class="page"><div class="inner">\n${body}\n</div></main>` })
+const textPage = ({ title, description, current, body, wide = false }) => page({ title, description, current, content: `<main id="content" class="page"><div class="inner${wide ? ' wide' : ''}">\n${body}\n</div></main>` })
 
 const steps = (list) => `<ol class="steps">\n${list.map(([title, text], i) => `  <li><span class="n">${String(i + 1).padStart(2, '0')}</span><div><h3>${title}</h3>${text}</div></li>`).join('\n')}\n</ol>`
 
@@ -370,6 +372,7 @@ const requestPage = () => textPage({
   title: 'Request a graph | Locus',
   description: 'Write what you are teaching in your own words; Locus drafts the email for you.',
   current: '/request/',
+  wide: true,
   body: `<h1>Request a graph</h1>
 <p class="lead">Write what you are teaching, in your own words: a function, or just today's topic. This page turns it into an email Locus can act on and opens it in your mail, ready to send. Nothing is sent until you press Send there.</p>
 <form class="request" data-request data-agent="${AGENT}" onsubmit="return false">

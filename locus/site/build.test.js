@@ -95,6 +95,10 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   // the nav: About, Request, Collections, Credits, then the GitLab mark; no footer
   assert.match(index, /<a href="\/about\/">About<\/a><a href="\/request\/">Request<\/a><a href="\/collections\/">Collections<\/a><a href="\/credits\/">Credits<\/a><a class="gitlab" href="https:\/\/gitlab\.com\/[^"]+" aria-label="Locus on GitLab"><svg/)
   assert.ok(!/<footer/.test(index) && !/class="flash"/.test(index))
+  // the logo: the five-dot mark next to the wordmark, and the same mark as the favicon
+  assert.match(index, /<a class="brand" href="\/" aria-label="Locus, home"><svg class="mark"[^>]*>(?:<g fill="currentColor">)(?:<circle [^>]*\/>){5}<\/g><\/svg><span class="word">locus<\/span><\/a>/)
+  assert.match(index, /<link rel="icon" href="\/assets\/logo\.svg" type="image\/svg\+xml">/)
+  assert.ok(fs.existsSync(path.join(pub, 'assets', 'logo.svg')))
   for (const a of ['site.css', 'hud.js', 'scene.js']) assert.ok(fs.existsSync(path.join(pub, 'assets', a)), a)
   // the request form never carries an address: the teacher pastes their own, kept in their browser
   const request = fs.readFileSync(path.join(pub, 'request', 'index.html'), 'utf8')
