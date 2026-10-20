@@ -2,9 +2,9 @@
 #
 # Only jobs that do real work live here (docs/decisions.md, 14 Oct 2026). Planned jobs (projectLocus.md §13) are added
 # as each one is built:
-#   validate-spec, license-check, auto-merge (hands-off mode),
-#   publish-package, release, deploy-staging, validate-staging, approve-production (supervised only),
-#   promote-production, post-deploy-smoke, reply-teacher, deploy-production-pointer, flow-config-check
+#   validate-spec, approve-production (supervised only), flow-config-check
+# deploy-production-pointer is part of promote-production: every default-branch pipeline applies
+# deploy/gcp/production-revision (docs/decisions.md 20 Oct (i)).
 # `release` needs touchcheck, guard-scope, guard-maths, guard-description, secret-detection, sast, license-check and
 # bundle; `promote-production` needs validate-staging (docs/contracts.md §6).
 
@@ -34,6 +34,11 @@ variables:
   # hands-off: a green graph/* MR is merged and released without a person (projectLocus.md §13, Configure).
   # supervised: the fallback, with one approval. Recorded in every bundle manifest (docs/contracts.md §5).
   RELEASE_MODE: "hands-off"
+  # Google Cloud (deploy/gcp/setup.sh prints these; none is a secret). The deploy jobs exist only once they are set.
+  GCP_PROJECT_ID: ""
+  GCP_REGION: "us-central1"
+  GCP_WIF_PROVIDER: ""
+  GCP_SERVICE_ACCOUNT: ""
 
 # Render every request (and the example) to STL + SVG + description + scene.json. The CLI also validates the spec,
 # the layout and request.lock.json, so an invalid request fails here. Artifacts are kept even on failure.
@@ -359,3 +364,205 @@ locus-test:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - when: on_success
+
+# Every runtime dependency of Locus carries a permissive licence (release/license.js). `release` needs it.
+license-check:
+  stage: secure
+  image: node:20
+  needs: []
+  cache:
+    key: npm-locus
+    paths:
+      - .npm/
+  script:
+    - npm --prefix locus ci
+    - node locus/cli/index.js license-check
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - out/license/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
+
+# Hands-off: on a graph/<iid> MR whose checks all passed, ask GitLab to merge it when the whole pipeline succeeds
+# (release/auto-merge.js; contracts D7). GitLab's "Pipelines must succeed" check makes the final decision. A failure
+# here only warns, so it never reads to the fixer as a touch-check failure; the MR then waits for a person.
+auto-merge:
+  stage: release
+  image: node:20
+  needs:
+    - touchcheck
+    - guard-scope
+    - guard-maths
+    - guard-description
+    - bundle
+    - license-check
+    - locus-test
+  cache:
+    key: npm-locus
+    paths:
+      - .npm/
+  script:
+    - npm --prefix locus ci
+    - node locus/cli/index.js auto-merge
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^graph\//
+
+# Default branch only, outside the judging freeze: package, release, site, Cloud Run, reply.
+.ship:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $JUDGING_FREEZE == "true"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+.ship-gcp:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $JUDGING_FREEZE == "true"
+      when: never
+    - if: $GCP_PROJECT_ID == "" || $GCP_WIF_PROVIDER == "" || $GCP_SERVICE_ACCOUNT == ""
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+.node-job:
+  image: node:20
+  cache:
+    key: npm-locus
+    paths:
+      - .npm/
+  before_script:
+    - npm --prefix locus ci
+
+# Each new bundle into the generic Package Registry as locus-graphs/graph-<iid>-v<n>/ (release/release.js).
+publish-package:
+  extends: [.node-job, .ship]
+  stage: package
+  needs:
+    - job: bundle
+      artifacts: true
+  script:
+    - node locus/cli/index.js publish-package out/bundle
+
+# Tag graph-<iid>-v<n> and a GitLab release linking the package files (contracts §6: every check must have passed).
+release:
+  extends: [.node-job, .ship]
+  stage: release
+  needs:
+    - job: touchcheck
+    - job: guard-scope
+    - job: guard-maths
+    - job: guard-description
+    - job: secret_detection
+    - job: semgrep-sast
+    - job: license-check
+    - job: bundle
+      artifacts: true
+    - job: publish-package
+  script:
+    - node locus/cli/index.js release out/bundle out/release
+  artifacts:
+    expire_in: 90 days
+    paths:
+      - out/release/
+
+# The graph library: every shipped graph's released files, from the Package Registry (site/build.js).
+site:
+  extends: [.node-job, .ship-gcp]
+  stage: deploy
+  needs:
+    - job: release
+  script:
+    - node locus/cli/index.js site --out out/site
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - out/site/
+
+# A new Cloud Run revision with no production traffic, tagged staging (deploy/gcp/deploy.sh).
+deploy-staging:
+  extends: .ship-gcp
+  stage: deploy
+  image: google/cloud-sdk:slim
+  needs:
+    - job: site
+      artifacts: true
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://iam.googleapis.com/$GCP_WIF_PROVIDER
+  script:
+    - bash deploy/gcp/deploy.sh staging
+  artifacts:
+    reports:
+      dotenv: deploy.env
+
+# Staging serves this commit's build, every graph page loads, every file matches its manifest hash (site/validate.js).
+validate-staging:
+  extends: [.node-job, .ship-gcp]
+  stage: deploy
+  needs:
+    - job: deploy-staging
+      artifacts: true
+  script:
+    - node locus/cli/index.js validate-site "$STAGING_URL" --expect-commit "$CI_COMMIT_SHA" --name validate-staging
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - out/validate-staging/
+
+# Production gets the validated revision, unless deploy/gcp/production-revision pins it (rollback).
+promote-production:
+  extends: .ship-gcp
+  stage: deploy
+  image: google/cloud-sdk:slim
+  needs:
+    - job: deploy-staging
+      artifacts: true
+    - job: validate-staging
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://iam.googleapis.com/$GCP_WIF_PROVIDER
+  script:
+    - bash deploy/gcp/deploy.sh promote
+  artifacts:
+    reports:
+      dotenv: promote.env
+
+# The same checks on production, after the traffic moved.
+post-deploy-smoke:
+  extends: [.node-job, .ship-gcp]
+  stage: monitor
+  needs:
+    - job: promote-production
+      artifacts: true
+  script:
+    - |
+      if [ "$PROMOTED" = "true" ]; then expect="--expect-commit $CI_COMMIT_SHA"; else expect=""; fi
+      node locus/cli/index.js validate-site "$PRODUCTION_URL" $expect --name post-deploy-smoke
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - out/post-deploy-smoke/
+
+# The contracts §8 note on each released request, then the request is closed (release/reply.js).
+reply-teacher:
+  extends: [.node-job, .ship-gcp]
+  stage: monitor
+  needs:
+    - job: release
+      artifacts: true
+    - job: promote-production
+      artifacts: true
+    - job: post-deploy-smoke
+  script:
+    - |
+      if [ "$PROMOTED" != "true" ]; then echo "reply-teacher: production is pinned by deploy/gcp/production-revision; no reply until it serves this release"; exit 0; fi
+      node locus/cli/index.js reply-teacher "$PRODUCTION_URL" out/release
