@@ -68,6 +68,9 @@ GitLab yet (H3).
      This does not show that every request renders: the sweep covers the default layout only, and a fixer's layout can
      still fail; then render throws, as before.
    - This changes `locus/core/**`, a `library-impact` path; no graph has shipped, so there is nothing to re-check.
+   - **CI:** pipeline 2967480283 (test bed, push of `e6d42a4e` to `feat/gate2-render`, `node:20`): all 9 jobs passed;
+     `npm --prefix locus ci` installed `manifold-3d`, and `locus-test` passed 232 of 232, the fallback tests included.
+     Test bed `main` is still `820fd236`, so flow runs there still use the old renderer.
 
 ## 20 Oct 2026 (a): GitLab's answer on the two Service Desk questions (Discord, reported by Ashfaq)
 

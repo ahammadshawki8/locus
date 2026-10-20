@@ -35,7 +35,7 @@ Each line links to the `docs/decisions.md` entry that holds the evidence.
 - **agentSessions** in the manifest come from the `Locus-Session:` trailer on agent commits (16 Oct (j), (m)).
 - **locus-probe** (16 Oct (l)): a flow can read a job log, commit and delete a file.
 - **render's mesh fallback** (20 Oct): when the JSCAD union leaves open edges, Manifold unions the same parts. Tested
-  locally (tests and a sweep, 20 Oct); in CI only once the `feat/gate2-render` pipeline after 20 Oct has run.
+  locally (tests and a sweep) and in CI (pipeline 2967480283, 232 of 232, 20 Oct); not yet on test bed `main`.
 
 ## 3. What has not run yet
 
