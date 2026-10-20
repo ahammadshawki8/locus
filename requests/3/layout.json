@@ -2,7 +2,11 @@
   "xScaleMm": 16,
   "yScaleMm": 8,
   "labelMode": "inline",
-  "labelOffsets": {},
+  "labelOffsets": {
+    "turning-point-1": [0, 11],
+    "turning-point-2": [0, 11],
+    "y-intercept": [12.4, -3]
+  },
   "defaultLabelOffset": [4.5, 6],
-  "showGrid": true
+  "showGrid": false
 }
