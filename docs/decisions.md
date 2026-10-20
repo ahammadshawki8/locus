@@ -45,6 +45,17 @@ started nothing and changed nothing in the run (H6); it watched through the API,
    mesh as the plates that printed. The test bed `main` still has the old renderer; the 20 Oct (b) fallback is not in
    this run.
 
+**After the run, test bed `main` brought up** (Ashfaq's go-ahead, 20 Oct): merge commit `b011f52c` (parents `101adca2`
+and the old `main` `820fd236`, tree exactly `feat/gate2-render`), pushed as a fast-forward. Pipeline 2968090159: all
+10 jobs that ran passed (library-recheck passed with no shipped graph; bisect-regression skipped). New requests now
+branch from it: the render fallback, the issue template and the new flow comments. The flow prompt itself lives in the
+AI Catalog (pasted as of the pass-note change).
+
+**Next to try, Service Desk from any address** (Ashfaq asked for replies to any requester): the ticket's author is the
+Support Bot, so it cannot start a flow by itself (15 Oct (a) B; a personal token in CI was rejected there). A person's
+reply by email to GitLab's new-ticket notification posts a comment as that person; with the mention line it should
+start the flow, and Service Desk then emails every note, the links included, to the sender. Not run yet.
+
 **What this proves and what it doesn't (H3):** a person sends one email and, with no other human step, gets a
 touch-checked, guard-checked print file back by email in about 8.5 minutes, made and fixed by the agent alone. It
 needs the sender to be a project member (a teacher without an account uses Service Desk plus one comment). Nothing

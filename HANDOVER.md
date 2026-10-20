@@ -10,7 +10,7 @@ interfaces in `docs/contracts.md`, and every decision with its evidence in `docs
 | What | Where |
 |---|---|
 | Product code | Ashfaq's fork `ashfaqstu/locus`, branch `feat/gate2-render`; [PR 1](https://github.com/ahammadshawki8/locus/pull/1) into the working repo `ahammadshawki8/locus` (merge commit only), not merged |
-| GitLab test bed | Ashfaq's Showcase, `gitlab-ai-hackathon/transcend-october-2026/43396940/showcase` (project 87669530). Ashfaq is a Developer there, not a Maintainer. `main` holds our code (fast-forward merges `3e0af8ea`, then `820fd236`); `feat/gate2-render` is ahead of it |
+| GitLab test bed | Ashfaq's Showcase, `gitlab-ai-hackathon/transcend-october-2026/43396940/showcase` (project 87669530). Ashfaq is a Developer there, not a Maintainer. `main` holds our code (fast-forward merges `3e0af8ea`, `820fd236`, then `b011f52c` on 20 Oct, pipeline 2968090159 green) |
 | Team project | Shawki's Showcase, `.../43384339/showcase` (project 87666718). Ashfaq and Nourin are Developers there (20 Oct (c)). Our code is not in it yet: `main` is protected and holds the organisers' README only (S.3 Next item 0) |
 | Flows | `.gitlab/duo/flows/locus-request.yml` (intake, fixer, refuse), `locus-ops.yml` (impact reviewer, regression detective; release guard routes to end), `locus-probe.yml` (test only). The repo file is the source of truth; it is pasted into the AI Catalog unchanged |
 | Request form | `.gitlab/issue_templates/graph-request.md`: function, x range, points to mark, then `/label ~locus-request` and `/assign` to the flow's service account (20 Oct) |
@@ -39,7 +39,7 @@ Each line links to the `docs/decisions.md` entry that holds the evidence.
 - **agentSessions** in the manifest come from the `Locus-Session:` trailer on agent commits (16 Oct (j), (m)).
 - **locus-probe** (16 Oct (l)): a flow can read a job log, commit and delete a file.
 - **render's mesh fallback** (20 Oct): when the JSCAD union leaves open edges, Manifold unions the same parts. Tested
-  locally (tests and a sweep) and in CI (pipeline 2967480283, 232 of 232, 20 Oct); not yet on test bed `main`.
+  locally (tests and a sweep) and in CI (pipeline 2967480283, 232 of 232, 20 Oct); on test bed `main` since `b011f52c` (20 Oct), not yet used by a flow run.
 
 ## 3. What has not run yet
 
