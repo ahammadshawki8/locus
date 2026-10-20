@@ -11,7 +11,7 @@ interfaces in `docs/contracts.md`, and every decision with its evidence in `docs
 |---|---|
 | Product code | Ashfaq's fork `ashfaqstu/locus`, branch `feat/gate2-render`; [PR 1](https://github.com/ahammadshawki8/locus/pull/1) into the working repo `ahammadshawki8/locus` (merge commit only), not merged |
 | GitLab test bed | Ashfaq's Showcase, `gitlab-ai-hackathon/transcend-october-2026/43396940/showcase` (project 87669530). Ashfaq is a Developer there, not a Maintainer. `main` holds our code (fast-forward merges `3e0af8ea`, then `820fd236`); `feat/gate2-render` is ahead of it |
-| Team project | Shawki's Showcase, `.../43384339/showcase`. Our code is not in it yet (S.3 Next item 0) |
+| Team project | Shawki's Showcase, `.../43384339/showcase` (project 87666718). Ashfaq and Nourin are Developers there (20 Oct (c)). Our code is not in it yet: `main` is protected and holds the organisers' README only (S.3 Next item 0) |
 | Flows | `.gitlab/duo/flows/locus-request.yml` (intake, fixer, refuse), `locus-ops.yml` (impact reviewer, regression detective; release guard routes to end), `locus-probe.yml` (test only). The repo file is the source of truth; it is pasted into the AI Catalog unchanged |
 | Request form | `.gitlab/issue_templates/graph-request.md`: function, x range, points to mark, then `/label ~locus-request` and `/assign` to the flow's service account (20 Oct) |
 | Pipeline | `.gitlab-ci.yml`: render, touchcheck, guard-scope, guard-maths, guard-description, guard-revert, library-impact, library-recheck, bisect-regression, bundle, upstream-test, locus-test, plus GitLab's Secret Detection and SAST templates |
@@ -67,7 +67,8 @@ Each line links to the `docs/decisions.md` entry that holds the evidence.
 - To change a flow: edit the repo file, run `node locus/flows/check.js` (exit 0), then paste the whole file into the
   flow's AI Catalog entry, replacing the old YAML.
 - **No `.gitlab/duo/agent-config.yml`** (decided 20 Oct): every flow is `coding_environment: none` with GitLab API
-  tools only, so an image, setup script or cache would do nothing.
+  tools only, so an image, setup script or cache would do nothing. GitLab says `run_command` works in CI flows
+  (20 Oct (c)); if a flow ever uses it, this and `locus/flows/check.js` are reopened together.
 
 ## 5. Service Desk
 
@@ -126,6 +127,11 @@ On GitLab (needs Developer access to the project where `locus-request` is enable
 - **20 Oct (Discord, `docs/decisions.md` 20 Oct):** the `contact-project+` address works only when it matches Settings
   exactly; whether a flow's service account can be assigned to a ticket is not confirmed, and GitLab asked for the
   exact error.
+- **Shawki's thread (`docs/decisions.md` 20 Oct (c)):** set the Default GitLab Duo group to the Transcend October 2026
+  subgroup for Duo Chat credits. Triggered flows bill the namespace, not a person, and the pool size is unknown.
+  GitLab says `run_command` and the file tools work in CI flows; that is not shown, and no Locus flow uses them.
+  Flows can merge only through the API, so `auto-merge` stays a CI job. Secret FP Detection and Breaking Change
+  Resolution can be enabled from AI > Flows.
 - Still open: S.3 "Waiting on GitLab".
 
 ## 11. Gate H checklist (§15.4), state on 20 Oct
@@ -133,7 +139,7 @@ On GitLab (needs Developer access to the project where `locus-request` is enable
 | Item | State |
 |---|---|
 | Gates 0 to 8 pass, or failures written down with the fallback | Passed: 1 (code side; the MIT licence in the GitHub About box not checked here), 2, 5 (twice, plus the refusal), 6, 7, 8. Partly: C (contracts final; `fixtures/bundle-sample/` not generated, S.3 Next item 3), 3 (prototype prints made, H9), 7b (calibration piece judged good; results not recorded, item 4). Not yet: 4 (booked, not spoken to), 5b (needs item 0 and a release tag), 6b (Shawki). 0: not checked here |
-| Shawki ran the full loop alone from a fresh email | Not yet: Shawki has no access to the test bed, and our code is not in the team project (S.3 Next item 0) |
+| Shawki ran the full loop alone from a fresh email | Not yet: Shawki has no access to the test bed, and our code is not in the team project (S.3 Next item 0; Ashfaq can help there as a Developer since 20 Oct) |
 | `/msr-session-start` gives an accurate summary on Shawki's machine | Not checked |
 | This file covers what §15.4 lists | Yes (sections 2 to 10); Tier 2 status below |
 | Shawki has Maintainer, Duo flow access and the Service Desk mailbox | Not yet (needs item 0); no secrets exist yet |

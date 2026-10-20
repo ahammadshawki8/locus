@@ -4,6 +4,49 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 20 Oct 2026 (c): GitLab's answers to Shawki's Discord questions: team access, credits, CI tools, merging (reported by Ashfaq)
+
+No change to `docs/contracts.md` (H5). Shawki asked these on Discord; Ashfaq pasted the thread on 20 Oct. The message
+dates and a link were not given. They answer four items of S.3 "Waiting on GitLab" (asked 15 Oct (b) D3).
+1. **Team project access.** GitLab first found Ashfaq and Nourin not provisioned, then each got their own workspace
+   (Ashfaq's is the test bed, `.../43396940/showcase`), and GitLab then "added them to your Showcase project with the
+   Developer + AI role". Shawki asked whether the group-name casing in the registration form ("SrotDev" against
+   "Srotdev") caused the delay; there is no answer to that. **Read the same day (REST, as Ashfaq909):** Ashfaq is a
+   Developer (access level 30) on Shawki's project `.../43384339/showcase` (project 87666718). That project's `main` is
+   protected and holds only the organisers' "Initial commit" (`f83d9336`, README only), so S.3 Next item 0 is still
+   open; as a Developer, Ashfaq cannot push `main` there.
+2. **Credits in Duo Chat.** Set the Default GitLab Duo group in [preferences](https://gitlab.com/-/profile/preferences)
+   to the **Transcend October 2026** subgroup (`gitlab-ai-hackathon/transcend-october-2026`), not the parent "GitLab AI
+   Hackathon" group. Shawki had picked the parent and still saw "No credits remain". Whether it now works is Shawki's
+   to report.
+3. **Credits for triggered flows:** "triggered flows run as the flow's service account. The service account does not
+   have personal credits - its consumption is billed at the namespace level, separately from your personal
+   allocation. We cannot confirm the size of the namespace-level pool for this hackathon." This fits 16 Oct (m)
+   (nothing on Ashfaq's Credits page after runs). It refines 15 Oct (a) ("credits are personal"): personal credits
+   cover a person's Duo use, not flow runs. **Risk kept:** the pool size is unknown, so a run could still stop for
+   lack of credits during the demo or judging; re-run the demo early (around 25 Oct, Part VII) so a failure shows in
+   time.
+4. **`run_command`, `edit_file`, `read_file` in CI flows:** GitLab says "these tools are available in flows running on
+   CI". The [tools page](https://docs.gitlab.com/user/duo_agent_platform/agents/tools/) marks them IDE only, and
+   `locus/flows/check.js` rejects them for that reason (16 Oct (g)). **Not shown in our account (H3).** Decision:
+   change nothing now. The flows read `LOCUS_REPORT` from job logs (contracts D8, three real runs), run with
+   `coding_environment: none`, and would need a clone, an image with Node and `npm ci` (that is, `agent-config.yml`)
+   before a command could run touchcheck. That is too much new surface before 27 Oct. So 20 Oct (b) item 2 stands, but
+   its reason is now "no flow uses commands", not "commands are IDE only". If a probe run ever shows `run_command`
+   working, `check.js` and that decision are reopened together.
+5. **Merging:** "a flow can call the GitLab merge request API to accept an MR. There is no dedicated merge tool". No
+   tool in the flow registry does this, so it would take a command with a token in the flow (H8). Decision: keep the
+   deterministic `auto-merge` CI job (contracts D7, S.4 step 6); who builds it is still S.3 Next item 13.
+6. **Foundational flows:** Secret False Positive Detection and Breaking Change Resolution "are available in the AI
+   Catalog" and are enabled from AI > Flows like the others. Optional (T2.9, early in the cut order, §15.5); enabling
+   them in the team project is Shawki's call.
+7. **Proposed contracts §10 change (both must agree, H5):** "Still waiting on GitLab" lists credits for triggered
+   flows and whether flows can merge. Proposed: "Answered (`docs/decisions.md` 20 Oct (c)): triggered flows bill the
+   namespace, pool size unknown; flows can merge only through the API, so `auto-merge` stays a CI job."
+8. **When the flows move to the team project** (after item 0): each flow is created there again, with exactly the
+   display names in `locus/guards/agents.json`. Its service account may get another name than the test bed's
+   `ai-locus-request-gitlab-ai-hackathon`. If so, the template's `/assign` line and its test change with it.
+
 ## 20 Oct 2026 (b): issue template, no agent-config.yml, per-rule refusal suggestions, and a manifold fallback for render (Ashfaq)
 
 No change to `docs/contracts.md`, the touch rules, the profile or `remedies.json` (H7). Nothing here has run on
