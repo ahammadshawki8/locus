@@ -25,6 +25,15 @@ login() {
   gcloud config set run/region "$GCP_REGION" --quiet
 }
 
+# When a build fails, Cloud Run only says INTERNAL: print Cloud Build's own log of the newest build into the job log.
+build_log() {
+  local id
+  id="$(gcloud builds list --region "$GCP_REGION" --limit 1 --format='value(id)' 2>/dev/null || true)"
+  [ -n "$id" ] || { echo "no Cloud Build found in $GCP_REGION"; return 0; }
+  echo "== Cloud Build ${id} (last 60 lines)"
+  gcloud builds log "$id" --region "$GCP_REGION" 2>&1 | tail -60 || true
+}
+
 service_exists() { gcloud run services describe "$SERVICE" --format='value(metadata.name)' >/dev/null 2>&1; }
 
 staging() {
@@ -33,10 +42,10 @@ staging() {
     --min-instances 0 --max-instances 2 --memory 256Mi --cpu 1 --concurrency 80 --port 8080 --quiet
     --labels "managed-by=gitlab-ci,pipeline=p${CI_PIPELINE_ID}")
   if service_exists; then
-    gcloud run deploy "$SERVICE" "${common[@]}" --no-traffic
+    gcloud run deploy "$SERVICE" "${common[@]}" --no-traffic || { build_log; exit 1; }
   else
     # Cloud Run cannot create a service with --no-traffic: the first revision serves production at once.
-    gcloud run deploy "$SERVICE" "${common[@]}"
+    gcloud run deploy "$SERVICE" "${common[@]}" || { build_log; exit 1; }
   fi
   local url
   url="$(gcloud run services describe "$SERVICE" --format=json \

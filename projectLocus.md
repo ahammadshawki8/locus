@@ -51,7 +51,9 @@ These rules are mirrored in `CLAUDE.md`, so Claude Code sessions load them autom
 
 **Last updated: 21 Oct 2026 (Shawki).**
 
-**21 Oct, Shawki:** the release side is built and on `main` (`docs/decisions.md` 20 Oct (i), 21 Oct (a)): license-check, auto-merge, publish-package, release, site, Cloud Run staging and production, reply-teacher. The site is live. **Next: set up `locus-request` in the team project (`HANDOVER.md` section 13), then one real email request end to end.** Waiting for Shawki's go: contracts D8 and the `production-revision` proposal (20 Oct (i) items 5, 6).
+**21 Oct, Shawki: the whole chain ran in the team project** (`docs/decisions.md` 21 Oct (d), (e)): one email, issue #2, the agent's red then green, auto-merge, release `graph-2-v1`, Cloud Run staging then production, the reply, issue closed. One manual Retry on a Cloud Build `INTERNAL_ERROR`; deploy-staging now retries once by itself. Live page: https://locus-site-742642312166.us-central1.run.app/graphs/graph-2-v1/ . Contracts D8 and §9 changed (21 Oct (c)).
+
+**Earlier on 21 Oct:** the release side is built and on `main` (`docs/decisions.md` 20 Oct (i), 21 Oct (a)): license-check, auto-merge, publish-package, release, site, Cloud Run staging and production, reply-teacher. The site is live. **Next: set up `locus-request` in the team project (`HANDOVER.md` section 13), then one real email request end to end.** Waiting for Shawki's go: contracts D8 and the `production-revision` proposal (20 Oct (i) items 5, 6).
 
 **20 Oct, Shawki (`docs/decisions.md` 20 Oct (h)):** PR 1 merged on GitHub (`fc267a6f`) and MR !1 merged in the team project (`main` at `df01ab9e`, pipeline 2968472746 green). Locally on Windows: 233 of 233 Locus tests pass, `check.js` exit 0, touchcheck fails the projectile example as designed. Items 0 and 6 are done; the rows below still describe the state before the merge.
 
