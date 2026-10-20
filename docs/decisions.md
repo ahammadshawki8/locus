@@ -4,6 +4,21 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (g): second request, hands-off from the email to the reply, session finished (Shawki)
+
+Read from GitLab and Shawki's inbox; nobody acted after the email (H3).
+1. Email (the cubic of print C, y = 0.5x^3 - 3x^2 + 4.5x + 2, x from -0.1 to 4, both turning points and the y-intercept)
+   to the "Email a new issue" address with the `/assign` line: issue #3.
+2. Session 9777991 (workload 2969233552, 20:09:54 to 20:19:49, success). Intake committed attempt 1 (`39a33344`) and
+   opened MR !8: pipeline 2969236015 **failed** at touchcheck in 88 s (locus-test no longer runs on graph MRs). The
+   fixer committed attempt 2 (`74130cd5`): pipeline 2969246084 **passed** (296 s: render took 178 s this time, against
+   47 s for attempt 1). auto-merge set the MR to merge; GitLab merged it at 20:19.
+3. The fixer's **pass note** arrived by email ("Your tactile graph is ready to print.", what changed and why, the
+   MR link, the limitations line, the session link). Its zip and STL links download signed out (HTTP 200).
+4. Main pipeline 2969261192 passed every job with no retry: release **`graph-3-v1`**, staging, validation, production,
+   smoke, reply-teacher; issue #3 closed. The site lists graph-2-v1 and graph-3-v1; both pages and STLs load.
+5. Open: render time varies (47 s to 178 s on the same request); if a demo session runs near its budget, look there.
+
 ## 21 Oct 2026 (f): the locus-request session on #2 timed out while waiting; graph MR pipelines made shorter (Shawki)
 
 1. **What GitLab shows:** session 9772083 "Session failed: Session did not report a final status before its pipeline
