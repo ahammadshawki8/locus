@@ -4,6 +4,14 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 20 Oct 2026 (h): handover received; both merges done; Windows checkouts use LF (Shawki)
+
+1. **Merges:** [PR 1](https://github.com/ahammadshawki8/locus/pull/1) merged into the working repo's `main` with a merge commit (`fc267a6f`). [MR !1](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/merge_requests/1) merged in the team project: `main` at `df01ab9e`, [pipeline 2968472746](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase/-/pipelines/2968472746) passed (read from the GitLab API).
+2. **Seen working:** Ashfaq showed Shawki the agents running in his test bed (the runs listed in `HANDOVER.md` section 2).
+3. **Local checks on Shawki's machine (Windows, Node 24):** `npm --prefix locus ci`, then `npm run test:locus`: 233 of 233 pass; `node locus/flows/check.js`: exit 0; `npm run locus -- touchcheck examples/projectile.json`: fails TL-1 and TL-2 with a `LOCUS_REPORT` line and `overlay.svg`, exit 1, as designed.
+4. **Line endings:** on the first run, 2 tests failed on Windows only (`production-revision` and the issue template quick actions), because Git turned LF into CRLF in the working copy. `.gitattributes` now says `* text=auto eol=lf`, so every checkout matches CI. The repo contents do not change.
+5. **Still open:** contracts D8 (20 Oct (g) item 3).
+
 ## 20 Oct 2026 (g): Shawki's 16 to 19 Oct work merged into the branch; contracts D8 no longer matches the code (Ashfaq)
 
 1. **Merge:** the working repo's `main` (`6d77f814`, three commits by Shawki: 9be54757, 993b6af8, 6d77f814) is merged
