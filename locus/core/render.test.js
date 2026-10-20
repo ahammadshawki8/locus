@@ -105,13 +105,16 @@ const stlVolume = (buffer) => {
 }
 
 // Requests from a seeded sweep (20 Oct) whose JSCAD union the repair cannot close ("mesh still has N unpaired edges",
-// 1, 117 and 7 edges). Manifold unions the same parts; the STL must be closed, inside the plate, and hold the same
+// 1, 117, 7, 31 and 188 edges). Manifold unions the same parts; the STL must be closed, inside the plate, and hold the same
 // solid as the JSCAD union (the volumes agree to 0.1 % on these; 1 % allows for the clip and float32 output).
 test('requests the JSCAD repair cannot close render a closed STL through the manifold fallback', () => {
   const cases = [
     [request([0, -2, 1.5, -1.5], -1.5, 1.5, ['vertex', 'y-intercept', 'x-intercepts'], 27), true],
     [request([-1, 0, 3, 2], -2, 2, ['turning-points', 'y-intercept', 'x-intercepts'], 26), false],
-    [request([0, 3, 1.5, 3], -1.5, 2.5, ['vertex', 'y-intercept', 'x-intercepts'], 12), true] // far taller than the plate
+    [request([0, 3, 1.5, 3], -1.5, 2.5, ['vertex', 'y-intercept', 'x-intercepts'], 12), true], // far taller than the plate
+    // Steep cubics whose union touches itself along a line (a pinch), fused by the worker's filler: 1 and 43 such edges.
+    [request([-2, 1.5, -2, -0.5], -2, 1, ['turning-points', 'y-intercept', 'x-intercepts'], 98), false],
+    [request([-1, 0, 3, 2], -2, 2, ['turning-points', 'y-intercept', 'x-intercepts'], 26), true]
   ]
   for (const [r, showGrid] of cases) {
     const name = `${JSON.stringify(r.graph.coeffs)} grid ${showGrid}`
