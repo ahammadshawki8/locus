@@ -266,6 +266,17 @@ test('the fixer prompt names exactly the allowed fixes of locus/touchcheck/remed
   }
 })
 
+// The refusal note on #6 (docs/decisions.md 17 Oct (b)) led with generic suggestions that could not help a TL-1 tangent
+// touch; the refuse prompt now gives one suggestion per rule and asks for those of the rules that still fail only.
+test('the refuse prompt suggests what the teacher could change per failing rule, one line for every rule', () => {
+  const remedies = require('../touchcheck/remedies.json')
+  const prompt = request().prompts.find((p) => p.prompt_id === 'refuse_prompt').prompt_template.system
+  const listed = [...prompt.matchAll(/^\s*- (TL-\d): \S/gm)].map((m) => m[1])
+  assert.deepEqual(listed, Object.keys(remedies.rules))
+  assert.match(prompt.replace(/\s+/g, ' '), /only for the rules that still fail/)
+  assert.doesNotMatch(prompt, /for example a shorter x range, fewer marked points/)
+})
+
 const toolNames = (component) => (component.toolset || []).map((t) => (typeof t === 'string' ? t : Object.keys(t)[0]))
 
 test('every locus-request commit message ends with its session URL as a Locus-Session trailer (bundle agentSessions)', () => {

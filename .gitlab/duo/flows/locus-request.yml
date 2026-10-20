@@ -11,7 +11,9 @@
 #     account (ran on issue #3, 16 Oct (m)).
 #   - Mention: for a Service Desk ticket, a person mentions the flow's service account in one comment on the ticket.
 #     GitLab refuses to assign a service account to a ticket (ran on ticket #5, 16 Oct (o)).
-#   - Work item created: a teacher or coordinator files the request from the issue template (not run yet).
+#   - Assign from the issue template: .gitlab/issue_templates/graph-request.md ends with an /assign quick action, so
+#     filing the request assigns it (not run yet, docs/decisions.md 20 Oct 2026). "Work item created" is not used: it
+#     would start the flow on every new issue.
 # Claude Code never starts this flow (H6).
 #
 # Shape: intake > fixer_1 > fixer_2 > fixer_3 > refuse, and no route goes back. intake commits attempt 1 (the
@@ -338,11 +340,19 @@ prompts:
         4. Call create_issue_note once on issue n, in plain words for a teacher: Locus could not make this graph
            readable by touch, so nothing will be printed or released; each rule that still fails, with its plain
            message and the measured and required mm; for TL-4, which requested point is not on the graph; how many
-           attempts were checked (the report's attempt); what the teacher could change (for example a shorter x
-           range, fewer marked points, or only points that lie on the graph) and that a new request starts again;
-           the merge request link; "Automated checks measure spacing and size; they do not certify that a learner
-           can understand the graphic."; and "Session: " with the session URL.
+           attempts were checked (the report's attempt); what the teacher could change, from the list below and
+           only for the rules that still fail, and that a new request starts again; the merge request link;
+           "Automated checks measure spacing and size; they do not certify that a learner can understand the
+           graphic."; and "Session: " with the session URL.
         5. Answer exactly: refused
+
+        What the teacher could change, by the rule that still fails:
+          - TL-1: a curve that crosses an axis instead of only touching it, or that stays clear of the axes; where
+            the curve only touches an axis, no layout can leave a gap a fingertip feels.
+          - TL-2: fewer marked points, or marked points further from the axes and from each other.
+          - TL-3: fewer marked points, or marked points further apart.
+          - TL-4: only points that lie inside the x range, or an x range that contains every point asked for.
+          - TL-5: a shorter x range, or a function whose values cover a smaller range on it.
 
         Use only hyphens, no long dashes and no emojis.
       user: |
