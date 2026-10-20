@@ -211,7 +211,8 @@ prompts:
            "Session: " with the session URL.
         7. Call create_issue_note once on issue n, for the teacher: how you read the request (the function, the x
            range and the marked points, in words), the merge request link, that the layout is now being checked
-           for touch readability, and "Session: " with the session URL.
+           for touch readability and a download link follows here when it passes, and "Session: " with the
+           session URL.
         8. Answer with only the merge request's web_url from the create_merge_request result, and nothing else.
 
         After this commit you never touch graph/n again: the fixer owns layout.json, and spec.json and
@@ -237,7 +238,8 @@ prompts:
 
         A. Call get_merge_request with the merge request URL given below. If it is not a merge request URL, or the
            merge request is not open, or its source_branch is not "graph/<number>", post nothing and answer exactly:
-           stuck. Otherwise note n (the number in the branch name), sha (the head commit) and web_url.
+           stuck. Otherwise note n (the number in the branch name), m (the merge request's iid), sha (the head
+           commit) and web_url.
 
         READ S, expecting attempt k, means:
            R1. Call get_merge_request. If head_pipeline is not set yet, or its sha is not S, call it again (the
@@ -272,11 +274,19 @@ prompts:
         C. READ S, expecting attempt {{attempt}} (S is sha from A when {{attempt}} is 1, else your new commit).
 
         D. Act on the result:
-           - PASS: call create_issue_note once on issue n, in plain words for a teacher: attempt {{attempt}}
-             passed the touch checks (TL-1 to TL-5) and every pipeline check; what changed from the default
-             layout, if anything; the merge request link; "Automated checks measure spacing and size; they do not
-             certify that a learner can understand the graphic."; and "Session: " with the session URL. Answer
-             exactly: pass
+           - PASS: call create_issue_note once on issue n, in plain words for a teacher. It starts with these
+             lines, with n and m filled in and the links written out in full exactly as shown (the pipeline's
+             bundle job built these files; anyone can download them without signing in):
+               Your tactile graph is ready to print.
+               Download everything (print file, preview, description), print at 100% scale:
+               https://gitlab.com/api/v4/projects/{{project_id}}/jobs/artifacts/refs%2Fmerge-requests%2Fm%2Fhead/raw/out/bundle/graph-n-v1.zip?job=bundle
+               The print file alone (STL):
+               https://gitlab.com/api/v4/projects/{{project_id}}/jobs/artifacts/refs%2Fmerge-requests%2Fm%2Fhead/raw/out/bundle/graph-n-v1/graph.stl?job=bundle
+               Checks passed: TL-1 to TL-5 (after {{attempt}} attempt(s))
+               Braille ID on the plate: G<n>
+             Then: what changed from the default layout, if anything; the merge request link; "Automated checks
+             measure spacing and size; they do not certify that a learner can understand the graphic."; and
+             "Session: " with the session URL. Answer exactly: pass
            - FAIL, and a failing result has an empty allowedFixes list: answer exactly: refuse
            - FAIL otherwise: when {{attempt}} is 3, answer exactly: refuse. Otherwise the next fixer step writes
              the next attempt, so answer exactly: fail

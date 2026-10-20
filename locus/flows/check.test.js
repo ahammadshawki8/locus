@@ -266,6 +266,18 @@ test('the fixer prompt names exactly the allowed fixes of locus/touchcheck/remed
   }
 })
 
+// The pass note is what the requester receives (Service Desk emails it, 16 Oct (o)): it must carry the print files.
+// The bundle job's artifacts download without a login from the MR pipeline's ref (read on graph-5, 20 Oct (d)).
+test('the pass note gives the requester the bundle and the STL to download, the checks and the braille ID', () => {
+  const prompt = request().prompts.find((p) => p.prompt_id === 'fixer_prompt').prompt_template.system.replace(/\s+/g, ' ')
+  const base = '/api/v4/projects/{{project_id}}/jobs/artifacts/refs%2Fmerge-requests%2Fm%2Fhead/raw/out/bundle/graph-n-v1'
+  assert.ok(prompt.includes(`${base}.zip?job=bundle`), 'zip link')
+  assert.ok(prompt.includes(`${base}/graph.stl?job=bundle`), 'STL link')
+  assert.match(prompt, /print at 100% scale/)
+  assert.match(prompt, /Checks passed: TL-1 to TL-5 \(after \{\{attempt\}\} attempt\(s\)\)/)
+  assert.match(prompt, /Braille ID on the plate: G<n>/)
+})
+
 // The refusal note on #6 (docs/decisions.md 17 Oct (b)) led with generic suggestions that could not help a TL-1 tangent
 // touch; the refuse prompt now gives one suggestion per rule and asks for those of the rules that still fail only.
 test('the refuse prompt suggests what the teacher could change per failing rule, one line for every rule', () => {
