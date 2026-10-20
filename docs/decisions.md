@@ -19,6 +19,11 @@ Shawki reviewed the local preview and asked for these; all are built on branch `
    interactive (choose a rule, and where it measured lights up on the plate drawing, with what it found).
 6. **Request page** and the optional **print-order** job (21 Oct (l)) are built; the print order has not sent a real
    email yet: it needs Shawki's sender account (H3).
+7. **Logo** (Shawki asked for a minimal brand mark): five raised dots along an arch, the vertex dot larger. A locus is
+   the set of points that follow a rule, which is what a graph is, drawn as dots a fingertip can follow. It sits next
+   to the lowercase wordmark "locus" in the nav, and on a dark tile as the favicon (`locus/site/assets/logo.svg`).
+   Text pages now use a 760 px column that fits their text, more space between sections and lines, and larger
+   section headings.
 
 ## 21 Oct 2026 (l): the feature freeze reopened for one story: from a lesson idea to a print in hand (Shawki)
 
