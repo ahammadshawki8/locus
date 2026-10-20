@@ -87,4 +87,50 @@ const checkScope = ({ branch, commits, pathsOf = () => [] }) => {
   return { pass: violations.length === 0, violations, agentCommits, personCommits }
 }
 
-module.exports = { checkScope, agentOf, isServiceAccount }
+const AGENT_BRANCH = /^(graph\/\d+|revert\/[0-9a-f]{7,40}|rollback\/\d+)$/
+
+/**
+ * The source branch a merge commit's subject names: GitLab's "Merge branch '<b>' into '<target>'", or the auto-merge
+ * job's "Merge graph/<iid>: <title>" (release/auto-merge.js). null for any other subject.
+ */
+const mergedBranch = (subject = '') => {
+  const m = /^Merge branch '([^']+)' into '/.exec(subject) || /^Merge ((?:graph|revert|rollback)\/[0-9a-f]+): /.exec(subject)
+  return m ? m[1] : null
+}
+
+/**
+ * guard-scope on the default branch. Agents never commit there: their work arrives only through merges of their
+ * branches, which their MR pipelines already checked. So each merge's merged commits (M^1..M^2) are checked again by
+ * the rules of the branch the merge names, and any agent commit made straight on the default branch fails.
+ * GitLab writes the merge commit itself and credits it to the MR's author, so an agent-credited merge commit passes
+ * only when it merges an agent branch (seen on 21 Oct: the merge of graph/2 is credited to locus-request).
+ * @param {object[]} input.firstParent the default branch's first-parent commits in base..head, oldest first, each with
+ *   `subject` and, for a merge, `merged`: the commits it brought in, oldest first
+ */
+const checkDefaultBranch = ({ branch, firstParent, pathsOf = () => [] }) => {
+  const total = { pass: true, violations: [], agentCommits: 0, personCommits: 0 }
+  const add = (r) => {
+    total.violations.push(...r.violations)
+    total.agentCommits += r.agentCommits
+    total.personCommits += r.personCommits
+  }
+  for (const c of firstParent) {
+    if (!c.merge) {
+      add(checkScope({ branch, commits: [c], pathsOf }))
+      continue
+    }
+    const source = mergedBranch(c.subject)
+    const fromAgentBranch = Boolean(source && AGENT_BRANCH.test(source))
+    if (agentOf(c) || isServiceAccount(c)) {
+      total.agentCommits++
+      if (!fromAgentBranch) total.violations.push({ sha: c.sha, flow: agentOf(c), reason: `an agent-credited merge on ${branch} must merge an agent branch, not ${source || 'an unnamed branch'}` })
+    } else {
+      total.personCommits++
+    }
+    add(checkScope({ branch: fromAgentBranch ? source : branch, commits: c.merged || [], pathsOf }))
+  }
+  total.pass = total.violations.length === 0
+  return total
+}
+
+module.exports = { checkScope, checkDefaultBranch, mergedBranch, agentOf, isServiceAccount }
