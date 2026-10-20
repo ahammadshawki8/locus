@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 3,
+  "requestId": 2,
+  "graph": {
+    "type": "polynomial",
+    "coeffs": [
+      0,
+      -0.5,
+      2,
+      1
+    ],
+    "domain": {
+      "min": -0.5,
+      "max": 4.5
+    }
+  },
+  "mark": [
+    "vertex",
+    "y-intercept"
+  ],
+  "labels": "braille-grade1",
+  "profileId": "fdm-handheld-v1"
+}
