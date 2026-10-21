@@ -124,7 +124,13 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   assert.match(html, /<label class="grow" data-reprint-to hidden>Your Locus address<input name="to" type="email"/)
   // the touch checks: one highlight group per rule over the plate drawing
   for (const r of ['TL-1', 'TL-2', 'TL-3', 'TL-4', 'TL-5']) assert.match(html, new RegExp(`class="m-${r}"`))
-  assert.match(fs.readFileSync(path.join(out, 'nginx.conf'), 'utf8'), /listen 8080/)
+  const nginx = fs.readFileSync(path.join(out, 'nginx.conf'), 'utf8')
+  assert.match(nginx, /listen 8080/)
+  // nginx's own type table stays: a server-level types block would replace it and serve every page as a download
+  assert.strictEqual(nginx.match(/types \{/g).length, 1, 'only the .stl location sets a type')
+  assert.ok(nginx.includes('location ~* \\.stl$ { types { } default_type model/stl; }'), 'only .stl gets model/stl')
+  // redirects (/request to /request/) stay on the visitor's https address, not nginx's own port 8080
+  assert.match(nginx, /absolute_redirect off;/)
   assert.ok(fs.existsSync(path.join(out, 'Dockerfile')))
   for (const f of ['index.html', 'assets/site.css', 'assets/scene.js', 'assets/hud.js', 'about/index.html', 'request/index.html', 'collections/index.html', 'credits/index.html', 'graphs/graph-7-v2/index.html']) assert.ok(!H2.test(fs.readFileSync(path.join(pub, f), 'utf8')), `${f}: rule H2`)
 })

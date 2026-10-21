@@ -498,7 +498,10 @@ const NGINX = `server {
   listen 8080;
   root /usr/share/nginx/html;
   index index.html;
-  types { model/stl stl; }
+  # Redirects such as /request to /request/ keep the visitor's https address (Cloud Run), not port 8080.
+  absolute_redirect off;
+  # Only .stl gets a type here: a types block at server level replaces nginx's whole table (pages became downloads).
+  location ~* \\.stl$ { types { } default_type model/stl; }
   location = /build-info.json { add_header Cache-Control "no-store"; }
   location / { try_files $uri $uri/ =404; }
 }
