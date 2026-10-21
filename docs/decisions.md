@@ -4,6 +4,94 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (o): spoken maths on the Request page; no second AI (Shawki)
+
+1. **Found by Shawki:** voice typing wrote words ("Y equals to oh point 5X square minus two X + 5... minus 0.524.5"),
+   so the drafted email had no function, no range and no points; and the draft did not refresh from voice input.
+2. **Fixed** (`locus/site/assets/hud.js`, `spokenMaths`): spoken maths becomes written maths (equals, minus, plus,
+   point, "oh", number words, square, cube, "to the power of"), and "-0.524.5" (a speech engine hearing "to" as "2"
+   between two decimals) is read as "-0.5 to 4.5". The same rules apply to typed words. Voice results now refresh the
+   draft directly. Checked on Shawki's exact sentence: Function y = 0.5x^2 - 2x + 5, x range from -0.5 to 4.5, points:
+   the lowest point and where the curve crosses the y-axis.
+3. **No Groq (or other) AI on the page:** Shawki offered a free Groq key. Not used: a static site cannot keep a key
+   secret (H8), a key-holding server would be a new public endpoint to protect five days before the freeze, and a
+   second AI vendor blurs the story that GitLab Duo is the agent that understands the teacher. The draft stays rule
+   based; the Duo intake agent reads the email and asks one question when it must.
+
+## 21 Oct 2026 (n): Print again goes through Locus to the school's print shop (Shawki)
+
+Shawki's call: a teacher never types a print shop address; the school sets it once (`PRINT_ORDER_TO`).
+1. **On a graph page, "Print again"** asks for the number of copies and opens the teacher's mail to their own Locus
+   address (the one the Request page keeps): subject "Reprint: graph-<iid>-v<n>, <n> copies", body with
+   `Reprint: <tag>`, `Printed copies needed: <n>` and `/label ~reprint`. No `/assign`, so no agent starts.
+2. **`print-reprints`** (`locus/release/reprint.js`): GitLab cannot start a pipeline when an issue opens and agents
+   cannot send mail, so a pipeline schedule every 30 minutes (`LOCUS_SCHEDULE=reprints`) runs only this job. It
+   reads the open `reprint` issues, takes the released STL and manifest from the Package Registry, emails the school
+   shop with the same order as `print-order`, notes it on the issue and closes it. Issues from Service Desk are
+   ignored (only project members can order prints); an unknown graph is closed with a note. Off unless
+   `PRINT_ORDER_ENABLED=true`; never during the freeze. The reprints schedule runs no other job and no scans.
+3. **Setup:** label `reprint` and the schedule (`HANDOVER.md` section 13 step 8). `LOCUS_SITE_URL` is in
+   `.gitlab-ci.yml` for the order's page link.
+4. Not run yet (H3): it needs the sender account, the label and the schedule.
+
+## 21 Oct 2026 (m): site review round with Shawki: calmer, brighter, simpler navigation (Shawki)
+
+Shawki reviewed the local preview and asked for these; all are built on branch `site-polish`, not merged yet:
+1. **No effects over the plates:** the curved-glass pass, scanlines, glass reflections and the B&W switch are gone; the
+   plates are lit evenly and coloured by height (plate light, raised parts dark), so every line, dome and braille dot
+   reads. The floating carousel stays. The Prev, Next and hint row is gone (arrow keys, drag and the wheel still work).
+2. **No white flash:** the loader dims away and the plates fade up instead.
+3. **No footer.** The nav is About, Request, Collections, Credits, then the GitLab mark linking to the project.
+4. **About** holds how it works, requesting a graph, printing, setup and print orders on one page. **Collections**
+   lists every graph, newest first; the home page shows the 4 newest. **Credits** gives JSCAD a full section (what it
+   is, its MIT licence, how Locus is built on it) and no longer lists the team.
+5. **Graph page:** wider facts panel; the learner description right under the downloads; the touch checks are now
+   interactive (choose a rule, and where it measured lights up on the plate drawing, with what it found).
+6. **Request page** and the optional **print-order** job (21 Oct (l)) are built; the print order has not sent a real
+   email yet: it needs Shawki's sender account (H3).
+7. **Logo** (Shawki asked for a minimal brand mark): five raised dots along an arch, the vertex dot larger. A locus is
+   the set of points that follow a rule, which is what a graph is, drawn as dots a fingertip can follow. It sits next
+   to the lowercase wordmark "locus" in the nav, and on a dark tile as the favicon (`locus/site/assets/logo.svg`).
+   Text pages now use a 760 px column that fits their text, more space between sections and lines, and larger
+   section headings.
+8. **Second review round (Shawki):** the pixel font is gone; titles use IBM Plex Mono, large. **About** is rewritten
+   for teachers in plain words, full width: what Locus is (with the newest released plate), how to use it in four
+   illustrated steps, what you get back, tips for a good request, and good-to-know notes (refusals, the braille ID, the
+   limits of the checks). The technical setup and the print-order settings moved out to the repository's docs
+   (`HANDOVER.md` sections 7 and 13, `docs/how-it-works.md`), linked from a short "For schools setting it up"
+   section. **Credits** now has full GitLab and Google Cloud sections listing each feature or service Locus uses and
+   what for. The logo turns GitLab orange on hover. Spacing under the request form's "Agent account", and a smaller
+   gap between the plates and their caption on the home page.
+9. **Third round (Shawki):** About opens with the tagline "Blindness can't limit curiosity." and the newest plate
+   floating in 3D (drag to turn it), like the graph pages. The whole logo (mark and word) turns orange on hover.
+   **Printed copies:** the Request page has an "I need printed copies" box, ticked by default with 1 copy, and a
+   number for more; unticked writes "Printed copies needed: 0 (digital files only)", and the print-order job then
+   sends no order. The print shop stays the school's one setting (`PRINT_ORDER_TO`); a per-request shop address was
+   considered and dropped (simpler, and nobody can redirect orders).
+10. **Fourth round (Shawki):** Credits keep only JSCAD, GitLab and Google Cloud. **Voice typing** on the Request page:
+    a Speak button that uses the browser's own speech recognition, shown only where the browser has it; the help text
+    says that in Chrome Google's speech service does the recognition. **Print again** on every graph page: copies and
+    the shop's address (kept only in that browser), then the teacher's own Gmail or mail app opens with the order
+    (graph, STL link, page link, print settings). A static site cannot send mail, and the school's shop address is
+    not published on a public page, so this is drafted for the teacher to send. Checked: it opens Gmail compose with
+    the right To, Subject and body.
+
+## 21 Oct 2026 (l): the feature freeze reopened for one story: from a lesson idea to a print in hand (Shawki)
+
+Shawki's decision, after 21 Oct (i): the video's story becomes "from the idea of teaching a topic to a physical print
+in the teacher's hands", and the site carries every step. Three additions, nothing else:
+1. **Setup guide page** on the site: how to run Locus for a school (fork, Google Cloud, CI variables, the two flows,
+   labels, the first email).
+2. **Request page:** the teacher writes freely (a graph, or just today's topic); pressing Send opens their mail app with
+   the To, Subject and a tidy body filled in. The teacher pastes their own Locus address once (kept in that browser
+   only). No address and no token is on the public site (H8): the personal "Email a new issue" address holds a token,
+   and Service Desk needs a person's comment before a flow starts. No second AI: the GitLab Duo intake agent reads the
+   informal text and asks one question when it must.
+3. **Print order (off by default):** a `print-order` CI step after reply-teacher. When switched on and a print shop
+   address is set, it emails the shop the released STL link, size, material and quantity, from a sender account whose
+   app password is a masked CI variable. Shawki creates the sender account.
+Order: Shawki reviews the redesigned site locally first; then these three are built into the same design.
+
 ## 21 Oct 2026 (j): touch results of the four prototype prints (Shawki)
 
 **What this is:** one sighted team member (Shawki) feeling the prints, eyes open or closed as they chose; **not** a test

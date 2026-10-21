@@ -23,3 +23,4 @@ packages/web/examples/
 
 # Locus render output
 /out/
+.playwright-mcp/

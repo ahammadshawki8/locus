@@ -136,6 +136,12 @@ S.3 Next item 13.
   hackathon workspace (GitLab, `docs/decisions.md` 20 Oct (i)). Revoke it after judging.
 - `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_SERVICE_ACCOUNT`: set in `.gitlab-ci.yml`, not secrets
   (`deploy/gcp/README.md`). Google Cloud login is keyless (Workload Identity Federation).
+- Print orders (optional, off by default; `locus/release/print-order.js`, `docs/decisions.md` 21 Oct (l)):
+  `PRINT_ORDER_ENABLED` (`true` to send), `PRINT_ORDER_TO` (the print shop), `PRINT_ORDER_FROM` (the sending account),
+  `PRINT_ORDER_SMTP_PASSWORD` (that account's app password: masked and hidden), and optionally `PRINT_ORDER_REPLY_TO`
+  (usually the teacher), `PRINT_ORDER_COPIES` (default copies when the request does not say; a request that says
+  "Printed copies needed: 0" gets no order) and `PRINT_ORDER_SMTP_URL`
+  (default `smtps://smtp.gmail.com:465`). Not set yet; no order has been sent (H3).
 
 ## 8. Flaky or limited, and how to re-run
 
@@ -226,6 +232,10 @@ Do this after task 2 (our history on your `main`). Every step is a person's setu
    address with a request and `/assign @<the service account>` as the last line (section 9). Expect about 8 to 10
    minutes to the pass note. Record it in `docs/decisions.md` from what GitLab shows.
 7. Optional, only if time allows: create `locus-ops` the same way (display name exactly `locus-ops`), for Gate 5b.
+8. **Print orders (optional):** set the print-order variables (section 7). For **Print again** on graph pages, also
+   create the label `reprint` and a pipeline schedule (Build > Pipeline schedules > New): target `main`, interval
+   `*/30 * * * *`, variable `LOCUS_SCHEDULE` = `reprints`. That schedule runs only the `print-reprints` job, which orders
+   the open `reprint` issues from the school's print shop and closes them. Pause it at the freeze (section 14).
 
 ## 14. Freeze and judging (H12)
 

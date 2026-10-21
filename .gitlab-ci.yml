@@ -10,6 +10,11 @@
 
 workflow:
   rules:
+    # The reprints schedule (every 30 minutes, variable LOCUS_SCHEDULE=reprints) runs print-reprints only: no scans.
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $LOCUS_SCHEDULE == "reprints"
+      variables:
+        SAST_DISABLED: "true"
+        SECRET_DETECTION_DISABLED: "true"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
@@ -39,6 +44,8 @@ variables:
   GCP_REGION: "us-central1"
   GCP_WIF_PROVIDER: "projects/742642312166/locations/global/workloadIdentityPools/gitlab/providers/gitlab-com"
   GCP_SERVICE_ACCOUNT: "locus-deploy@locus-tactile-2026.iam.gserviceaccount.com"
+  # The live site, for links in print orders sent outside a release pipeline (print-reprints).
+  LOCUS_SITE_URL: "https://locus-site-742642312166.us-central1.run.app"
 
 # Render every request (and the example) to STL + SVG + description + scene.json. The CLI also validates the spec,
 # the layout and request.lock.json, so an invalid request fails here. Artifacts are kept even on failure.
@@ -250,6 +257,8 @@ library-recheck:
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: never
+    - if: $LOCUS_SCHEDULE == "reprints"
+      when: never
     - if: $JUDGING_FREEZE == "true"
       allow_failure: true
     - when: on_success
@@ -272,6 +281,8 @@ bisect-regression:
       - out/bisect/report.json
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: never
+    - if: $LOCUS_SCHEDULE == "reprints"
       when: never
     - if: $JUDGING_FREEZE == "true"
       when: never
@@ -584,3 +595,47 @@ reply-teacher:
     - |
       if [ "$PROMOTED" != "true" ]; then echo "reply-teacher: production is pinned by deploy/gcp/production-revision; no reply until it serves this release"; exit 0; fi
       node locus/cli/index.js reply-teacher "$PRODUCTION_URL" out/release
+
+# Optional print order (docs/decisions.md 21 Oct (l)): emails the print shop each released graph with the STL attached.
+# Off unless PRINT_ORDER_ENABLED is "true"; the sender's app password is the masked CI variable PRINT_ORDER_SMTP_PASSWORD.
+print-order:
+  extends: .node-job
+  stage: monitor
+  needs:
+    - job: release
+      artifacts: true
+    - job: bundle
+      artifacts: true
+    - job: promote-production
+      artifacts: true
+    - job: reply-teacher
+  script:
+    - |
+      if [ "$PROMOTED" != "true" ]; then echo "print-order: production is pinned by deploy/gcp/production-revision; no order until it serves this release"; exit 0; fi
+      node locus/cli/index.js print-order "$PRODUCTION_URL" out/release out/bundle
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $JUDGING_FREEZE == "true"
+      when: never
+    - if: $PRINT_ORDER_ENABLED != "true"
+      when: never
+    - if: $GCP_PROJECT_ID == "" || $GCP_WIF_PROVIDER == "" || $GCP_SERVICE_ACCOUNT == ""
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Reprints (docs/decisions.md 21 Oct (n)): the open `reprint` issues teachers send from a graph page's "Print again",
+# ordered from the school's print shop, noted and closed. Only on the reprints schedule, and only when print orders
+# are on; never during the judging freeze.
+print-reprints:
+  extends: .node-job
+  stage: monitor
+  needs: []
+  script:
+    - node locus/cli/index.js print-reprints
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule" || $LOCUS_SCHEDULE != "reprints"
+      when: never
+    - if: $JUDGING_FREEZE == "true" || $PRINT_ORDER_ENABLED != "true"
+      when: never
+    - when: on_success

@@ -4,14 +4,21 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 
-const { writeSite, fetchShipped } = require('./build')
+const { writeSite, fetchShipped, readRequest } = require('./build')
 const { gitlab } = require('../release/gitlab')
 const { sha256, LIMITATIONS } = require('../core/bundle')
 
+const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="100mm" height="100mm" viewBox="0 0 100 100">\n  <title>y = -0.5x^2 + 2x + 1</title>\n  <rect class="plate" x="0" y="0" width="100" height="100"/>\n</svg>\n'
 const files = (id) => ({
-  'graph.svg': Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>'),
+  'graph.svg': Buffer.from(SVG),
+  'overlay.svg': Buffer.from([
+    '<svg xmlns="http://www.w3.org/2000/svg" width="248mm" height="141mm" viewBox="0 0 248 141">',
+    '<circle class="passed" cx="30" cy="48" r="3" fill="none"/><circle class="passed" cx="15" cy="55" r="5" fill="none"/>',
+    ...['TL-1 Lines at least 3.2 mm apart; closest 3.31 mm', 'TL-2 Labels clear', 'TL-3 No labels overlap', 'TL-4 Everything requested is there', 'TL-5 Fits the plate'].map((t) => `<text x="4" y="110">PASS ${t}</text>`),
+    '</svg>'
+  ].join('\n')),
   'graph.stl': Buffer.from(`solid ${id}`),
-  'description.txt': Buffer.from('A parabola that opens downwards. Its highest point is at (2, 3).\n'),
+  'description.txt': Buffer.from('This tactile graph shows y = -0.5x^2 + 2x + 1, for x from -0.5 to 4.5.\nIts highest point is at (2, 3).\n'),
   [`${id}.zip`]: Buffer.from('zip')
 })
 
@@ -29,7 +36,7 @@ const graph = (iid, n) => {
     hashes: { 'graph.stl': sha256(f['graph.stl']), 'graph.svg': sha256(f['graph.svg']), 'description.txt': sha256(f['description.txt']) },
     touchcheck: { pass: true, attempts: 2 },
     guards: { scope: true, maths: true, description: true },
-    agentSessions: [],
+    agentSessions: ['https://gitlab.example/g/p/-/automate/agent-sessions/9777991'],
     releaseMode: 'hands-off',
     releaseTag: id,
     limitations: LIMITATIONS
@@ -38,6 +45,12 @@ const graph = (iid, n) => {
 }
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'locus-site-'))
+const H2 = new RegExp(`[${String.fromCharCode(0x2013, 0x2014, 0x2212)}]`)
+
+test('the learner description names the equation and the x range', () => {
+  assert.deepStrictEqual(readRequest('This tactile graph shows y = 0.5x^3 - 3x^2 + 4.5x + 2, for x from -0.1 to 4.\nMore.'), { equation: 'y = 0.5x^3 - 3x^2 + 4.5x + 2', from: '-0.1', to: '4' })
+  assert.strictEqual(readRequest('Something else.'), null)
+})
 
 test('the site has a page per shipped graph at /graphs/<artifactId>/, the downloads, and build-info.json', () => {
   const out = tmp()
@@ -47,14 +60,73 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(pub, 'build-info.json'))), { version: '0.1.0', commit: 'abc', builtAt: 'now', graphs: ['graph-7-v2', 'graph-12-v1'] })
   const html = fs.readFileSync(path.join(pub, 'graphs', 'graph-7-v2', 'index.html'), 'utf8')
   assert.match(html, /<html lang="en">/)
-  assert.match(html, /alt="A parabola that opens downwards\. Its highest point is at \(2, 3\)\."/)
-  assert.match(html, /G7 \(top-right corner\)/)
+  assert.match(html, /y = -0\.5x<sup>2<\/sup> \+ 2x \+ 1/)
+  // the 3D plate is decoration over a flat fallback; every fact is text in the panel
+  assert.match(html, /<div class="screen detail">/)
+  assert.match(html, /data-scene="single"/)
+  assert.match(html, /<div class="fallback"><img src="graph\.svg" alt=""><\/div>/)
+  assert.match(html, /"stl":"\/graphs\/graph-7-v2\/graph\.stl"/)
+  assert.match(html, /id="description">This tactile graph shows/)
+  assert.match(html, /Braille ID G7/)
+  assert.match(html, /Touch checks TL-1 to TL-5 passed<\/p>\s*<p class="sub">After 2 attempts\./)
   assert.match(html, /href="https:\/\/gitlab\.example\/g\/p\/-\/releases\/graph-7-v2"/)
-  for (const f of ['graph.stl', 'graph.svg', 'description.txt', 'manifest.json', 'graph-7-v2.zip']) assert.ok(fs.existsSync(path.join(pub, 'graphs', 'graph-7-v2', f)), f)
-  assert.match(fs.readFileSync(path.join(pub, 'index.html'), 'utf8'), /href="graphs\/graph-12-v1\/"/)
+  assert.match(html, /href="https:\/\/gitlab\.example\/g\/p\/-\/issues\/7"/)
+  assert.match(html, /agent-sessions\/9777991/)
+  for (const f of ['graph.stl', 'graph.svg', 'overlay.svg', 'description.txt', 'manifest.json', 'graph-7-v2.zip']) assert.ok(fs.existsSync(path.join(pub, 'graphs', 'graph-7-v2', f)), f)
+  const index = fs.readFileSync(path.join(pub, 'index.html'), 'utf8')
+  // the carousel's plates, oldest first, and a plain list of links for screen readers
+  assert.match(index, /data-scene="carousel"/)
+  assert.match(index, /"id":"graph-7-v2".*"id":"graph-12-v1"/)
+  assert.match(index, /<a href="\/graphs\/graph-12-v1\/">G12: /)
+  assert.match(index, /<script type="importmap">.*three@0\.160\.0/)
+  const credits = fs.readFileSync(path.join(pub, 'credits', 'index.html'), 'utf8')
+  assert.match(credits, /href="https:\/\/github\.com\/jscad\/OpenJSCAD\.org"><strong>JSCAD<\/strong><\/a>/)
+  assert.match(credits, /@jscad\/modeling/)
+  assert.ok(!/Made by|Also built on/.test(credits), 'the credits are JSCAD, GitLab and Google Cloud only')
+  for (const part of ['<h2>GitLab</h2>', '<h2>Google Cloud</h2>', 'Duo Agent Platform', 'Package Registry', 'Cloud Run', 'Workload Identity Federation']) assert.ok(credits.includes(part), part)
+  // About is for teachers, in plain words: how to use it, with the newest plate; the technical setup is in the docs
+  const about = fs.readFileSync(path.join(pub, 'about', 'index.html'), 'utf8')
+  assert.match(about, /<h2>How to use Locus<\/h2>/)
+  assert.strictEqual([...about.matchAll(/<svg class="icon"/g)].length, 4)
+  assert.match(about, /<h1>Blindness can't limit curiosity\.<\/h1>/)
+  // the newest plate floats in 3D on About, like the graph pages, with its flat drawing as the fallback
+  assert.match(about, /<figure class="plate-float">\s*<section class="scene" data-scene="single"[^>]*><div class="fallback"><img src="\/graphs\/graph-12-v1\/graph\.svg"/)
+  assert.match(about, /"stl":"\/graphs\/graph-12-v1\/graph\.stl"/)
+  assert.match(about, /<script type="module" src="\/assets\/scene\.js">/)
+  assert.match(about, /Subject: Tactile graph: projectile/)
+  assert.match(about, /HANDOVER\.md#13-moving-the-agent-to-the-team-project/)
+  assert.ok(!/LOCUS_GITLAB_TOKEN|setup\.sh/.test(about), 'no technical setup on the About page')
+  // Collections: every graph, newest first
+  const collections = fs.readFileSync(path.join(pub, 'collections', 'index.html'), 'utf8')
+  assert.match(collections, /href="\/graphs\/graph-12-v1\/"[\s\S]*href="\/graphs\/graph-7-v2\/"/)
+  // the nav: About, Request, Collections, Credits, then the GitLab mark; no footer
+  assert.match(index, /<a href="\/about\/">About<\/a><a href="\/request\/">Request<\/a><a href="\/collections\/">Collections<\/a><a href="\/credits\/">Credits<\/a><a class="gitlab" href="https:\/\/gitlab\.com\/[^"]+" aria-label="Locus on GitLab"><svg/)
+  assert.ok(!/<footer/.test(index) && !/class="flash"/.test(index))
+  // the logo: the five-dot mark next to the wordmark, and the same mark as the favicon
+  assert.match(index, /<a class="brand" href="\/" aria-label="Locus, home"><svg class="mark"[^>]*>(?:<g fill="currentColor">)(?:<circle [^>]*\/>){5}<\/g><\/svg><span class="word">locus<\/span><\/a>/)
+  assert.match(index, /<link rel="icon" href="\/assets\/logo\.svg" type="image\/svg\+xml">/)
+  assert.ok(fs.existsSync(path.join(pub, 'assets', 'logo.svg')))
+  for (const a of ['site.css', 'hud.js', 'scene.js']) assert.ok(fs.existsSync(path.join(pub, 'assets', a)), a)
+  // the request form never carries an address: the teacher pastes their own, kept in their browser
+  const request = fs.readFileSync(path.join(pub, 'request', 'index.html'), 'utf8')
+  assert.match(request, /<form class="request" data-request data-agent="ai-locus-request-gitlab-ai-hackathon_b127f8"/)
+  assert.ok(!/incoming\+|@incoming\.gitlab\.com/.test(request), 'no project address on the public site')
+  // printed copies are ticked by default with one copy; there is no shop address to type in
+  assert.match(request, /<input type="checkbox" name="print" checked> I need printed copies/)
+  assert.match(request, /<input id="copies" name="copies" type="number" min="1" max="99" value="1"/)
+  assert.ok(!/name="shop"/.test(request))
+  // voice typing: hidden until the browser offers speech recognition (hud.js shows it)
+  assert.match(request, /<button type="button" class="speak" data-speak aria-pressed="false" hidden>/)
+  // print again on a graph page: the teacher's own email drafts the reprint; no shop address is on the public page
+  assert.match(html, /<details class="reprint" data-reprint data-id="graph-7-v2" data-braille="G7">/)
+  // no print shop address anywhere on a graph page: the reprint goes to the teacher's Locus address
+  assert.ok(!/name="shop"/.test(html))
+  assert.match(html, /<label class="grow" data-reprint-to hidden>Your Locus address<input name="to" type="email"/)
+  // the touch checks: one highlight group per rule over the plate drawing
+  for (const r of ['TL-1', 'TL-2', 'TL-3', 'TL-4', 'TL-5']) assert.match(html, new RegExp(`class="m-${r}"`))
   assert.match(fs.readFileSync(path.join(out, 'nginx.conf'), 'utf8'), /listen 8080/)
   assert.ok(fs.existsSync(path.join(out, 'Dockerfile')))
-  for (const f of ['index.html', 'styles.css', 'graphs/graph-7-v2/index.html']) assert.ok(!new RegExp(`[${String.fromCharCode(0x2013, 0x2014, 0x2212)}]`).test(fs.readFileSync(path.join(pub, f), 'utf8')), f)
+  for (const f of ['index.html', 'assets/site.css', 'assets/scene.js', 'assets/hud.js', 'about/index.html', 'request/index.html', 'collections/index.html', 'credits/index.html', 'graphs/graph-7-v2/index.html']) assert.ok(!H2.test(fs.readFileSync(path.join(pub, f), 'utf8')), `${f}: rule H2`)
 })
 
 test('an empty library still builds, so the first deploy works before any release', () => {
@@ -83,4 +155,16 @@ test('the site takes the newest release of each request from the Package Registr
   const graphs = await fetchShipped(api)
   assert.deepStrictEqual(graphs.map((g) => g.manifest.artifactId), ['graph-3-v1', 'graph-7-v2'])
   assert.ok(!fetched.some((f) => f.startsWith('graph-7-v1/')))
+  assert.ok(fetched.includes('graph-7-v2/overlay.svg'))
+})
+
+test('the home page shows the four newest graphs; the collection shows them all', () => {
+  const out = tmp()
+  writeSite(out, { graphs: [1, 2, 3, 4, 5, 6].map((i) => graph(i, 1)), buildInfo: {} })
+  const index = fs.readFileSync(path.join(out, 'public', 'index.html'), 'utf8')
+  const ids = [...index.matchAll(/"id":"(graph-\d+-v1)"/g)].map((m) => m[1])
+  assert.deepStrictEqual(ids, ['graph-3-v1', 'graph-4-v1', 'graph-5-v1', 'graph-6-v1'])
+  assert.match(index, /All 6 graphs in the collection/)
+  const collections = fs.readFileSync(path.join(out, 'public', 'collections', 'index.html'), 'utf8')
+  assert.strictEqual([...collections.matchAll(/<li><a href="\/graphs\//g)].length, 6)
 })
