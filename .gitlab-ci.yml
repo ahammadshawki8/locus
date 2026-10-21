@@ -1,3 +1,12 @@
+# Pipeline inputs. A pipeline schedule sets `schedule` in its Inputs section (this project does not allow pipeline
+# variables, so a schedule cannot set LOCUS_SCHEDULE directly). The reprints schedule picks "reprints".
+spec:
+  inputs:
+    schedule:
+      description: "Which scheduled job to run: none, or reprints (print-reprints only)"
+      options: ["none", "reprints"]
+      default: "none"
+---
 # Locus pipeline. The pipeline is the quality gate that decides whether a student ever gets a file.
 #
 # Only jobs that do real work live here (docs/decisions.md, 14 Oct 2026). Planned jobs (projectLocus.md §13) are added
@@ -10,7 +19,7 @@
 
 workflow:
   rules:
-    # The reprints schedule (every 30 minutes, variable LOCUS_SCHEDULE=reprints) runs print-reprints only: no scans.
+    # The reprints schedule (every 30 minutes, input schedule = reprints) runs print-reprints only: no scans.
     - if: $CI_PIPELINE_SOURCE == "schedule" && $LOCUS_SCHEDULE == "reprints"
       variables:
         SAST_DISABLED: "true"
@@ -39,6 +48,8 @@ variables:
   # hands-off: a green graph/* MR is merged and released without a person (projectLocus.md §13, Configure).
   # supervised: the fallback, with one approval. Recorded in every bundle manifest (docs/contracts.md §5).
   RELEASE_MODE: "hands-off"
+  # From the `schedule` input above; the rules below read this variable.
+  LOCUS_SCHEDULE: "$[[ inputs.schedule ]]"
   # Google Cloud (deploy/gcp/setup.sh prints these; none is a secret). The deploy jobs exist only once they are set.
   GCP_PROJECT_ID: "locus-tactile-2026"
   GCP_REGION: "us-central1"

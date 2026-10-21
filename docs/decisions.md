@@ -4,6 +4,18 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 
 ---
 
+## 21 Oct 2026 (p): the site is live; the reprints schedule is set by a pipeline input (Shawki)
+
+1. **Merged** `site-polish` as MR !11. The first MR pipeline failed with `runner_system_failure` on guard-maths,
+   locus-test and touchcheck (each about 2 s, before any script ran); the retry passed. Main pipeline 2972635774
+   passed every job through `promote-production`, `post-deploy-smoke` and `reply-teacher`: the new design is live.
+2. **Found by Shawki:** the "New pipeline schedule" form has no Variables section, only Inputs: this project does not
+   allow pipeline variables. **Decided:** `.gitlab-ci.yml` declares an input `schedule` (none or reprints, default
+   none) and sets `LOCUS_SCHEDULE` from it, so every existing rule is unchanged. HANDOVER.md section 13 step 8 updated.
+3. **Print-order roles (demo):** `PRINT_ORDER_FROM` is the school's sending account, `PRINT_ORDER_TO` the print
+   shop, `PRINT_ORDER_REPLY_TO` the teacher. Nourin plays the teacher in the next run. Limitation: the reply-to is one
+   address for the whole school, not each request's teacher.
+
 ## 21 Oct 2026 (o): spoken maths on the Request page; no second AI (Shawki)
 
 1. **Found by Shawki:** voice typing wrote words ("Y equals to oh point 5X square minus two X + 5... minus 0.524.5"),
