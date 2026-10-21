@@ -1,6 +1,6 @@
 // `locus validate-site <url> [--expect-commit <sha>]`: the `validate-staging` and `post-deploy-smoke` CI jobs.
 // Reads the live site the way a visitor would: /build-info.json must name this pipeline's commit, the library page and
-// every graph page must load, and each graph's graph.stl, graph.svg and description.txt must have exactly the sha256
+// every graph page must load as text/html, and each graph's graph.stl, graph.svg and description.txt must have exactly the sha256
 // its manifest.json gives. Writes out/<name>/report.json and prints `LOCUS_SITE_CHECK <json>` (agents read logs).
 // Exit 0 = every check passed, 1 = a check failed (the release guard reads why), 2 = usage.
 const fs = require('fs')
@@ -10,7 +10,8 @@ const { sha256 } = require('../core/bundle')
 
 const fetchBytes = async (fetchImpl, url) => {
   const res = await fetchImpl(url, { redirect: 'follow' })
-  return { status: res.status, body: res.ok ? Buffer.from(await res.arrayBuffer()) : null }
+  const type = (res.headers && res.headers.get('content-type')) || ''
+  return { status: res.status, type, body: res.ok ? Buffer.from(await res.arrayBuffer()) : null }
 }
 
 /** @returns {Promise<{ pass: boolean, checks: { what: string, pass: boolean, detail?: string }[] }>} */
@@ -30,10 +31,14 @@ const validateSite = async (baseUrl, { expectCommit, fetchImpl = fetch } = {}) =
 
   const home = await fetchBytes(fetchImpl, `${base}/`)
   check('the library page loads', Boolean(home.body), `HTTP ${home.status}`)
+  // A page served with another type is saved as a file by the browser instead of shown.
+  const html = (res) => /^text\/html\b/i.test(res.type)
+  if (home.body) check('the library page is served as text/html', html(home), home.type || 'no content type')
 
   for (const id of buildInfo.graphs || []) {
     const pageRes = await fetchBytes(fetchImpl, `${base}/graphs/${id}/`)
     check(`${id}: page loads`, Boolean(pageRes.body), `HTTP ${pageRes.status}`)
+    if (pageRes.body) check(`${id}: page is served as text/html`, html(pageRes), pageRes.type || 'no content type')
     const m = await fetchBytes(fetchImpl, `${base}/graphs/${id}/manifest.json`)
     if (!m.body) {
       check(`${id}: manifest.json loads`, false, `HTTP ${m.status}`)
