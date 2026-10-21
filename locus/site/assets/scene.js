@@ -1,6 +1,7 @@
 // The 3D scene: the released STL plates, floating, seen through a curved CRT screen.
-//   data-scene="carousel": every shipped graph on an arc; arrow keys, drag or the wheel move it; Enter or a
-//     click on the centred plate opens its page. The caption under it follows the centred plate.
+//   data-scene="carousel": every shipped graph on an arc that wraps around, so a plate is always on each side of the
+//     centred one; arrow keys, drag or the wheel move it; Enter or a click on the centred plate opens its page. The
+//     caption under it follows the centred plate.
 //   data-scene="single": one plate, turning slowly; drag to turn it.
 // Lit evenly and coloured by height (plate light, raised parts dark) so every line, dome and braille dot reads.
 // The loader counts the real STL downloads.
@@ -102,8 +103,13 @@ if (renderer) {
     return { group, phase: i * 1.7 }
   })
 
-  // Carousel state: `at` follows `goal` smoothly; drag and wheel move the goal.
-  let goal = Math.max(0, graphs.length - 1)
+  // Carousel state: `at` follows `goal` smoothly; drag and wheel move the goal. Both count turns without end, and
+  // `slot` maps them onto the plates, so the carousel wraps around (newest, then the oldest after it).
+  const n = graphs.length
+  const slot = (k) => ((Math.round(k) % n) + n) % n
+  // A plate's offset from the centre, the short way round: in [-n/2, n/2).
+  const around = (d) => (n < 2 ? d : d - n * Math.floor(d / n + 0.5))
+  let goal = Math.max(0, n - 1)
   let at = goal
   const caption = {
     label: document.querySelector('[data-caption-label]'),
@@ -117,17 +123,17 @@ if (renderer) {
     caption.title.innerHTML = `<a href="${g.url}">${g.titleHtml}</a>`
     caption.tags.textContent = g.tags
   }
-  const go = (i) => {
-    goal = Math.max(0, Math.min(graphs.length - 1, i))
-    show(goal)
+  const go = (k) => {
+    goal = k
+    show(slot(goal))
   }
   if (carousel) {
-    show(goal)
+    show(slot(goal))
     window.addEventListener('keydown', (e) => {
       if (e.target.closest('input, textarea')) return
       if (e.key === 'ArrowLeft') go(goal - 1)
       if (e.key === 'ArrowRight') go(goal + 1)
-      if (e.key === 'Enter' && document.activeElement === document.body) location.href = graphs[goal].url
+      if (e.key === 'Enter' && document.activeElement === document.body) location.href = graphs[slot(goal)].url
     })
     let wheelLock = 0
     root.addEventListener('wheel', (e) => {
@@ -161,11 +167,11 @@ if (renderer) {
     else if (carousel && drag.moved < 6) {
       const r = renderer.domElement.getBoundingClientRect()
       ray.setFromCamera({ x: ((e.clientX - r.left) / r.width) * 2 - 1, y: -((e.clientY - r.top) / r.height) * 2 + 1 }, camera)
-      const hit = ray.intersectObjects(items.map((it) => it.group), true)[0]
+      const hit = ray.intersectObjects(items.filter((it) => it.group.visible).map((it) => it.group), true)[0]
       if (hit) {
         const i = items.findIndex((it) => it.group === hit.object.parent)
-        if (i === goal) location.href = graphs[i].url
-        else go(i)
+        if (i === slot(goal)) location.href = graphs[i].url
+        else go(goal + Math.round(around(i - slot(goal))))
       }
     }
     drag = null
@@ -178,12 +184,16 @@ if (renderer) {
     items.forEach((it, i) => {
       const g = it.group
       if (carousel) {
-        const d = i - at
+        const d = around(i - at)
         const a = d * 0.5
         g.position.set(Math.sin(a) * 230, 2 + (reduced ? 0 : Math.sin(t * 0.9 + it.phase) * 3.2), (Math.cos(a) - 1) * 230)
         g.rotation.set(-0.42 + (reduced ? 0 : Math.sin(t * 0.7 + it.phase) * 0.05), -a * 0.9 + (reduced ? 0 : Math.sin(t * 0.5 + it.phase) * 0.08), (reduced ? 0 : Math.sin(t * 0.6 + it.phase) * 0.03))
-        const s = 1 - Math.min(Math.abs(d), 2) * 0.14
-        g.scale.setScalar(s)
+        // The plate crossing the far edge (from one side to the other) shrinks away and grows back, never jumps. With
+        // two plates both stay.
+        const edge = n > 2 ? Math.min(1, (n / 2 - Math.abs(d)) / 0.5) : 1
+        const s = (1 - Math.min(Math.abs(d), 2) * 0.14) * Math.max(0, edge)
+        g.visible = s > 0.01
+        g.scale.setScalar(Math.max(s, 0.001))
       } else {
         g.position.set(0, reduced ? 0 : Math.sin(t * 0.9) * 2.5, 0)
         const auto = drag || reduced ? 0 : Math.sin(t * 0.35) * 0.35
