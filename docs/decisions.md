@@ -21,7 +21,15 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
 4. **Runner failures:** MR !13's first pipeline also failed with `runner_system_failure` (render, license-check, about
    1 s each). **Decided:** a `default: retry` in `.gitlab-ci.yml` retries a job up to twice for runner, scheduler,
    timeout and API failures only. A failing script is not retried, so a real red stays red (H3).
-5. **Print-order roles (demo):** `PRINT_ORDER_FROM` is the school's sending account, `PRINT_ORDER_TO` the print
+5. **Third graph, hands-off** (issue #4, MR !14): y = 0.5x^2 - 2x + 5. The default layout failed touchcheck; the
+   fixer's attempt 2 (grid off, both labels moved) still touched a tick; attempt 3 (vertex label 0.5 mm higher)
+   passed and was auto-merged. Main pipeline 2973447276 released graph-4-v1, deployed it, posted the reply and sent
+   the first real print order (received at the shop inbox). The email went to the personal "Email a new issue"
+   address, so the issue author was Shawki and no reply email went out; the filmed run uses the Service Desk address.
+6. **Found by Shawki:** the home carousel opened on the newest plate with nothing to its right. **Fixed**
+   (`locus/site/assets/scene.js`): the carousel wraps around, so a plate is on each side of the centred one; the plate
+   crossing the far edge shrinks away and grows back instead of jumping. Frontend lock: a fix, not a new feature.
+7. **Print-order roles (demo):** `PRINT_ORDER_FROM` is the school's sending account, `PRINT_ORDER_TO` the print
    shop, `PRINT_ORDER_REPLY_TO` the teacher. Nourin plays the teacher in the next run. Limitation: the reply-to is one
    address for the whole school, not each request's teacher.
 
