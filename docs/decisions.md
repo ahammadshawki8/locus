@@ -18,7 +18,10 @@ Dated entries, newest first. Any change to `docs/contracts.md` gets a line here.
    (`locus/site/build.js`): the STL type is set only in a `.stl` location, and `absolute_redirect off` keeps
    redirects on the visitor's address. `validate-staging` and `post-deploy-smoke` now also fail when the library page
    or a graph page is not served as `text/html` (`locus/site/validate.js`), which is how this slipped through.
-4. **Print-order roles (demo):** `PRINT_ORDER_FROM` is the school's sending account, `PRINT_ORDER_TO` the print
+4. **Runner failures:** MR !13's first pipeline also failed with `runner_system_failure` (render, license-check, about
+   1 s each). **Decided:** a `default: retry` in `.gitlab-ci.yml` retries a job up to twice for runner, scheduler,
+   timeout and API failures only. A failing script is not retried, so a real red stays red (H3).
+5. **Print-order roles (demo):** `PRINT_ORDER_FROM` is the school's sending account, `PRINT_ORDER_TO` the print
    shop, `PRINT_ORDER_REPLY_TO` the teacher. Nourin plays the teacher in the next run. Limitation: the reply-to is one
    address for the whole school, not each request's teacher.
 
