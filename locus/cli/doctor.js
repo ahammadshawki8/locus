@@ -42,6 +42,17 @@ const doctor = async ({ api, files }) => {
       return { error: `GET ${route}: HTTP ${err.status || 'error'}` }
     }
   }
+  // A list, every page: the project's members include everyone inherited from its groups, often far more than 100.
+  const getAll = async (route) => {
+    const items = []
+    for (let page = 1; page <= 50; page++) {
+      const r = await get(`${route}${route.includes('?') ? '&' : '?'}per_page=100&page=${page}`)
+      if (r.error) return r
+      items.push(...r.data)
+      if (r.data.length < 100) break
+    }
+    return { data: items }
+  }
 
   const project = await get('')
   if (project.error) {
@@ -59,7 +70,7 @@ const doctor = async ({ api, files }) => {
     ? ok('Service Desk is on', 'anyone can email a request')
     : fail('Service Desk is on', 'off', 'Settings > General > Service Desk: turn it on (docs/setup.md, step 3).'))
 
-  const labels = await get('/labels?per_page=100')
+  const labels = await getAll('/labels')
   if (labels.error) checks.push(warn('labels exist', labels.error, 'Create the labels by hand (docs/setup.md, step 3).'))
   else {
     const have = new Set(labels.data.map((l) => l.name))
@@ -69,7 +80,7 @@ const doctor = async ({ api, files }) => {
       : ok('labels exist', LABELS.join(', ')))
   }
 
-  const vars = await get('/variables?per_page=100')
+  const vars = await getAll('/variables')
   if (vars.error) {
     checks.push(warn('LOCUS_GITLAB_TOKEN is set', `${vars.error} (this token cannot list CI variables)`, 'Check Settings > CI/CD > Variables by hand (docs/setup.md, step 4).'))
   } else {
@@ -86,7 +97,7 @@ const doctor = async ({ api, files }) => {
     }
   }
 
-  const members = await get('/members/all?per_page=100')
+  const members = await getAll('/members/all?query=ai-locus-request')
   if (members.error) checks.push(warn('the locus-request flow is enabled', members.error, 'Check Manage > Members for the flow service account.'))
   else {
     const account = members.data.map((m) => m.username).find((u) => FLOW_ACCOUNT.test(u))
@@ -101,7 +112,7 @@ const doctor = async ({ api, files }) => {
     }
   }
 
-  const schedules = await get('/pipeline_schedules?per_page=100')
+  const schedules = await getAll('/pipeline_schedules')
   if (schedules.error) checks.push(warn('reprints schedule', schedules.error, 'Check Build > Pipeline schedules by hand (docs/setup.md, step 7).'))
   else {
     let found = false
