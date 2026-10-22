@@ -1,5 +1,5 @@
 // `locus publish-package` and `locus release`: the `publish-package` and `release` CI jobs on the default branch
-// (projectLocus.md S.4 step 7; docs/contracts.md §3, §5, §6, D5). Both read only what the `bundle` job wrote:
+// (docs/contracts.md §3, §5, §6, D5). Both read only what the `bundle` job wrote:
 // out/bundle/graph-<iid>-v<n>/ (the seven contract files) and out/bundle/graph-<iid>-v<n>.zip.
 //   publish-package: uploads each bundle to the generic Package Registry as package `locus-graphs`, version
 //     graph-<iid>-v<n>, so the release, the site and the reply can link files that never expire.

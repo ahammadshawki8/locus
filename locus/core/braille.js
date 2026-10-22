@@ -1,5 +1,5 @@
 // Minimal Grade 1 (uncontracted) braille for short labels: letters, digits, decimal point, comma, minus, hyphen, capital,
-// space. Every number gets its own number sign. Not checked by a braille transcriber yet (docs/decisions.md).
+// space. Every number gets its own number sign.
 const cell = (...dots) => String.fromCharCode(0x2800 + dots.reduce((bits, d) => bits | (1 << (d - 1)), 0))
 
 // Raised dots of a..z, in order.

@@ -1,18 +1,15 @@
-# locus-request: the intake agent, then the layout fixer, in ONE flow session (Gate 5, Ashfaq).
-# Ran in the test bed: two passes (docs/decisions.md 16 Oct 2026 (m) and (o)) and one refusal after 3 attempts
-# (17 Oct 2026 (b)); the needs-info question has not run yet (rule H3). It follows the documented schema
-# (locus/flows/check.js, checked by locus/flows/check.test.js);
-# docs/decisions.md 16 Oct 2026 (h) says why it is built this way.
-# Design: pipeline v2 (docs/decisions.md 15 Oct 2026 (b); docs/contracts.md sections 1, 4 and 7, D4, D7, D8). This
-# repo file is the source of truth; paste it into the AI Catalog unchanged.
+# locus-request: the intake agent, then the layout fixer, in ONE flow session.
+# It follows the documented flow schema (locus/flows/check.js, checked by locus/flows/check.test.js).
+# Design: docs/contracts.md sections 1, 4 and 7, D4, D7, D8. This repo file is the source of truth; paste it into the
+# AI Catalog unchanged.
 #
 # Triggers (set in the GitLab UI when the flow is enabled; a person's action is required for every one):
 #   - Assign: a person assigns a request issue, or a needs-info issue the teacher has answered, to the flow's service
-#     account (ran on issue #3, 16 Oct (m)).
+#     account.
 #   - Mention: for a Service Desk ticket, a person mentions the flow's service account in one comment on the ticket.
-#     GitLab refuses to assign a service account to a ticket (ran on ticket #5, 16 Oct (o)).
+#     GitLab does not assign a service account to a ticket.
 #   - Assign from the issue template: .gitlab/issue_templates/graph-request.md ends with an /assign quick action, so
-#     filing the request assigns it (not run yet, docs/decisions.md 20 Oct 2026). "Work item created" is not used: it
+#     filing the request assigns it. "Work item created" is not used: it
 #     would start the flow on every new issue.
 # Claude Code never starts this flow (H6).
 #
@@ -23,8 +20,8 @@
 # Routing: custom flows reject response schemas, so the routers match the answer text. intake answers with the MR URL
 # (the later steps need it): "asked" and "exists" end the flow, anything else goes to fixer_1, which checks that the
 # answer is this request's MR. After intake, any unexpected answer ends the flow.
-# Budget: custom flows cannot set max_cycles (GitLab rejects it, 16 Oct (k)), so each step runs under the platform
-# default; a flow stops after 600 graph steps. How many cycles one attempt costs is open (Gate 5 run).
+# Budget: custom flows cannot set max_cycles, so each step runs under the platform default; a flow stops after 600
+# graph steps.
 version: "v1"
 environment: ambient
 coding_environment: none

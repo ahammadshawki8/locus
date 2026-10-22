@@ -1,14 +1,16 @@
 # locus
 
-The Locus package. Standalone (`npm --prefix locus ci`); uses the in-repo JSCAD through `file:../packages/modeling`.
+The Locus package: everything between a teacher's request and a released, deployed, printable graph. It is
+standalone (`npm --prefix locus ci`) and uses the in-repo JSCAD through `file:../packages/modeling`.
 
-| Folder | What | Status (16 Oct) |
-|---|---|---|
-| `core/` | schemas + validation, profile loader (`profiles/` at the repo root), polynomial (no `eval`), marks, braille + labels, scene (mm), JSCAD solid to watertight STL, SVG, description, render, bundle + manifest (`bundle.js`), zip writer (`zip.js`) | reproduces prototype prints A, B and C (`core/prints.test.js`, contracts D3); bundle + `bundle` CI job built |
-| `touchcheck/` | rules TL-1 to TL-5 (`rules/`), report + `LOCUS_REPORT` line, overlay renderer, `remedies.json` | all five measured; A fails, B and C pass; seeded fixtures in `fixtures/touchcheck/` |
-| `guards/` | `guard-scope`, `guard-maths`, `guard-description`, `guard-revert` | all four built + CI jobs (guard-revert on `revert/*` branches) |
-| `flows/` | `check.js`: checks `.gitlab/duo/flows/*.yml` against the Duo flow registry v1 schema, the custom-flow restrictions, the 40 KiB limit and the tool list (`tools.json`: docs + live GitLab.com list) | `locus-request`, `locus-ops` and `locus-probe` pass; `check.test.js` also pins each agent's write tools to contracts §7 and `locus-request`'s 3-attempt cap; no flow has run yet |
-| `site/` | graph library site + `build-info.json` (Shawki) | not started |
-| `cli/` | `npm run locus -- <spec.json>`, `npm run locus -- touchcheck <spec.json> [--attempt <n>]`, `npm run locus -- guard ...`, `npm run locus -- bundle <requests/<iid>>` (`cli/bundle.js`), `npm run locus -- recheck [--impact]` (`cli/recheck.js`), `npm run locus -- bisect` (`cli/bisect.js`, `cli/bisect-step.js`) | validates + renders; touch-checks the render output; bundles a request that passed touchcheck and the guards; re-checks every shipped graph (newest `graph-<iid>-v<n>` tag) with this code (`library-impact`, `library-recheck`); finds the first commit since a release after which a shipped graph fails (`bisect-regression`) |
+| Folder | What it does |
+|---|---|
+| `core/` | Spec schema and validation, the printer profile loader, a polynomial parser with an allowlist (no `eval`), marks, braille and labels, the scene in millimetres, JSCAD solids to a watertight STL (with a Manifold fallback), SVG, the learner description, the bundle and manifest, a zip writer. Reproduces prototype prints A, B and C exactly (`core/prints.test.js`) |
+| `touchcheck/` | Rules TL-1 to TL-5 (`rules/`), the report and its `LOCUS_REPORT` log line, the overlay drawing, `remedies.json` (the only fixes the agent may use). Seeded fixtures in `fixtures/touchcheck/` break each rule |
+| `guards/` | `guard-scope`, `guard-maths`, `guard-description`, `guard-revert`: deterministic CI checks on every agent change |
+| `release/` | `license-check`, `auto-merge`, `publish-package`, `release`, `reply-teacher`, `print-order`, `print-reprints`, and a small GitLab API client |
+| `site/` | The graph library site (3D plates, touch-check drawings, downloads, Request and Print again), and `validate-site`, the staging and post-deploy check |
+| `flows/` | `check.js`: checks `.gitlab/duo/flows/*.yml` against the Duo flow registry schema, the custom-flow limits and the tool list, and pins each agent's write tools to its allowed paths |
+| `cli/` | `npm run locus -- ...`: render, `touchcheck`, `guard`, `bundle`, `recheck`, `bisect`, every release command, `doctor`; and `setup.js` (`npm run setup`) |
 
-Tests: `npm run test:locus` from the repo root (node:test, `*.test.js`).
+Tests: `npm run test:locus` from the repository root (node:test, `*.test.js` next to the code).

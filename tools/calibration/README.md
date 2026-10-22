@@ -44,4 +44,4 @@ Regenerate with `npm install && npm run build`.
 3. Row C: are the low or high dots easier to read, and does either feel sharp?
 4. Can you count the index dots (1-5) without looking?
 
-Write the answers in `docs/decisions.md`, along with a photo. Ashfaq then updates the rule values and printer profile from these measured results instead of the published placeholders.
+Record the answers with a photo. The results confirm the printer profile: on 21 Oct 2026 the 1.2 mm raised curve and the 0.8 mm braille dots read best.

@@ -151,8 +151,8 @@ test('every committed flow that is not a design draft passes the check', () => {
   }
 })
 
-test('locus-request, locus-ops and locus-probe are real flow YAML, not design drafts', () => {
-  for (const name of ['locus-request.yml', 'locus-ops.yml', 'locus-probe.yml']) {
+test('locus-request and locus-ops are real flow YAML, not design drafts', () => {
+  for (const name of ['locus-request.yml', 'locus-ops.yml']) {
     assert.equal(isDraft(fs.readFileSync(path.join(flowsDir, name), 'utf8')), false, name)
   }
 })
@@ -175,7 +175,7 @@ test('locus-ops routes each triage answer, and anything else ends the flow', () 
   assert.deepEqual(triage.condition.routes, {
     impact: 'impact_reviewer',
     regression: 'regression_detective',
-    release: 'end', // release guard: Shawki, Gate 5c
+    release: 'end',
     none: 'end',
     default_route: 'end'
   })
@@ -278,7 +278,7 @@ test('the pass note gives the requester the bundle and the STL to download, the 
   assert.match(prompt, /Braille ID on the plate: G<n>/)
 })
 
-// The refusal note on #6 (docs/decisions.md 17 Oct (b)) led with generic suggestions that could not help a TL-1 tangent
+// An early refusal note led with generic suggestions that could not help a TL-1 tangent
 // touch; the refuse prompt now gives one suggestion per rule and asks for those of the rules that still fail only.
 test('the refuse prompt suggests what the teacher could change per failing rule, one line for every rule', () => {
   const remedies = require('../touchcheck/remedies.json')

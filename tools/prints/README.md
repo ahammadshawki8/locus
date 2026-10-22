@@ -1,6 +1,6 @@
 # Prototype prints
 
-These are the only graphs we print, all with profile `fdm-handheld-v1`:
+Four plates printed and tested by touch, all with profile `fdm-handheld-v1`:
 - **A and B:** the demo request in `spec.json` (y = -0.5x² + 2x + 1, x from -0.5 to 4.5; marks: vertex, y-intercept, positive x-intercept).
 - **C:** a second request in `spec-C.json` (y = 0.5x³ - 3x² + 4.5x + 2, x from -0.1 to 4; marks: both turning points, y-intercept). It shows Locus isn't a one-graph trick.
 
@@ -12,16 +12,16 @@ These are the only graphs we print, all with profile `fdm-handheld-v1`:
 
 Rebuild with `npm install && npm run build`. Each build rewrites all three STLs and `report.json`. The build also closes the T-junction seams the CSG union leaves, and stops if any mesh edge is still unpaired, so every STL is watertight.
 
-Generator rules that came out of making C (Ashfaq: keep them in `locus/core`):
+Generator rules that came out of making C, now part of `locus/core`:
 - A tick is left out when it would sit on a point mark or closer to the curve than the minimum line gap.
 - The x-axis counts when placing the graph: the lower of the curve and the x-axis sits 20 mm from the bottom.
 
-**Honesty note (for the video and README):** these are **prototype prints**, made on 15 Oct before the agent existed. They come from the same request and the same default and corrected layouts as the demo run. In the video, say so in a caption ("prototype prints of the same graph"), and show the agent's real run on screen. Don't call them the agent's printed output.
+**Prototype prints of the demo request.** They were printed on 15 and 16 Oct 2026 from the same request and the same default and corrected layouts that the agents use, and `locus/core` reproduces them exactly (`locus/core/prints.test.js`, contracts D3):
+- The placement rule (domain minimum 12 mm from the left edge; the lower of the curve and the x-axis 20 mm from the bottom) and the feature sizes are the generator's.
+- `layout-A.json` is the profile's default layout, so the agent's attempt 1 renders exactly print A.
+- The checks in `prints.js` were the first version of TL-1 to TL-5. They measure in plate millimetres and skip only the unavoidable stretch around a real crossing; a tangent still counts as too close.
 
-**For Ashfaq:**
-- Port the placement rule (domain minimum 12 mm from the left edge; the lower of the curve and the x-axis 20 mm from the bottom) and the feature sizes into `locus/core`.
-- Use `layout-A.json` as the profile's default layout. The agent's attempt 1 then renders exactly print A.
-- The checks in `prints.js` are a prototype of TL-1 to TL-5. They measure in plate millimetres and skip only the unavoidable stretch around a real crossing; a tangent still counts as too close.
+**Felt by hand:** print A, which the rules reject, could not be read where the curve meets the grid; prints B and C, which the rules accept, could. The calibration piece confirmed the 1.2 mm curve and the 0.8 mm braille dots.
 
 ## Printing
 

@@ -1,5 +1,5 @@
-// `locus reply-teacher <production url>`: the `reply-teacher` CI job, last on the default branch (projectLocus.md S.4
-// step 8, docs/contracts.md §8). For each graph this pipeline released (out/release/released.json), it posts the
+// `locus reply-teacher <production url>`: the `reply-teacher` CI job, last on the default branch (docs/contracts.md
+// §8). For each graph this pipeline released (out/release/released.json), it posts the
 // summary note on the request issue and closes it. On a Service Desk ticket, GitLab emails the note to the teacher.
 // It runs after post-deploy-smoke, so every link in the note already works. The note says it is automated: it is
 // posted with LOCUS_GITLAB_TOKEN, so GitLab shows it under Shawki's name (gitlab.js).
@@ -48,7 +48,7 @@ const runReply = async (args, env = process.env, api = fromEnv(env)) => {
     return 0
   }
   if (!env.LOCUS_GITLAB_TOKEN) {
-    console.error('reply-teacher: needs the masked CI variable LOCUS_GITLAB_TOKEN (HANDOVER.md section 7)')
+    console.error('reply-teacher: needs the masked CI variable LOCUS_GITLAB_TOKEN (docs/setup.md, step 4)')
     return 1
   }
   for (const tag of released) {

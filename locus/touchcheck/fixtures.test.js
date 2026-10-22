@@ -1,4 +1,4 @@
-// Gate 7: seeded bad fixtures fail correctly (and the good one passes). Each fixtures/touchcheck/<name>/ holds a request
+// Seeded bad fixtures fail correctly (and the good one passes). Each fixtures/touchcheck/<name>/ holds a request
 // (spec.json + layout.json) and expected.json with the rule it was seeded to break and the exact set of rules that fail.
 const test = require('node:test')
 const assert = require('node:assert')

@@ -1,4 +1,4 @@
-// `locus auto-merge`: the `auto-merge` CI job in a graph/<iid> MR pipeline (projectLocus.md S.4 step 6, contracts D7).
+// `locus auto-merge`: the `auto-merge` CI job in a graph/<iid> MR pipeline (docs/contracts.md D7).
 // In hands-off mode it asks GitLab to merge the MR when the pipeline succeeds (the merge API's auto_merge), pinned to
 // this pipeline's commit. GitLab, not this job, then decides: the project's "Pipelines must succeed" check refuses a
 // red pipeline, and a newer commit cancels the request. Agents have no merge tool, so the merge is this job's.
@@ -33,7 +33,7 @@ const runAutoMerge = async (env = process.env, api = fromEnv(env)) => {
     return 0
   }
   if (!env.LOCUS_GITLAB_TOKEN) {
-    console.error('auto-merge: hands-off needs the masked CI variable LOCUS_GITLAB_TOKEN (HANDOVER.md section 7); a person must merge this MR')
+    console.error('auto-merge: hands-off needs the masked CI variable LOCUS_GITLAB_TOKEN (docs/setup.md, step 4); a person must merge this MR')
     return 1
   }
   const mr = await api('GET', `/merge_requests/${p.iid}`, { auth: 'token' })

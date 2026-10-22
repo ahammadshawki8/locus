@@ -3,7 +3,7 @@ const assert = require('node:assert')
 
 const { checkScope, agentOf } = require('./scope')
 
-// What a flow's create_commit really records (locus-probe, 16 Oct (l)): the flow's display name as author and committer,
+// What a flow's create_commit really records (measured on GitLab): the flow's display name as author and committer,
 // and its service account's noreply email.
 const SA = (hash) => `service_account_group_121124982_${hash}@noreply.gitlab.com`
 const REQUEST = { authorName: 'locus-request', authorEmail: SA('aaaa1111'), committerName: 'locus-request', committerEmail: SA('aaaa1111') }
@@ -92,7 +92,7 @@ test('locus-request may commit only on graph/<iid>', () => {
   assert.match(violationsOf(result)[0], /only on graph\/<iid>/)
 })
 
-test('release guard: on rollback/<n> only deploy/gcp/production-revision', () => {
+test('rollback: on rollback/<n> locus-ops may change only deploy/gcp/production-revision', () => {
   assert.strictEqual(checkScope({ branch: 'rollback/7', commits: [commit(OPS, 'deploy/gcp/production-revision')] }).pass, true)
   const bad = checkScope({ branch: 'rollback/7', commits: [commit(OPS, 'deploy/gcp/production-revision', '.gitlab-ci.yml')] })
   assert.deepStrictEqual(bad.violations.map((v) => v.path), ['.gitlab-ci.yml'])

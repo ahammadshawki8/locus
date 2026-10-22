@@ -1,4 +1,4 @@
-// `locus bisect`: the entry point of the bisect-regression CI job (projectLocus.md S.4 step 10, §13).
+// `locus bisect`: the entry point of the bisect-regression CI job.
 //   locus bisect [--recheck <report.json>] [--out <dir>]
 // Reads library-recheck's report (default out/recheck/report.json; it must be for this commit). For each shipped graph
 // that failed there, it finds the first commit, between the graph's release commit (where it passed) and HEAD, with

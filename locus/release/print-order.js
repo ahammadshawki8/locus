@@ -1,5 +1,5 @@
 // `locus print-order <production url>`: the `print-order` CI job, after reply-teacher on the default branch
-// (docs/decisions.md 21 Oct (l)). Off unless PRINT_ORDER_ENABLED=true. For each graph this pipeline released, it emails
+// Off unless PRINT_ORDER_ENABLED=true. For each graph this pipeline released, it emails
 // the print shop an order with the STL attached and the print settings written out, then notes on the request that
 // the order went out. Nothing is paid or confirmed: the shop replies to the teacher.
 //   PRINT_ORDER_TO             the school's print shop

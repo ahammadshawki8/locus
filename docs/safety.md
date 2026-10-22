@@ -11,8 +11,10 @@
 - **Reversible lifecycle actions.** Rollback is a one-line revision pointer change, reviewed by the pipeline.
   A regression revert must be the exact inverse of the commit `bisect-regression` found (`guard-revert`).
 - **No code from requests.** Expressions are parsed against an allowlist; nothing is `eval`-ed.
-- **Secrets** live only in protected, masked CI variables. Secret detection and SAST run on every pipeline.
-- **Humans stay responsible for the physical output.** Every bundle states that automated checks don't certify comprehension.
+- **Secrets** live only in masked, hidden CI variables, and Google Cloud has no key at all (Workload Identity
+  Federation). Secret Detection and SAST run on every pipeline.
+- **The teacher stays in charge of the lesson.** Every bundle's README says what the checks measure, so the print is
+  always used with a teacher's judgement.
 
 ## Guards
 

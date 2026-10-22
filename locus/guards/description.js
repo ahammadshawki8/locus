@@ -1,4 +1,4 @@
-// guard-description: every number in the learner description is a computed value (projectLocus.md §5, §11).
+// guard-description: every number in the learner description is a computed value.
 // The description may be written by an agent, so it is read as free text. Every number in it must be one of:
 //   a coefficient of the locked polynomial (with or without its sign) or a power after "^" up to its degree;
 //   an end of the locked domain;

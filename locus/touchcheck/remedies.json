@@ -1,5 +1,5 @@
 {
-  "description": "Allowed fixes per touchcheck rule (projectLocus.md §10). The fixer agent may apply only these, and only to layout.json. An empty list means refuse. Each failing result in touchcheck-report.json lists its rule's fix ids as allowedFixes (docs/contracts.md §4).",
+  "description": "Allowed fixes per touchcheck rule (docs/touch-rules.md). The fixer agent may apply only these, and only to layout.json. An empty list means refuse. Each failing result in touchcheck-report.json lists its rule's fix ids as allowedFixes (docs/contracts.md §4).",
   "rules": {
     "TL-1": [
       { "id": "rescale-x", "edits": ["xScaleMm"] },

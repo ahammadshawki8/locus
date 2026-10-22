@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cloud Run steps of the default-branch pipeline (projectLocus.md S.4 step 7; docs/contracts.md §9). Runs in the
+# Cloud Run steps of the default-branch pipeline (docs/contracts.md §9). Runs in the
 # google/cloud-sdk image. Login is keyless: GitLab's ID token GITLAB_OIDC_TOKEN, exchanged through Workload Identity
 # Federation for the deploy service account (deploy/gcp/setup.sh). Needs GCP_PROJECT_ID, GCP_REGION, GCP_WIF_PROVIDER,
 # GCP_SERVICE_ACCOUNT and CI_PIPELINE_ID. One Cloud Run service, `locus-site`:
@@ -8,7 +8,7 @@
 #   deploy/gcp/deploy.sh promote   give production traffic to the revision deploy/gcp/production-revision names, or,
 #                                  when it says UNSET, to this pipeline's validated revision; writes PRODUCTION_URL,
 #                                  PROMOTED (true when this pipeline's revision now serves production) to promote.env
-# The pointer file is how a person or the release guard pins production (rollback); while it names a revision, new
+# The pointer file is how production is pinned (rollback), through a merge request; while it names a revision, new
 # releases are still built and checked on staging but production stays where the pointer says.
 set -euo pipefail
 
