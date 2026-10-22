@@ -1,0 +1,14 @@
+{
+  "graph": {
+    "type": "polynomial",
+    "coeffs": [0, 0.5, -2, 3],
+    "domain": {
+      "min": -0.5,
+      "max": 4.5
+    }
+  },
+  "mark": [
+    "vertex",
+    "y-intercept"
+  ]
+}
