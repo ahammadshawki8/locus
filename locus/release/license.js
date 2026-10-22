@@ -1,4 +1,4 @@
-// `locus license-check`: the `license-check` CI job (projectLocus.md §13; `release` needs it, docs/contracts.md §6).
+// `locus license-check`: the `license-check` CI job (`release` needs it, docs/contracts.md §6).
 // Every package that Locus installs to run (locus/package-lock.json, dev dependencies left out) must carry a licence
 // from ALLOWED, read from the installed package's own package.json. A package that is not installed, or has no
 // licence, fails: the check never assumes. Writes out/license/report.json and prints `LOCUS_LICENSE <json>`.
@@ -6,7 +6,7 @@
 const fs = require('fs')
 const path = require('path')
 
-// Permissive licences only, so the bundles and the site can be shipped under MIT (projectLocus.md, Path B).
+// Permissive licences only, so the bundles and the site can be shipped under MIT.
 const ALLOWED = ['MIT', 'ISC', 'BSD-2-Clause', 'BSD-3-Clause', 'Apache-2.0', '0BSD']
 
 /** The licence ids in an SPDX expression like "(MIT OR Apache-2.0)". */

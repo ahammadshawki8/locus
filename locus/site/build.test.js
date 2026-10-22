@@ -4,7 +4,7 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 
-const { writeSite, fetchShipped, readRequest } = require('./build')
+const { writeSite, fetchShipped, readRequest, agentFromTemplate } = require('./build')
 const { gitlab } = require('../release/gitlab')
 const { sha256, LIMITATIONS } = require('../core/bundle')
 
@@ -94,13 +94,17 @@ test('the site has a page per shipped graph at /graphs/<artifactId>/, the downlo
   assert.match(about, /"stl":"\/graphs\/graph-12-v1\/graph\.stl"/)
   assert.match(about, /<script type="module" src="\/assets\/scene\.js">/)
   assert.match(about, /Subject: Tactile graph: projectile/)
-  assert.match(about, /HANDOVER\.md#13-moving-the-agent-to-the-team-project/)
+  assert.match(about, /docs\/setup\.md"/)
+  assert.match(about, /docs\/architecture\.md"/)
   assert.ok(!/LOCUS_GITLAB_TOKEN|setup\.sh/.test(about), 'no technical setup on the About page')
   // Collections: every graph, newest first
   const collections = fs.readFileSync(path.join(pub, 'collections', 'index.html'), 'utf8')
   assert.match(collections, /href="\/graphs\/graph-12-v1\/"[\s\S]*href="\/graphs\/graph-7-v2\/"/)
   // the nav: About, Request, Collections, Credits, then the GitLab mark; no footer
-  assert.match(index, /<a href="\/about\/">About<\/a><a href="\/request\/">Request<\/a><a href="\/collections\/">Collections<\/a><a href="\/credits\/">Credits<\/a><a class="gitlab" href="https:\/\/gitlab\.com\/[^"]+" aria-label="Locus on GitLab"><svg/)
+  assert.match(index, /<a href="\/about\/">About<\/a><a href="\/request\/">Request<\/a><a href="\/collections\/">Collections<\/a><a href="\/credits\/">Credits<\/a><a class="gitlab" href="https:\/\/gitlab\.example\/g\/p" aria-label="Locus on GitLab"><svg/)
+  // the agent the Request page assigns comes from the request template's /assign line
+  assert.strictEqual(agentFromTemplate('Function:\n/label ~locus-request\n/assign @ai-locus-request-x_1\n'), 'ai-locus-request-x_1')
+  assert.strictEqual(agentFromTemplate('no assign line'), null)
   assert.ok(!/<footer/.test(index) && !/class="flash"/.test(index))
   // the logo: the five-dot mark next to the wordmark, and the same mark as the favicon
   assert.match(index, /<a class="brand" href="\/" aria-label="Locus, home"><svg class="mark"[^>]*>(?:<g fill="currentColor">)(?:<circle [^>]*\/>){5}<\/g><\/svg><span class="word">locus<\/span><\/a>/)

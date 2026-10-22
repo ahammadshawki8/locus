@@ -1,6 +1,6 @@
 # Seeded touchcheck fixtures (FIXTURE)
 
-Requests built to break one touch rule each, plus one that passes (Gate 7: "seeded bad fixtures fail correctly").
+Requests built to break one touch rule each, plus one that passes.
 All start from the demo request and print B's corrected layout (`tools/prints/`), profile `fdm-handheld-v1`, and change
 one thing. Every `expected.json` says `"fixture": true`, names the rule it was `seeded` to break (`null` for the good
 one), lists the exact rules that must `fail`, and says `why` in plain words. `locus/touchcheck/fixtures.test.js` renders

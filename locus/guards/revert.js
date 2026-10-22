@@ -1,5 +1,5 @@
 // guard-revert: a revert/<sha> branch holds one commit, and that commit is the exact inverse of <sha>, the commit
-// bisect-regression named (docs/contracts.md §7, projectLocus.md §11). Exact means the diff reversed:
+// bisect-regression named (docs/contracts.md §7). Exact means the diff reversed:
 //   - the same paths that <sha> changed against its first parent, and no others;
 //   - for each of them, the branch's base still holds <sha>'s version (mode + blob), and the branch's commit puts back
 //     the version from before <sha> (a file <sha> added is deleted, one it deleted comes back).

@@ -38,7 +38,7 @@ test('quick actions: the locus-request label and an assign to the locus-request 
   const assignees = actions[1].split(' ').slice(1)
   assert.strictEqual(assignees.length, 1)
   // GitLab adds a _<hex> suffix when the group already has a flow account of that name: the team project's
-  // locus-request is ai-locus-request-gitlab-ai-hackathon_b127f8 (docs/decisions.md 21 Oct (b)).
+  // locus-request is ai-locus-request-gitlab-ai-hackathon_b127f8.
   const flow = assignees[0].match(/^@ai-([a-z-]+?)-gitlab-ai-hackathon(?:_[0-9a-f]+)?$/)
   assert.ok(flow, `${assignees[0]} is not a flow service account (ai-<flow>-<group>[_<suffix>])`)
   assert.strictEqual(flow[1], 'locus-request')

@@ -1,9 +1,9 @@
 // guard-scope: every agent commit stays inside that agent's allowed paths, on that agent's branch
-// (docs/contracts.md §7, projectLocus.md §11). Each Duo flow commits as its own service account, so the commit author
+// (docs/contracts.md §7). Each Duo flow commits as its own service account, so the commit author
 // (or committer, see agentOf) says which flow made it; the branch and the commit's place on it say which agent of that flow:
 //   locus-request on graph/<iid>: the first commit (intake) may write requests/<iid>/{spec.json, request.lock.json,
 //     layout.json}; every later commit (fixer) may change only requests/<iid>/layout.json.
-//   locus-ops on rollback/<n> (release guard): only deploy/gcp/production-revision.
+//   locus-ops on rollback/<n>: only deploy/gcp/production-revision.
 //   locus-ops on revert/<sha> (regression detective): only paths that commit <sha> changed; guard-revert checks that
 //     the content is the exact inverse.
 //   The impact reviewer writes MR notes only, so locus-ops commits anywhere else fail.

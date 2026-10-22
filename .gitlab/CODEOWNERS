@@ -1,18 +1,17 @@
-# PLACEHOLDER OWNERS: replace @locus-maintainer with the real GitLab usernames once hackathon onboarding gives us
-# accounts (tracked in the projectLocus.md S.3 status board). GitLab silently ignores unknown owners, so these rules do nothing until then.
+# The touch rules, guards, pipeline, agents, deploy and contracts are reviewed by the maintainers.
 
 [Touch rules and safety]
-/locus/touchcheck/ @locus-maintainer
-/profiles/ @locus-maintainer
-/locus/guards/ @locus-maintainer
+/locus/touchcheck/ @ahammadshawki8 @Ashfaq909
+/profiles/ @ahammadshawki8 @Ashfaq909
+/locus/guards/ @ahammadshawki8 @Ashfaq909
 
 [Pipeline and agents]
-/.gitlab-ci.yml @locus-maintainer
-/.gitlab/ @locus-maintainer
+/.gitlab-ci.yml @ahammadshawki8 @Ashfaq909
+/.gitlab/ @ahammadshawki8 @Ashfaq909
 
 [Deploy]
-/deploy/ @locus-maintainer
+/deploy/ @ahammadshawki8 @Ashfaq909
 
 [Contracts]
-/docs/contracts.md @locus-maintainer
-/fixtures/ @locus-maintainer
+/docs/contracts.md @ahammadshawki8 @Ashfaq909
+/fixtures/ @ahammadshawki8 @Ashfaq909

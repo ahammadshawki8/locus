@@ -47,7 +47,7 @@ test('a mesh where one point got two ids (print B with the grid on) is welded an
   assert.strictEqual(watertightTriangles(out.solid).openAfter, 0)
 })
 
-// Requests a teacher could send (16 Oct (n)): the cubic for the second Gate 5 run left one open edge before the weld
+// Requests a teacher could send: a steep cubic once left one open edge before the weld
 // also merged near copies that are not on an open edge themselves. Each must render a closed STL.
 const request = (coeffs, min, max, mark, requestId = 4) =>
   ({ schemaVersion: 3, requestId, graph: { type: 'polynomial', coeffs, domain: { min, max } }, mark, labels: 'braille-grade1', profileId: 'fdm-handheld-v1' })

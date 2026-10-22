@@ -3,7 +3,7 @@
 //   - CI_JOB_TOKEN (header JOB-TOKEN): packages, releases and reads in this project.
 //   - LOCUS_GITLAB_TOKEN (header PRIVATE-TOKEN): Shawki's personal access token, a masked and hidden CI variable, for
 //     the two calls the job token cannot make: merging an MR and posting a note. Project access tokens are not
-//     available in the hackathon workspace (GitLab, docs/decisions.md 20 Oct (i)), so these calls show as Shawki.
+//     available in the hackathon workspace, so these calls show as the token owner.
 // `fetch` is injected so tests run without a network.
 
 class GitLabError extends Error {

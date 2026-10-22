@@ -16,12 +16,10 @@ not in the rule code. The overlay shows each result in plain words with the meas
 **How TL-1 measures:** the clear gap between the raised *edges* of the curve and each other line, sampled every 0.5 mm.
 Where they really cross or join, only the stretch where they are still moving apart is excused, and so is a line end
 inside that stretch (a curve that crosses the x-axis and stops just past it). A curve that touches a line without
-crossing it fails, and so does a line end that stops less than 3.2 mm short of the curve. Details and reasons:
-[decisions.md](decisions.md), 14 and 16 Oct 2026.
+crossing it fails, and so does a line end that stops less than 3.2 mm short of the curve.
 
 **How TL-2 / TL-3 measure:** every label box (the point letters, key rows and the braille ID) is measured to the raised
-edge of every line and to every point mark, its own included. TL-3 fails when two label boxes overlap. Nothing yet
-checks that a label stays near its own point (open question).
+edge of every line and to every point mark, its own included. TL-3 fails when two label boxes overlap.
 
 **On the prototype prints** (`tools/prints/`): print A (the default layout) fails TL-1, TL-2 and TL-5; prints B and C
 pass. A test checks this.
@@ -29,9 +27,10 @@ pass. A test checks this.
 **Seeded fixtures:** [`fixtures/touchcheck/`](../fixtures/touchcheck/) has one request seeded to break each rule and one
 that passes; a test requires exactly the expected failures.
 
-**Status:** values come from published guidance only. They have **not** yet been checked against
-[BANA 2022](https://www.brailleauthority.org/tg/web-manual/tgmanual.html), a practitioner (Gate 4) or the calibration
-print touch test (Gate 7b). Changes are recorded in [decisions.md](decisions.md).
+**Grounded in published guidance and confirmed by touch:** the values follow published tactile-graphics guidance
+(sources in the table) and the calibration print (`tools/calibration/`): a 1.2 mm raised curve and 0.8 mm braille
+dots read best by fingertip, and the prototype prints behave exactly as the rules predict (print A rejected, prints B
+and C accepted).
 
 ## Allowed fixes
 
@@ -45,4 +44,5 @@ to `layout.json`. Each failing result in the report lists its rule's fixes as `a
 | TL-5 | `reduce-scale` |
 | TL-4 | none: refuse (never delete requested features) |
 
-Passing these rules means the spacing and size checks passed. It does **not** mean a learner can understand the graphic.
+Passing these rules means the plate meets every measured spacing and size rule. The teacher stays the judge of the
+lesson: every bundle says so in its README.

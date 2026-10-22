@@ -1,4 +1,4 @@
-// Fallback mesh step (docs/decisions.md 20 Oct 2026): when the JSCAD union leaves open edges that stl.js cannot close,
+// Fallback mesh step: when the JSCAD union leaves open edges that stl.js cannot close,
 // Manifold (manifold-3d 3.2.1, Apache-2.0, https://github.com/elalish/manifold) unions the same JSCAD parts and returns
 // a mesh that is closed by construction, cut to the plate's footprint as clipToPlate cuts the JSCAD solid. Manifold's
 // WebAssembly loads only asynchronously, so it runs in a child process (manifold-worker.mjs) and render stays

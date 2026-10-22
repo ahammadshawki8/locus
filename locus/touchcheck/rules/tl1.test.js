@@ -36,7 +36,7 @@ test('the curve at least the minimum gap from a line passes', () => {
   assert.deepStrictEqual(result.violations, [])
 })
 
-test('only the curve is checked: two other lines close together are not a TL-1 problem (projectLocus.md §10)', () => {
+test('only the curve is checked: two other lines close together are not a TL-1 problem', () => {
   const result = checkLineGap(sceneOf(grid('a', [[0, 0], [50, 0]]), grid('b', [[0, 2], [50, 2]]), curve([[0, 30], [50, 30]])), profile)
   assert.deepStrictEqual(result.violations, [])
 })

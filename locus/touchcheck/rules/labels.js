@@ -1,7 +1,7 @@
 // TL-2 (label clearance): every braille label box (point letters, key rows, the braille ID) is at least
 // `minLabelClearanceMm` clear of every raised line edge and at least `minLabelPointClearanceMm` clear of every point
 // mark, its own included (docs/contracts.md §2; tools/prints/prints.js). TL-3 (label overlap): no two label boxes
-// overlap (projectLocus.md §10).
+// overlap (docs/touch-rules.md).
 const { polyline, nearestToRect, clampToRect, dist } = require('../geometry')
 
 const round2 = (v) => Math.round(v * 100) / 100

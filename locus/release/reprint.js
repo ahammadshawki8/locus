@@ -1,5 +1,5 @@
 // `locus print-reprints`: the `print-reprints` CI job, on a pipeline schedule (every 30 minutes, LOCUS_SCHEDULE=reprints;
-// docs/decisions.md 21 Oct (n)). A teacher asks for more copies of a released graph from its page ("Print again"),
+// docs/setup.md, step 7). A teacher asks for more copies of a released graph from its page ("Print again"),
 // which emails the project an issue "Reprint: graph-<iid>-v<n>, <copies> copies" labelled `reprint`. GitLab cannot start
 // a pipeline when an issue is opened, and agents cannot send mail, so this job collects the open `reprint` issues,
 // emails the school's print shop (PRINT_ORDER_TO, the same settings as print-order) the released STL and the print

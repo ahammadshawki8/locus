@@ -2,7 +2,7 @@
 //   locus site [--out out/site]
 // Every shipped graph is the newest release graph-<iid>-v<n> of a request (contracts D5). Its files come from the
 // Package Registry, where `release` put them, so the site serves exactly what was released, never a re-render.
-// Writes out/site/public/: index.html (the library: the plates floating in a 3D carousel), how-it-works/, credits/,
+// Writes out/site/public/: index.html (the library: the plates floating in a 3D carousel), about/, request/, collections/, credits/,
 // graphs/<artifactId>/{index.html, graph.svg, overlay.svg, graph.stl, description.txt, manifest.json, <id>.zip},
 // assets/ (site.css, hud.js, scene.js), build-info.json; and out/site/{Dockerfile, nginx.conf}.
 // Design: a CRT television showing the library, after arcmarumo.com (layout and effects; the code is our own). Every
@@ -20,8 +20,16 @@ const { toBraille } = require('../core/braille')
 const SITE_FILES = ['graph.svg', 'overlay.svg', 'graph.stl', 'description.txt', 'manifest.json']
 const ASSETS = ['site.css', 'hud.js', 'scene.js', 'logo.svg']
 const JSCAD = 'https://github.com/jscad/OpenJSCAD.org'
-const PROJECT = 'https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase'
-const AGENT = 'ai-locus-request-gitlab-ai-hackathon_b127f8'
+// The GitLab project and the locus-request flow's service account. writeSite sets them from the pipeline
+// (CI_PROJECT_URL) and from the request template's /assign line, so a team that deploys its own Locus links to its
+// own project; these defaults are the Locus project.
+const site = {
+  project: 'https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43384339/showcase',
+  agent: 'ai-locus-request-gitlab-ai-hackathon_b127f8'
+}
+const TEMPLATE = path.join(__dirname, '..', '..', '.gitlab', 'issue_templates', 'graph-request.md')
+/** The flow account the request template assigns (its /assign line), or null. */
+const agentFromTemplate = (text) => (/^\/assign @(\S+)/m.exec(text) || [])[1] || null
 const THREE_VERSION = '0.160.0'
 
 const escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
@@ -73,7 +81,7 @@ ${content}
 <header class="hud top">
   <div class="group"><a href="/"${current === 'home' ? ' aria-current="page"' : ''}>Home</a><span class="dim hide-s" data-timecode aria-hidden="true">00:00:00</span></div>
   <a class="brand" href="/" aria-label="Locus, home">${LOGO_MARK}<span class="word">locus</span></a>
-  <nav aria-label="Site">${NAV.map(([href, label]) => `<a href="${href}"${current === href ? ' aria-current="page"' : ''}>${label}</a>`).join('')}<a class="gitlab" href="${PROJECT}" aria-label="Locus on GitLab">${GITLAB_MARK}</a></nav>
+  <nav aria-label="Site">${NAV.map(([href, label]) => `<a href="${href}"${current === href ? ' aria-current="page"' : ''}>${label}</a>`).join('')}<a class="gitlab" href="${site.project}" aria-label="Locus on GitLab">${GITLAB_MARK}</a></nav>
 </header>
 ${loader ? `<div class="loader" role="status" aria-label="Loading the plates"><div class="row"><span>Loading</span><span data-count>0</span></div><div class="bar"><div class="fill"></div></div></div>` : ''}
 </div>
@@ -267,12 +275,12 @@ const ICON = {
 }
 const icon = (name) => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON[name]}</svg>`
 
-const DOCS = {
-  readme: `${PROJECT}#readme`,
-  how: `${PROJECT}/-/blob/main/docs/how-it-works.md`,
-  setup: `${PROJECT}/-/blob/main/HANDOVER.md#13-moving-the-agent-to-the-team-project`,
-  variables: `${PROJECT}/-/blob/main/HANDOVER.md#7-ci-variables-names-only-h8`
-}
+const docs = () => ({
+  readme: `${site.project}#readme`,
+  how: `${site.project}/-/blob/main/docs/architecture.md`,
+  setup: `${site.project}/-/blob/main/docs/setup.md`,
+  variables: `${site.project}/-/blob/main/docs/setup.md#4-cicd-variables`
+})
 
 /** About: what Locus is and how to use it, in plain words. The technical setup lives in the repository's docs. */
 const aboutPage = (newest) => textPage({
@@ -299,7 +307,7 @@ const aboutPage = (newest) => textPage({
   <li>${icon('write')}<span class="n">1</span><h3>Write what you are teaching</h3><p>A function and the points your students should find, or just today's topic, in your own words. The <a href="/request/">Request page</a> turns it into an email.</p></li>
   <li>${icon('draw')}<span class="n">2</span><h3>Locus draws the plate</h3><p>An AI agent reads your email and lays out the graph: raised lines, a dome on each point, and braille labels.</p></li>
   <li>${icon('check')}<span class="n">3</span><h3>It is checked by touch</h3><p>Before anything is sent, five rules measure the plate the way a fingertip reads it. If a rule fails, the agent fixes the layout and checks again.</p></li>
-  <li>${icon('print')}<span class="n">4</span><h3>You print it</h3><p>About ten minutes later you get a reply with the print file. If your school has a print shop connected, the order goes to them too.</p></li>
+  <li>${icon('print')}<span class="n">4</span><h3>You print it</h3><p>Minutes later you get a reply with the print file. If your school has a print shop connected, the order goes to them too.</p></li>
 </ol>
 
 <h2>What you get back</h2>
@@ -322,18 +330,18 @@ const aboutPage = (newest) => textPage({
 
 <h2>Good to know</h2>
 <ul class="gets">
-  <li><h3>Some graphs are refused</h3><p>If a curve only touches an axis, a fingertip feels one line there. Locus explains why and prints nothing, rather than send a plate that cannot be read.</p></li>
+  <li><h3>Unreadable graphs are never sent</h3><p>If a curve only touches an axis, a fingertip would feel one line there. Locus explains why and suggests what to change, instead of sending a plate that cannot be read.</p></li>
   <li><h3>Every plate has an ID</h3><p>A braille number in the top-right corner leads back to the graph's page. Hold the plate with the raised triangle at the top-left.</p></li>
-  <li><h3>The checks are not a promise</h3><p>The rules measure spacing and size; they do not certify that a learner will understand the graphic. A teacher's judgement still comes first.</p></li>
+  <li><h3>The teacher stays in charge</h3><p>The rules measure the spacing and sizes a fingertip needs. How the graph fits the lesson is the teacher's call, and every plate comes with a description to guide it.</p></li>
 </ul>
 
 <h2>For schools setting it up</h2>
-<p class="wide-p">Locus runs in your own GitLab project and publishes to your own Google Cloud. The setup takes about an hour, once, and is written up in the project's documentation:</p>
+<p class="wide-p">Locus runs in your own GitLab project and publishes to your own Google Cloud. The setup takes under an hour, once, and is written up in the project's documentation:</p>
 <ul class="doclinks">
-  <li><a href="${DOCS.readme}">The Locus project on GitLab</a></li>
-  <li><a href="${DOCS.how}">How Locus works, in diagrams</a></li>
-  <li><a href="${DOCS.setup}">Setting up the agents in your project</a></li>
-  <li><a href="${DOCS.variables}">Settings, including print orders</a></li>
+  <li><a href="${docs().readme}">The Locus project on GitLab</a></li>
+  <li><a href="${docs().how}">How Locus works, in diagrams</a></li>
+  <li><a href="${docs().setup}">Setting up Locus in your project</a></li>
+  <li><a href="${docs().variables}">Settings, including print orders</a></li>
 </ul>`
 })
 
@@ -411,7 +419,7 @@ const requestPage = () => textPage({
   wide: true,
   body: `<h1>Request a graph</h1>
 <p class="lead">Write what you are teaching, in your own words: a function, or just today's topic. This page turns it into an email Locus can act on and opens it in your mail, ready to send. Nothing is sent until you press Send there.</p>
-<form class="request" data-request data-agent="${AGENT}" onsubmit="return false">
+<form class="request" data-request data-agent="${site.agent}" onsubmit="return false">
   <div>
     <div class="field">
       <div class="label-row"><label for="note">What do you need?</label><button type="button" class="speak" data-speak aria-pressed="false" hidden><span class="dot" aria-hidden="true"></span><span data-speak-label>Speak</span></button></div>
@@ -431,7 +439,7 @@ const requestPage = () => textPage({
     <div class="field">
       <label for="to">Your Locus address</label>
       <input id="to" name="to" type="email" autocomplete="off" placeholder="the address from your Locus project">
-      <p class="help">In your Locus project on GitLab: Issues, the three-dot menu, "Email a new issue". It is private to you, so it is kept only in this browser and never sent anywhere else. <a href="${DOCS.setup}">Setting up Locus</a></p>
+      <p class="help">In your Locus project on GitLab: Issues, the three-dot menu, "Email a new issue". It is private to you, so it is kept only in this browser and never sent anywhere else. <a href="${docs().setup}">Setting up Locus</a></p>
     </div>
     <details class="more"><summary>Agent account</summary>
       <div class="field" style="margin-top:14px">
@@ -458,6 +466,8 @@ const summaryOf = (description) => (description.trim().split(/(?<=\.)\s/)[0] || 
  * Each file's sha256 must match the manifest's hash where it has one, so a corrupted download never ships.
  */
 const writeSite = (outDir, { graphs, buildInfo, projectUrl, printOrders = { enabled: false } }) => {
+  if (projectUrl) site.project = projectUrl
+  if (fs.existsSync(TEMPLATE)) site.agent = agentFromTemplate(fs.readFileSync(TEMPLATE, 'utf8')) || site.agent
   fs.rmSync(outDir, { recursive: true, force: true })
   const pub = path.join(outDir, 'public')
   const write = (rel, data) => {
@@ -542,4 +552,4 @@ const runSite = async (args, env = process.env, api = fromEnv(env)) => {
   return 0
 }
 
-module.exports = { writeSite, fetchShipped, runSite, summaryOf, readRequest, maskEmail, checkDrawing, SITE_FILES }
+module.exports = { writeSite, fetchShipped, runSite, summaryOf, readRequest, maskEmail, checkDrawing, agentFromTemplate, SITE_FILES }

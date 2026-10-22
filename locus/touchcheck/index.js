@@ -6,7 +6,7 @@ const { checkInventory } = require('./rules/tl4')
 const { checkPrintable } = require('./rules/tl5')
 const remedies = require('./remedies.json')
 
-// Plain words per rule (projectLocus.md §10). These are the report's `message` and what the video shows.
+// Plain words per rule (docs/touch-rules.md). These are the report's `message` and what the video shows.
 const MESSAGES = {
   'TL-1': 'These lines are too close: a fingertip feels one line',
   'TL-2': 'This label touches a line',

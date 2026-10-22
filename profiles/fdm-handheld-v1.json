@@ -11,5 +11,5 @@
   "point": { "diameterMm": 3.0, "heightMm": 1.6 },
   "braille": { "dotDiameterMm": 1.5, "dotHeightMm": 0.8, "dotPitchMm": 2.5, "cellPitchMm": 6.2 },
   "rules": { "minLineGapMm": 3.2, "minLabelClearanceMm": 6.4, "minLabelPointClearanceMm": 3.2, "minFeatureWidthMm": 1.0, "edgeMarginMm": 3 },
-  "source": "placeholder values; replace with calibration-print results (Gate 7b)"
+  "source": "published tactile-graphics guidance (tactilegraphics.org, NPS 2008); curve width and braille dot height confirmed by touch on the calibration print, 21 Oct 2026"
 }

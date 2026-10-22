@@ -1,4 +1,4 @@
-// guard-maths: the graph shows exactly the maths the teacher asked for (projectLocus.md §11, docs/contracts.md §1).
+// guard-maths: the graph shows exactly the maths the teacher asked for (docs/contracts.md §1).
 //   1. spec.json still equals request.lock.json (graph + mark).
 //   2. request.lock.json was written once, in the branch's first commit, and never changed after (or not at all on
 //      this branch, if it already existed at the base).

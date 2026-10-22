@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
-# One-time Google Cloud setup for Locus (Gate 6b). Run it in Cloud Shell (https://shell.cloud.google.com) as the
+# One-time Google Cloud setup for Locus. Run it in Cloud Shell (https://shell.cloud.google.com) as the
 # billing account's owner:
-#   bash setup.sh <new-project-id> <billing-account-id>
+#   bash setup.sh <new-project-id> <billing-account-id> [<gitlab group/project path>]
 # The billing account id looks like 0X0X0X-0X0X0X-0X0X0X (Billing > Overview, or `gcloud billing accounts list`).
 # It is safe to run again: every step skips what already exists.
 #
 # What it makes:
 #   - a project linked to the billing account, with Cloud Run, Cloud Build and Artifact Registry turned on
 #   - a deploy service account that GitLab CI uses through Workload Identity Federation: no key file exists anywhere.
-#     Only pipelines of our team project on its protected main branch can use it (the attribute condition below).
+#     Only pipelines of your GitLab project (the third argument) on its protected main branch can use it.
 #   - a 5 USD monthly budget that emails the billing admins at 50%, 90% and 100%
 # At the end it prints the four values for .gitlab-ci.yml (none of them is a secret).
 set -euo pipefail
 
-PROJECT_ID="${1:?usage: bash setup.sh <new-project-id> <billing-account-id>}"
-BILLING="${2:?usage: bash setup.sh <new-project-id> <billing-account-id>}"
+USAGE="usage: bash setup.sh <new-project-id> <billing-account-id> [<gitlab group/project path>]"
+PROJECT_ID="${1:?$USAGE}"
+BILLING="${2:?$USAGE}"
 REGION="us-central1"
-GITLAB_PROJECT="gitlab-ai-hackathon/transcend-october-2026/43384339/showcase"
+# The GitLab project whose main-branch pipelines may deploy (default: the Locus project).
+GITLAB_PROJECT="${3:-gitlab-ai-hackathon/transcend-october-2026/43384339/showcase}"
 POOL="gitlab"
 PROVIDER="gitlab-com"
 SA_NAME="locus-deploy"

@@ -1,6 +1,6 @@
 // TL-1 line gap: the curve keeps at least `minLineGapMm` of clear space between its raised edge and the edge of every
-// other line (axes, ticks, grid), except where they really meet (projectLocus.md §10). How a real meeting is told
-// apart from lines running together: docs/decisions.md (14 Oct 2026, and 16 Oct 2026 for line ends).
+// other line (axes, ticks, grid), except where they really meet (docs/touch-rules.md). How a real meeting is told
+// apart from lines running together: docs/touch-rules.md, "How TL-1 measures".
 const { polyline, nearestOnPolyline, boundsGap, intersections, sideOf, dist } = require('../geometry')
 
 const MESSAGE = 'These lines are too close: a fingertip feels one line'

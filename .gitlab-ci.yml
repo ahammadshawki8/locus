@@ -9,11 +9,9 @@ spec:
 ---
 # Locus pipeline. The pipeline is the quality gate that decides whether a student ever gets a file.
 #
-# Only jobs that do real work live here (docs/decisions.md, 14 Oct 2026). Planned jobs (projectLocus.md §13) are added
-# as each one is built:
-#   validate-spec, approve-production (supervised only), flow-config-check
+# Every job here does real work.
 # deploy-production-pointer is part of promote-production: every default-branch pipeline applies
-# deploy/gcp/production-revision (docs/decisions.md 20 Oct (i)).
+# deploy/gcp/production-revision.
 # `release` needs touchcheck, guard-scope, guard-maths, guard-description, secret-detection, sast, license-check and
 # bundle; `promote-production` needs validate-staging (docs/contracts.md §6).
 
@@ -56,7 +54,7 @@ include:
 
 variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
-  # hands-off: a green graph/* MR is merged and released without a person (projectLocus.md §13, Configure).
+  # hands-off: a green graph/* MR is merged and released without a person.
   # supervised: the fallback, with one approval. Recorded in every bundle manifest (docs/contracts.md §5).
   RELEASE_MODE: "hands-off"
   # From the `schedule` input above; the rules below read this variable.
@@ -101,7 +99,7 @@ render:
 # not artifacts). A failing rule fails the job; the report and overlay are kept either way. The attempt number is the
 # number of commits that changed the request's layout.json (attempt 1 = the intake agent's default layout).
 # The example is checked too but does not gate the pipeline: it is the demo request at the default layout (print A),
-# which fails on purpose (docs/decisions.md, 16 Oct 2026). A crash (exit > 1) still fails.
+# which fails on purpose. A crash (exit > 1) still fails.
 touchcheck:
   stage: test
   image: node:20
@@ -144,7 +142,7 @@ touchcheck:
       when: never
     - when: on_success
 
-# Guards (projectLocus.md §11, docs/contracts.md §7). Deterministic; a guard that cannot check (no base commit, missing
+# Guards (docs/contracts.md §7). Deterministic; a guard that cannot check (no base commit, missing
 # render output) exits 2 and fails the job. Each writes out/guards/*.json for the bundle job's manifest.
 .guard:
   stage: secure
@@ -213,7 +211,7 @@ guard-description:
       exit "$status"
 
 # The regression detective's revert/<sha> MR holds one commit that is exactly the inverse of <sha>: the same paths,
-# each back to its content before <sha>, none changed since (projectLocus.md §11). guard-scope checks author and paths.
+# each back to its content before <sha>, none changed since. guard-scope checks author and paths.
 guard-revert:
   extends: .guard
   needs: []
@@ -264,7 +262,7 @@ library-impact:
 
 # On main (pushes and the nightly schedule): do all shipped graphs still pass with main's code?
 # out/recheck/report.json + `LOCUS_RECHECK` log line; a failing graph fails the job, which starts bisect-regression.
-# With JUDGING_FREEZE=true it only logs: a failure does not fail the pipeline, so no flow starts (projectLocus.md §14).
+# With JUDGING_FREEZE=true it only logs: a failure does not fail the pipeline, so no flow starts.
 library-recheck:
   extends: .monitor
   stage: monitor
@@ -347,7 +345,7 @@ bundle:
       done
       echo "bundle: ${checked} request(s) checked"
       exit "$status"
-  # 90 days: the pass note links these files (docs/decisions.md 20 Oct (d)), and they must outlive judging.
+  # 90 days: the pass note links these files, and they must outlive judging.
   artifacts:
     expire_in: 90 days
     paths:
@@ -397,7 +395,7 @@ locus-test:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     # The locus-request session waits for each graph/<iid> pipeline, and the whole suite took 3 to 4 minutes of an
-    # attempt's 4 (docs/decisions.md 21 Oct (f)). Such an MR changes only request files (guard-scope), so the tests run
+    # attempt's 4. Such an MR changes only request files (guard-scope), so the tests run
     # there only when code changed too. Every main pipeline still runs them.
     - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^graph\//
       changes:
@@ -620,7 +618,7 @@ reply-teacher:
       if [ "$PROMOTED" != "true" ]; then echo "reply-teacher: production is pinned by deploy/gcp/production-revision; no reply until it serves this release"; exit 0; fi
       node locus/cli/index.js reply-teacher "$PRODUCTION_URL" out/release
 
-# Optional print order (docs/decisions.md 21 Oct (l)): emails the print shop each released graph with the STL attached.
+# Print order (optional): emails the print shop each released graph with the STL attached.
 # Off unless PRINT_ORDER_ENABLED is "true"; the sender's app password is the masked CI variable PRINT_ORDER_SMTP_PASSWORD.
 print-order:
   extends: .node-job
@@ -648,7 +646,7 @@ print-order:
       when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-# Reprints (docs/decisions.md 21 Oct (n)): the open `reprint` issues teachers send from a graph page's "Print again",
+# Reprints: the open `reprint` issues teachers send from a graph page's "Print again",
 # ordered from the school's print shop, noted and closed. Only on the reprints schedule, and only when print orders
 # are on; never during the judging freeze.
 print-reprints:
