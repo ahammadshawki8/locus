@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/poster16_9.png" alt="Locus: Blindness can't limit curiosity. A hand reads a 3D-printed raised-line graph with braille labels." width="100%">
+  <img src="assets/poster16_9.png" alt="Locus: Blindness can't limit curiosity. A student reads a 3D-printed raised-line graph with braille labels by touch." width="100%">
 </p>
 
 <h1 align="center">Locus</h1>
