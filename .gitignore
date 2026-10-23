@@ -24,3 +24,6 @@ packages/web/examples/
 # Locus render output
 /out/
 .playwright-mcp/
+
+# Local Claude Code instructions: kept on each machine, not in the repository.
+CLAUDE.md
