@@ -11,7 +11,7 @@
 #   - Assign from the issue template: .gitlab/issue_templates/graph-request.md ends with an /assign quick action, so
 #     filing the request assigns it. "Work item created" is not used: it
 #     would start the flow on every new issue.
-# Claude Code never starts this flow (H6).
+# Only these triggers start this flow; no person starts it by hand (H6).
 #
 # Shape: intake > fixer_1 > fixer_2 > fixer_3 > refuse, and no route goes back. intake commits attempt 1 (the
 # profile's default layout, print A) and opens the MR; fixer_1 waits for that pipeline; fixer_2 and fixer_3 each commit

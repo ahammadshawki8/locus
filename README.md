@@ -191,7 +191,7 @@ against every shipped graph: a downstream contract test that JSCAD never had. JS
 - **Ashfaq** ([@Ashfaq909](https://gitlab.com/Ashfaq909))
 - **Nourin Richi** ([@nourin.richi.2026](https://gitlab.com/nourin.richi.2026))
 
-Locus was built with Claude Code. Every agent inside Locus runs on the GitLab Duo Agent Platform.
+Every agent inside Locus runs on the GitLab Duo Agent Platform.
 
 ## Licence
 
